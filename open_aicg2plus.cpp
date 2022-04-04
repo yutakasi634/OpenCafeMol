@@ -2,6 +2,7 @@
 #include <iostream>
 #include <cmath>
 #include "toml11/toml.hpp"
+#include "math/constants.hpp"
 
 // Forward declaration of routine for printing one frame of the
 // trajectory, defined later in this source file.
@@ -11,14 +12,6 @@ const toml::value& find_either(
 
 void simulateSH3()
 {
-    // define physical constnt
-    const double Na = 6.02214076e23;
-    const double kB = 1.380649e-23; // J/K
-    const double pi = 3.1415926535897932385;
-
-    // prepare fundamental constant for calculation
-    const double cafetime = std::sqrt(1.0/OpenMM::KJPerKcal)*0.1; // Ps
-
     // Load any shared libraries containing GPU implementations.
     OpenMM::Platform::loadPluginsFromDirectory(
         OpenMM::Platform::getDefaultPluginsDirectory());
