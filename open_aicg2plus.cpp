@@ -82,6 +82,30 @@ void simulateSH3()
                 }
                 system.addForce(bond_ff);
             }
+            else if(interaction == "BondLength" && potential == "Gaussian")
+            {
+                OpenMM::CustomBondForce* bond_ff =
+                    new OpenMM::CustomBondForce("k*exp(-(r-v0)^2/(2*sigma^2))");
+                bond_ff->addPerBondParameter("k");
+                bond_ff->addPerBondParameter("v0");
+                bond_ff->addPerBondParameter("sigma");
+
+                const auto& params = toml::find<toml::array>(local_ff, "parameters");
+                for(const auto& param : params)
+                {
+                    const auto& indices =
+                        toml::find<std::array<std::size_t, 2>>(param, "indices");
+                    const double k  =
+                        toml::find<double>(param, "k") * OpenMM::KJPerKcal; // KJ/mol
+                    const double v0 =
+                        toml::find<double>(param, "v0") * OpenMM::NmPerAngstrom; // nm
+                    const double sigma =
+                        toml::get<double>(
+                                find_either(param, "sigma", "σ")) * OpenMM::NmPerAngstrom; // nm
+                    bond_ff->addBond(indices[0], indices[1], {k, v0, sigma});
+                }
+                system.addForce(bond_ff);
+            }
         }
     }
 
