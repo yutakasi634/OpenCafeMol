@@ -57,6 +57,34 @@ void simulateSH3()
 
     // read forcefields info
     const auto  ff = toml::find(data, "forcefields").at(0);
+    if(ff.contains("local"))
+    {
+        const auto& locals = toml::find(ff, "local").as_array();
+
+        for(const auto& local_ff : locals)
+        {
+            const std::string interaction = toml::find<std::string>(local_ff, "interaction");
+            const std::string potential   = toml::find<std::string>(local_ff, "potential");
+            if(interaction == "BondLength" && potential == "Harmonic")
+            {
+                OpenMM::HarmonicBondForce* bond_ff = new OpenMM::HarmonicBondForce();
+
+                const auto& params = toml::find<toml::array>(local_ff, "parameters");
+                for(const auto& param : params)
+                {
+                    const auto&  indices =
+                        toml::find<std::array<std::size_t, 2>>(param, "indices");
+                    const double v0 =
+                        toml::find<double>(param, "v0") * OpenMM::NmPerAngstrom; // nm
+                    const double k =
+                        toml::find<double>(param, "k") * OpenMM::KJPerKcal; // KJ/mol
+                    bond_ff->addBond(indices[0], indices[1], v0, k);
+                }
+                system.addForce(bond_ff);
+            }
+        }
+    }
+
     if(ff.contains("global"))
     {
         const auto& globals = toml::find(ff, "global").as_array();
