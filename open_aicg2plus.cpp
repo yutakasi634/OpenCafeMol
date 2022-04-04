@@ -1,6 +1,8 @@
 #include <OpenMM.h>
 #include <iostream>
+#include <string>
 #include <cmath>
+#include <optional>
 #include "toml11/toml.hpp"
 #include "math/constants.hpp"
 
@@ -51,6 +53,53 @@ void simulateSH3()
         initPosInNm[i] = OpenMM::Vec3(vec[0]*OpenMM::NmPerAngstrom,
                                       vec[1]*OpenMM::NmPerAngstrom,
                                       vec[2]*OpenMM::NmPerAngstrom); // location, nm
+    }
+
+    // read forcefields info
+    const auto  ff = toml::find(data, "forcefields").at(0);
+    if(ff.contains("global"))
+    {
+        const auto& globals = toml::find(ff, "global").as_array();
+
+        for(const auto& global_ff : globals)
+        {
+            const std::string potential = toml::find<std::string>(global_ff, "potential");
+            if(potential == "ExcludedVolume")
+            {
+                const std::string exv_expression = "epsilon*((sigma1+sigma2)/r)^12";
+                OpenMM::CustomNonbondedForce* exv_ff =
+                    new OpenMM::CustomNonbondedForce(exv_expression);
+                exv_ff->addPerParticleParameter("sigma");
+
+                const double eps =
+                    toml::find<double>(global_ff, "epsilon") * OpenMM::KJPerKcal; // KJPermol
+                exv_ff->addGlobalParameter("epsilon", eps);
+
+                const auto&  params = toml::find<toml::array>(global_ff, "parameters");
+                std::vector<std::optional<double>> radius_vec(system_size, std::nullopt);
+                for(const auto& param : params)
+                {
+                    const std::size_t index  = toml::find<std::size_t>(param, "index");
+                    const double      radius =
+                        toml::find<double>(param, "radius") * OpenMM::NmPerAngstrom; // nm
+                    radius_vec.at(index) = radius;
+                }
+
+                const auto& itr = std::find(radius_vec.begin(), radius_vec.end(), std::nullopt);
+                if(itr != radius_vec.end())
+                {
+                    std::size_t index = std::distance(radius_vec.begin(), itr);
+                    throw std::runtime_error("[error] particle index " + std::to_string(index) +
+                            " does not have radius parameter.");
+                }
+
+                for(const auto& radius : radius_vec)
+                {
+                    exv_ff->addParticle({ radius.value() });
+                }
+                system.addForce(exv_ff);
+            }
+        }
     }
 
     // setup OpenMM simulator
