@@ -114,6 +114,29 @@ void simulateSH3()
                 }
                 system.addForce(bond_ff);
             }
+            else if(interaction == "BondLength" && potential == "GoContact")
+            {
+                // TODO: enable to optimization based on cutoff
+                OpenMM::CustomBondForce* contact_ff =
+                    new OpenMM::CustomBondForce("k*(5*(r0/r)^12-6*(r0/r)^10)");
+                contact_ff->addPerBondParameter("k");
+                contact_ff->addPerBondParameter("r0");
+
+                const auto& params = toml::find<toml::array>(local_ff, "parameters");
+                for(const auto& param : params)
+                {
+                    const auto& indices =
+                        toml::find<std::pair<std::size_t, std::size_t>>(param, "indices");
+                    const double k =
+                        toml::find<double>(param, "k") * OpenMM::KJPerKcal; // KJ/mol
+                    const double r0 =
+                        toml::find<double>(param, "v0") * OpenMM::NmPerAngstrom; // nm
+                    contact_ff->addBond(indices.first, indices.second, {k, r0});
+
+                    exclusion_pairs.push_back(std::make_pair(indices.first, indices.second));
+                }
+                system.addForce(contact_ff);
+            }
             else if(interaction == "DihedralAngle" && potential == "Gaussian")
             {
                 OpenMM::CustomTorsionForce* torsion_ff =
