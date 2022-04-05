@@ -3,6 +3,7 @@
 #include <string>
 #include <cmath>
 #include <optional>
+#include <utility>
 #include "toml11/toml.hpp"
 #include "math/constants.hpp"
 
@@ -55,6 +56,9 @@ void simulateSH3()
                                       vec[2]*OpenMM::NmPerAngstrom); // location, nm
     }
 
+    // for exclusion list of Excluded Volume
+    std::vector<std::pair<std::size_t, std::size_t>> exclusion_pairs;
+
     // read forcefields info
     const auto  ff = toml::find(data, "forcefields").at(0);
     if(ff.contains("local"))
@@ -73,12 +77,14 @@ void simulateSH3()
                 for(const auto& param : params)
                 {
                     const auto&  indices =
-                        toml::find<std::array<std::size_t, 2>>(param, "indices");
+                        toml::find<std::pair<std::size_t, std::size_t>>(param, "indices");
                     const double v0 =
                         toml::find<double>(param, "v0") * OpenMM::NmPerAngstrom; // nm
                     const double k =
                         toml::find<double>(param, "k") * OpenMM::KJPerKcal; // KJ/mol
-                    bond_ff->addBond(indices[0], indices[1], v0, k);
+                    bond_ff->addBond(indices.first, indices.second, v0, k);
+
+                    exclusion_pairs.push_back(std::make_pair(indices.first, indices.second));
                 }
                 system.addForce(bond_ff);
             }
@@ -94,7 +100,7 @@ void simulateSH3()
                 for(const auto& param : params)
                 {
                     const auto& indices =
-                        toml::find<std::array<std::size_t, 2>>(param, "indices");
+                        toml::find<std::pair<std::size_t, std::size_t>>(param, "indices");
                     const double k  =
                         toml::find<double>(param, "k") * OpenMM::KJPerKcal; // KJ/mol
                     const double v0 =
@@ -102,9 +108,36 @@ void simulateSH3()
                     const double sigma =
                         toml::get<double>(
                                 find_either(param, "sigma", "σ")) * OpenMM::NmPerAngstrom; // nm
-                    bond_ff->addBond(indices[0], indices[1], {k, v0, sigma});
+                    bond_ff->addBond(indices.first, indices.second, {k, v0, sigma});
+
+                    exclusion_pairs.push_back(std::make_pair(indices.first, indices.second));
                 }
                 system.addForce(bond_ff);
+            }
+            else if(interaction == "DihedralAngle" && potential == "Gaussian")
+            {
+                OpenMM::CustomTorsionForce* torsion_ff =
+                    new OpenMM::CustomTorsionForce("k*exp(-(theta-theta0)^2/(2*sigma^2))");
+                torsion_ff->addPerTorsionParameter("k");
+                torsion_ff->addPerTorsionParameter("theta0");
+                torsion_ff->addPerTorsionParameter("sigma");
+
+                const auto& params = toml::find<toml::array>(local_ff, "parameters");
+                for(const auto& param : params)
+                {
+                    const auto& indices =
+                        toml::find<std::array<std::size_t, 4>>(param, "indices");
+                    const double k  =
+                        toml::find<double>(param, "k") * OpenMM::KJPerKcal; // KJ/mol
+                    const double theta0 = toml::find<double>(param, "v0"); // radiuns
+                    const double sigma =
+                        toml::get<double>(find_either(param, "sigma", "σ")); // radiuns
+                    torsion_ff->addTorsion(
+                            indices[0], indices[1], indices[2], indices[3], {k, theta0, sigma});
+
+                    exclusion_pairs.push_back(std::make_pair(indices[0], indices[3]));
+                }
+                system.addForce(torsion_ff);
             }
         }
     }
@@ -149,6 +182,12 @@ void simulateSH3()
                 {
                     exv_ff->addParticle({ radius.value() });
                 }
+
+                for(const auto& exclusion_pair : exclusion_pairs)
+                {
+                    exv_ff->addExclusion(exclusion_pair.first, exclusion_pair.second);
+                }
+
                 system.addForce(exv_ff);
             }
         }
