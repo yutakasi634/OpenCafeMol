@@ -198,9 +198,10 @@ void simulateSH3()
     // In OpenMM, we cannot use different friction coefficiet, gamma, for different molecules.
     // However, cafemol use different gamma depends on the mass of each particle, and the
     // product of mass and gamma is constant in there.
-    // So in this implementation, we fix the gamma to 0.01 temporary. We need to implement
-    // new LangevinIntegrator which can use different gamma for different particles.
-    OpenMM::LangevinIntegrator integrator(temperature, 0.01/*friction coef*/, delta_t*cafetime);
+    // So in this implementation, we fix the gamma to 0.2 ps^-1 temporary, correspond to
+    // approximatry 0.01 in cafemol friction coefficient. We need to implement new
+    // LangevinIntegrator which can use different gamma for different particles.
+    OpenMM::LangevinIntegrator integrator(temperature, 0.2/*friction coef ps^-1*/, delta_t*cafetime);
 
     OpenMM::Context context(system, integrator,
             OpenMM::Platform::getPlatformByName("CUDA"));
