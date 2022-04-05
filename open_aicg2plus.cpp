@@ -151,6 +151,7 @@ void simulateSH3()
             const std::string potential = toml::find<std::string>(global_ff, "potential");
             if(potential == "ExcludedVolume")
             {
+                // TODO: add cutoff
                 const std::string exv_expression = "epsilon*((sigma1+sigma2)/r)^12";
                 OpenMM::CustomNonbondedForce* exv_ff =
                     new OpenMM::CustomNonbondedForce(exv_expression);
