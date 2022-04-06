@@ -62,6 +62,7 @@ void simulateSH3()
     // for exclusion list of Excluded Volume
     std::vector<std::pair<std::size_t, std::size_t>> exclusion_pairs;
 
+    std::cerr << "initializing forcefields" << std::endl;
     // read forcefields info
     const auto  ff = toml::find(data, "forcefields").at(0);
     if(ff.contains("local"))
@@ -74,6 +75,7 @@ void simulateSH3()
             const std::string potential   = toml::find<std::string>(local_ff, "potential");
             if(interaction == "BondLength" && potential == "Harmonic")
             {
+                std::cerr << "    BondLegth interaction : Harmonic potential" << std::endl;
                 OpenMM::HarmonicBondForce* bond_ff = new OpenMM::HarmonicBondForce();
 
                 const auto& params = toml::find<toml::array>(local_ff, "parameters");
@@ -93,6 +95,7 @@ void simulateSH3()
             }
             else if(interaction == "BondLength" && potential == "Gaussian")
             {
+                std::cerr << "    BondLegth interaction : Gaussian potential" << std::endl;
                 OpenMM::CustomBondForce* bond_ff =
                     new OpenMM::CustomBondForce("k*exp(-(r-v0)^2/(2*sigma^2))");
                 bond_ff->addPerBondParameter("k");
@@ -119,6 +122,8 @@ void simulateSH3()
             }
             else if(interaction == "BondLength" && potential == "GoContact")
             {
+                std::cerr << "    BondLegth interaction : GoContact potential" << std::endl;
+
                 // TODO: enable to optimization based on cutoff
                 OpenMM::CustomBondForce* contact_ff =
                     new OpenMM::CustomBondForce("k*(5*(r0/r)^12-6*(r0/r)^10)");
@@ -142,6 +147,7 @@ void simulateSH3()
             }
             else if(interaction == "DihedralAngle" && potential == "Gaussian")
             {
+                std::cerr << "    DihedralAngle interaction : Gaussian potential" << std::endl;
                 OpenMM::CustomTorsionForce* torsion_ff =
                     new OpenMM::CustomTorsionForce("k*exp(-(theta-theta0)^2/(2*sigma^2))");
                 torsion_ff->addPerTorsionParameter("k");
@@ -177,6 +183,7 @@ void simulateSH3()
             const std::string potential = toml::find<std::string>(global_ff, "potential");
             if(potential == "ExcludedVolume")
             {
+                std::cerr << "    ExcludedVolume potential" << std::endl;
                 // TODO: add cutoff
                 const std::string exv_expression = "epsilon*((sigma1+sigma2)/r)^12";
                 OpenMM::CustomNonbondedForce* exv_ff =
@@ -227,7 +234,13 @@ void simulateSH3()
     // So in this implementation, we fix the gamma to 0.2 ps^-1 temporary, correspond to
     // approximatry 0.01 in cafemol friction coefficient. We need to implement new
     // LangevinIntegrator which can use different gamma for different particles.
-    OpenMM::LangevinIntegrator integrator(temperature, 0.2/*friction coef ps^-1*/, delta_t*cafetime);
+    std::cerr << "initializing integrator with " << std::endl;
+    std::cerr << "    temperature : "
+        << std::setw(5) << std::fixed << std::setprecision(1) << temperature << " K" << std::endl;
+    std::cerr << "    delta t     : "
+        << std::setw(5) << std::fixed << delta_t << " cafetime" << std::endl;
+    OpenMM::LangevinIntegrator integrator(
+            temperature, 0.2/*friction coef ps^-1*/, delta_t*cafetime);
 
     OpenMM::Context context(system, integrator,
             OpenMM::Platform::getPlatformByName("CUDA"));
@@ -245,8 +258,8 @@ void simulateSH3()
     {
         OpenMM::State pos    = context.getState(OpenMM::State::Positions);
         OpenMM::State energy = context.getState(OpenMM::State::Energy);
-        writePdbFrame(pdb_fp, frame_num, pos); // output coordinates
-        writeEnergy  (ene_fp, frame_num, energy); // output energy
+        writePdbFrame(pdb_fp, frame_num*save_step, pos); // output coordinates
+        writeEnergy  (ene_fp, frame_num*save_step, energy); // output energy
 
         integrator.step(save_step);
     }
