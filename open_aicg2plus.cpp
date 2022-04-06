@@ -263,7 +263,9 @@ void simulateSH3(const std::string& input_file_name)
     ene_fp << "# timestep  potential_energy  kinetic_energy" << std::endl;
 
     // Simulate
+    const auto start = std::chrono::system_clock::now();
     std::cerr << "calculation start!" << std::endl;
+
     for (std::size_t frame_num=0; frame_num<total_frame; ++frame_num)
     {
         OpenMM::State pos    = context.getState(OpenMM::State::Positions);
@@ -273,6 +275,34 @@ void simulateSH3(const std::string& input_file_name)
 
         integrator.step(save_step);
     }
+
+    const auto stop  = std::chrono::system_clock::now();
+    const auto total = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count();
+    std::cerr << "elapsed time : ";
+    std::cerr << std::fixed << std::setprecision(1);
+
+    if(total < 1000.0)
+    {
+        std::cerr << total << " [msec]";
+    }
+    else if(total < 1000.0 * 60.0)
+    {
+        std::cerr << total * 0.001 << " [sec]";
+    }
+    else if(total < 1000.0 * 60.0 * 60.0)
+    {
+        std::cerr << total * 0.001 * 0.0167 << " [min]";
+    }
+    else if(total < 1000.0 * 60.0 * 60.0 * 24.0)
+    {
+        std::cerr << total * 0.001 * 0.0167 * 0.0167 << " [hr]";
+    }
+    else
+    {
+        std::cerr << total * 0.001 * 0.0167 * 0.0167 * 0.0417 << " [day]";
+    }
+    std::cerr << std::endl;
+
     pdb_fp.close();
     ene_fp.close();
 }
