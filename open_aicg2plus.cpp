@@ -1,5 +1,6 @@
 #include <OpenMM.h>
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <cmath>
 #include <optional>
@@ -9,7 +10,8 @@
 
 // Forward declaration of routine for printing one frame of the
 // trajectory, defined later in this source file.
-void writePdbFrame(int frameNum, const OpenMM::State&);
+void writePdbFrame(std::ofstream& fp, int frameNum, const OpenMM::State&);
+void writeEnergy  (std::ofstream& fp, int frameNum, const OpenMM::State&);
 const toml::value& find_either(
         const toml::value& v, const std::string& key1, const std::string& key2);
 
@@ -19,8 +21,9 @@ void simulateSH3()
     OpenMM::Platform::loadPluginsFromDirectory(
         OpenMM::Platform::getDefaultPluginsDirectory());
 
+    std::string file_prefix = "sh3_AICG2+";
     // read input toml file
-    auto data = toml::parse("input/sh3_AICG2+.toml");
+    auto data = toml::parse("input/" + file_prefix + ".toml");
 
     // read simulator table
     const auto& simulator              = toml::find(data, "simulator");
@@ -232,14 +235,23 @@ void simulateSH3()
     // Set starting positions of the atoms.
     context.setPositions(initPosInNm);
 
+    std::ofstream pdb_fp("output/" + file_prefix + ".pdb", std::ios::out);
+    std::ofstream ene_fp("output/" + file_prefix + ".ene" , std::ios::out);
+    ene_fp << "# unit of energy : kcal/mol" << std::endl;
+    ene_fp << "# timestep  potential_energy  kinetic_energy" << std::endl;
+
     // Simulate
     for (std::size_t frame_num=0; frame_num<total_frame; ++frame_num)
     {
-        OpenMM::State state = context.getState(OpenMM::State::Positions);
-        writePdbFrame(frame_num, state); // output coordinates
+        OpenMM::State pos    = context.getState(OpenMM::State::Positions);
+        OpenMM::State energy = context.getState(OpenMM::State::Energy);
+        writePdbFrame(pdb_fp, frame_num, pos); // output coordinates
+        writeEnergy  (ene_fp, frame_num, energy); // output energy
 
         integrator.step(save_step);
     }
+    pdb_fp.close();
+    ene_fp.close();
 }
 
 int main()
@@ -256,23 +268,32 @@ int main()
 }
 
 // Handy homebrew PDB writer for quick-and-dirty trajectory output.
-void writePdbFrame(int frameNum, const OpenMM::State& state)
+void writePdbFrame(std::ofstream& fp, int frameNum, const OpenMM::State& state)
 {
     // Reference atomic positions in the OpenMM State.
     const std::vector<OpenMM::Vec3>& posInNm = state.getPositions();
 
     // Use PDB MODEL cards to number trajectory frames
-    printf("MODEL     %d\n", frameNum); // start of frame
+    fp << "MODEL     " << frameNum << std::endl; // start of frame
     for (int a = 0; a < (int)posInNm.size(); ++a)
     {
-        printf("ATOM  %5d  AR   AR     1    ", a+1); // atom number
-        printf("%8.3f%8.3f%8.3f  1.00  0.00\n",      // coordinates
-            // "*10" converts nanometers to Angstroms
-            posInNm[a][0]*OpenMM::AngstromsPerNm,
-            posInNm[a][1]*OpenMM::AngstromsPerNm,
-            posInNm[a][2]*OpenMM::AngstromsPerNm);
+        fp << std::setprecision(3);
+        fp << "ATOM  " << std::setw(5) << a+1 << "  AR   AR     1    "; // atom number
+        fp << std::setw(8) << std::fixed
+           << std::setw(8) << std::fixed << posInNm[a][0]*OpenMM::AngstromsPerNm
+           << std::setw(8) << std::fixed << posInNm[a][1]*OpenMM::AngstromsPerNm
+           << std::setw(8) << std::fixed << posInNm[a][2]*OpenMM::AngstromsPerNm << "  1.00  0.00" << std::endl;
     }
-    printf("ENDMDL\n"); // end of frame
+    fp << "ENDMDL" << std::endl; // end of frame
+}
+
+void writeEnergy(std::ofstream& fp, int frameNum, const OpenMM::State& state)
+{
+    const double pot_ene = state.getPotentialEnergy() * OpenMM::KcalPerKJ; // kcal/mol
+    const double kin_ene = state.getKineticEnergy() * OpenMM::KcalPerKJ; // kcal/mol
+    fp << std::setw(11) << std::left << frameNum << ' ';
+    fp << std::setw(16) << std::right << std::fixed << pot_ene;
+    fp << "  " << std::setw(14) << std::right << std::fixed << kin_ene << std::endl;
 }
 
 const toml::value& find_either(
