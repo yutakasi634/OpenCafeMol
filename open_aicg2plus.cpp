@@ -237,11 +237,11 @@ void simulateSH3()
     // LangevinIntegrator which can use different gamma for different particles.
     std::cerr << "initializing integrator with " << std::endl;
     std::cerr << "    temperature : "
-        << std::setw(5) << std::fixed << std::setprecision(1) << temperature << " K" << std::endl;
+        << std::setw(7) << std::fixed << std::setprecision(2) << temperature << " K" << std::endl;
     std::cerr << "    delta t     : "
-        << std::setw(5) << std::fixed << delta_t << " cafetime" << std::endl;
+        << std::setw(7) << std::fixed << std::setprecision(2) << delta_t << " cafetime" << std::endl;
     OpenMM::LangevinIntegrator integrator(
-            temperature, 0.2/*friction coef ps^-1*/, delta_t*cafetime);
+            temperature, 0.3/*friction coef ps^-1*/, delta_t*cafetime);
 
     OpenMM::Context context(system, integrator,
             OpenMM::Platform::getPlatformByName("CUDA"));
