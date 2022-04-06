@@ -86,7 +86,8 @@ void simulateSH3()
                     const double v0 =
                         toml::find<double>(param, "v0") * OpenMM::NmPerAngstrom; // nm
                     const double k =
-                        toml::find<double>(param, "k") * OpenMM::KJPerKcal; // KJ/mol
+                        toml::find<double>(param, "k") * OpenMM::KJPerKcal *
+                        OpenMM::AngstromsPerNm * OpenMM::AngstromsPerNm; // KJ/(mol nm^2)
                     bond_ff->addBond(indices.first, indices.second, v0, k);
 
                     exclusion_pairs.push_back(std::make_pair(indices.first, indices.second));
