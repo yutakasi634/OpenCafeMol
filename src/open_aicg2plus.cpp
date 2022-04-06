@@ -5,8 +5,8 @@
 #include <cmath>
 #include <optional>
 #include <utility>
-#include "toml11/toml.hpp"
-#include "math/constants.hpp"
+#include <toml11/toml.hpp>
+#include <math/constants.hpp>
 
 // Forward declaration of routine for printing one frame of the
 // trajectory, defined later in this source file.
@@ -256,9 +256,19 @@ void simulateSH3(const std::string& input_file_name)
     std::string output_coordinate_file = "output/" + file_prefix + ".pdb";
     std::cerr << "    output trajectory file : " << output_coordinate_file << std::endl;
     std::ofstream pdb_fp(output_coordinate_file, std::ios::out);
+    if(not pdb_fp.good())
+    {
+        throw std::runtime_error("file open error : " + output_coordinate_file);
+    }
+
     std::string output_energy_file     = "output/" + file_prefix + ".ene";
     std::cerr << "    output energy file     : " << output_energy_file << std::endl;
     std::ofstream ene_fp(output_energy_file, std::ios::out);
+    if(not ene_fp.good())
+    {
+        throw std::runtime_error("file open error : " + output_coordinate_file);
+    }
+
     ene_fp << "# unit of energy : kcal/mol" << std::endl;
     ene_fp << "# timestep  potential_energy  kinetic_energy" << std::endl;
 
