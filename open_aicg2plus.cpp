@@ -65,7 +65,7 @@ void simulateSH3(const std::string& input_file_name)
     // for exclusion list of Excluded Volume
     std::vector<std::pair<std::size_t, std::size_t>> exclusion_pairs;
 
-    std::cerr << "initializing forcefields" << std::endl;
+    std::cerr << "initializing forcefields..." << std::endl;
     // read forcefields info
     const auto  ff = toml::find(data, "forcefields").at(0);
     if(ff.contains("local"))
@@ -238,7 +238,7 @@ void simulateSH3(const std::string& input_file_name)
     // So in this implementation, we fix the gamma to 0.2 ps^-1 temporary, correspond to
     // approximatry 0.01 in cafemol friction coefficient. We need to implement new
     // LangevinIntegrator which can use different gamma for different particles.
-    std::cerr << "initializing integrator with " << std::endl;
+    std::cerr << "initializing integrator..." << std::endl;
     std::cerr << "    temperature : "
         << std::setw(7) << std::fixed << std::setprecision(2) << temperature << " K" << std::endl;
     std::cerr << "    delta t     : "
@@ -252,12 +252,18 @@ void simulateSH3(const std::string& input_file_name)
     // Set starting positions of the atoms.
     context.setPositions(initPosInNm);
 
-    std::ofstream pdb_fp("output/" + file_prefix + ".pdb", std::ios::out);
-    std::ofstream ene_fp("output/" + file_prefix + ".ene" , std::ios::out);
+    std::cerr << "output file information" << std::endl;
+    std::string output_coordinate_file = "output/" + file_prefix + ".pdb";
+    std::cerr << "    output trajectory file : " << output_coordinate_file << std::endl;
+    std::ofstream pdb_fp(output_coordinate_file, std::ios::out);
+    std::string output_energy_file     = "output/" + file_prefix + ".ene";
+    std::cerr << "    output energy file     : " << output_energy_file << std::endl;
+    std::ofstream ene_fp(output_energy_file, std::ios::out);
     ene_fp << "# unit of energy : kcal/mol" << std::endl;
     ene_fp << "# timestep  potential_energy  kinetic_energy" << std::endl;
 
     // Simulate
+    std::cerr << "calculation start!" << std::endl;
     for (std::size_t frame_num=0; frame_num<total_frame; ++frame_num)
     {
         OpenMM::State pos    = context.getState(OpenMM::State::Positions);
