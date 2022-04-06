@@ -1,4 +1,6 @@
 build/*
 output/*
 input/*
+bin/*
 *.out
+*.swp
