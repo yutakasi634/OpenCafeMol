@@ -15,15 +15,18 @@ void writeEnergy  (std::ofstream& fp, int frameNum, const OpenMM::State&);
 const toml::value& find_either(
         const toml::value& v, const std::string& key1, const std::string& key2);
 
-void simulateSH3()
+void simulateSH3(const std::string& input_file_name)
 {
     // Load any shared libraries containing GPU implementations.
     OpenMM::Platform::loadPluginsFromDirectory(
         OpenMM::Platform::getDefaultPluginsDirectory());
 
-    std::string file_prefix = "sh3_AICG2+";
+    const std::size_t file_path_len   = input_file_name.rfind("/")+1;
+    const std::size_t file_prefix_len = input_file_name.rfind(".") - file_path_len;
+    const std::string file_path       = input_file_name.substr(0, file_path_len);
+    const std::string file_prefix     = input_file_name.substr(file_path_len, file_prefix_len);
     // read input toml file
-    auto data = toml::parse("input/" + file_prefix + ".toml");
+    auto data = toml::parse(input_file_name);
 
     // read simulator table
     const auto& simulator              = toml::find(data, "simulator");
@@ -268,10 +271,16 @@ void simulateSH3()
     ene_fp.close();
 }
 
-int main()
+int main(int argc, char** argv)
 {
+    if(argc != 2)
+    {
+        std::cerr << "Usage: " << argv[0] << " <input.toml>" << std::endl;
+        return 1;
+    }
+
     try {
-        simulateSH3();
+        simulateSH3(std::string(argv[1]));
         return 0; // success!
     }
     // Catch and report usage and runtime errors detected by OpenMM and fail.
