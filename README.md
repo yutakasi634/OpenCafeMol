@@ -16,3 +16,10 @@ $ make
 ```
 After this, you will find an excutable binary in `bin` directory.  
 If your OpenMM is not installed under `/usr` or `/usr/local`, you need to specify the install directory like `cmake .. -DOPRNMM_ROOT=<your/openmm/installed/path>` in cmake step.
+
+## Example
+Example input files is in the input directory. You can run this with the command below.
+```sh
+$ ./bin/open_aicg2plus input/sh3_AICG2+.toml
+```
+The result files will be generated in output directory.
