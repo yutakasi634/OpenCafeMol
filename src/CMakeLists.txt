@@ -7,5 +7,4 @@ set_target_properties(open_aicg2plus PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin")
 
 target_include_directories(open_aicg2plus PRIVATE OpenMM::OpenMM)
-target_link_directories(open_aicg2plus PRIVATE /usr/local/openmm/lib)
-target_link_libraries(open_aicg2plus OpenMM)
+target_link_libraries     (open_aicg2plus PRIVATE OpenMM::OpenMM)

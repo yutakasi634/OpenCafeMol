@@ -10,7 +10,7 @@ find_path(OPENMM_INCLUDE_DIR
     )
 message(STATUS "OpenMM include path : ${OPENMM_INCLUDE_DIR}")
 
-find_path(OPENMM_LIBRARY_DIR
+find_library(OPENMM_LIBRARY
     NAMES
         libOpenMM.so
     PATHS
@@ -20,23 +20,23 @@ find_path(OPENMM_LIBRARY_DIR
     PATH_SUFFIXES
         openmm/lib
     )
-message(STATUS "OpenMM library path : ${OPENMM_LIBRARY_DIR}")
+message(STATUS "OpenMM library path : ${OPENMM_LIBRARY}")
 
-mark_as_advanced(OPENMM_INCLUDE_DIR OPENMM_LIBRARY_DIR)
+mark_as_advanced(OPENMM_INCLUDE_DIR OPENMM_LIBRARY)
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(OpenMM
     REQUIRED_VARS
         OPENMM_INCLUDE_DIR
-        OPENMM_LIBRARY_DIR
+        OPENMM_LIBRARY
     )
 
 if(OPENMM_FOUND AND NOT TARGET OpenMM::OpenMM)
     add_library(OpenMM::OpenMM UNKNOWN IMPORTED)
     set_target_properties(OpenMM::OpenMM PROPERTIES
         IMPORTED_LINK_INTERFACE_LANGUAGES "CXX"
-        INTERFACE_LINK_DIRECTORIES        "${OPENMM_LINK_DIR}"
-        INTERFACE_INCLUDE_DIRECTORIES     "${OPENMM_INCLUDE_DIR}"
+        IMPORTED_LOCATION             "${OPENMM_LIBRARY}"
+        INTERFACE_INCLUDE_DIRECTORIES "${OPENMM_INCLUDE_DIR}"
         )
 endif()
 
