@@ -1,5 +1,5 @@
 # search installed OpenMM lib and include path
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake_modules)
 find_package(OpenMM REQUIRED)
 
 add_executable(open_aicg2plus open_aicg2plus.cpp)
