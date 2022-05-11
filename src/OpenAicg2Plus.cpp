@@ -5,15 +5,9 @@
 #include <cmath>
 #include <optional>
 #include <utility>
-#include <toml11/toml.hpp>
-#include <math/constants.hpp>
-
-// Forward declaration of routine for printing one frame of the
-// trajectory, defined later in this source file.
-void writePdbFrame(std::ofstream& fp, int frameNum, const OpenMM::State&);
-void writeEnergy  (std::ofstream& fp, int frameNum, const OpenMM::State&);
-const toml::value& find_either(
-        const toml::value& v, const std::string& key1, const std::string& key2);
+#include "toml11/toml.hpp"
+#include "math/constants.hpp"
+#include "utility.hpp"
 
 void simulateSH3(const std::string& input_file_name)
 {
@@ -148,6 +142,36 @@ void simulateSH3(const std::string& input_file_name)
                     exclusion_pairs.push_back(std::make_pair(indices.first, indices.second));
                 }
                 system.addForce(contact_ff);
+            }
+            else if(interaction == "BondAngle" && potential == "FlexibleLocalAngle")
+            {
+                std::cerr << "    BondAngle interaction : FlexibleLocalAngle" << std::endl;
+
+                const double min_theta = 1.30900;
+                const double max_theta = 2.87979;
+
+                for(const AAType aa_type : )
+                {
+                    OpenMM::CustomCompoundForce* angle_ff =
+                        new OpenMM::CustomCompoundForce("spline(theta)
+                                -step(min_theta-theta)*30*(theta-min_theta)
+                                +step(theta-max_theta)*30*(theta-max_theta)")_;
+
+                    const auto& env = local_ff.containts("env") ? global.at("env") : toml::value{};
+                    const auto& params = toml::find<toml::array>(local_ff, "parameteres");
+                    for(const auto& param : params)
+                    {
+                        const auto& indices =
+                            toml::find<std::array<std::size_t, 3>>(param, "indices");
+                        const double k =
+                            toml::find<double>(param, "k") * OpenMM::KJPerKcal; // KJ/mol
+                        const std::array<double, 10> =
+                            find_parameter<std::array<doubld, 10>>(param, "y"); // CubicSpline parameters
+                    }
+
+                    OpenMM::CustomCompoundForce* angle_ff =
+                        new OpenMM::CustomCompoundBondForce("cubic_spline(r)+step()")
+                }
             }
             else if(interaction == "DihedralAngle" && potential == "Gaussian")
             {
@@ -335,51 +359,3 @@ int main(int argc, char** argv)
         return 1; // failure!
     }
 }
-
-// Handy homebrew PDB writer for quick-and-dirty trajectory output.
-void writePdbFrame(std::ofstream& fp, int frameNum, const OpenMM::State& state)
-{
-    // Reference atomic positions in the OpenMM State.
-    const std::vector<OpenMM::Vec3>& posInNm = state.getPositions();
-
-    // Use PDB MODEL cards to number trajectory frames
-    fp << "MODEL     " << frameNum << std::endl; // start of frame
-    for (int a = 0; a < (int)posInNm.size(); ++a)
-    {
-        fp << std::setprecision(3);
-        fp << "ATOM  " << std::setw(5) << a+1 << "  AR   AR     1    "; // atom number
-        fp << std::setw(8) << std::fixed
-           << std::setw(8) << std::fixed << posInNm[a][0]*OpenMM::AngstromsPerNm
-           << std::setw(8) << std::fixed << posInNm[a][1]*OpenMM::AngstromsPerNm
-           << std::setw(8) << std::fixed << posInNm[a][2]*OpenMM::AngstromsPerNm << "  1.00  0.00" << std::endl;
-    }
-    fp << "ENDMDL" << std::endl; // end of frame
-}
-
-void writeEnergy(std::ofstream& fp, int frameNum, const OpenMM::State& state)
-{
-    const double pot_ene = state.getPotentialEnergy() * OpenMM::KcalPerKJ; // kcal/mol
-    const double kin_ene = state.getKineticEnergy() * OpenMM::KcalPerKJ; // kcal/mol
-    fp << std::setw(11) << std::left << frameNum << ' ';
-    fp << std::setw(16) << std::right << std::fixed << pot_ene;
-    fp << "  " << std::setw(14) << std::right << std::fixed << kin_ene << std::endl;
-}
-
-const toml::value& find_either(
-        const toml::value& v, const std::string& key1, const std::string& key2)
-{
-    // A functor to find a value that corresponds to either of the key.
-    // If both key exists, throw an error.
-    if(v.contains(key1) && v.contains(key2) != 0)
-    {
-        std::cerr << toml::format_error("[error] key duplicates.", v.at(key1), "here", v.at(key2),
-                                        "this conflicts with the above value definition")
-                 << std::endl;
-    }
-    if (v.contains(key1)) { return v.at(key1); }
-    if(v.contains(key2))  { return v.at(key2); }
-
-    throw std::runtime_error(toml::format_error("both keys, \"" + key1 + "\" and \"" + key2 +
-                             "\", are not found.", v, "in this table"));
-}
-
