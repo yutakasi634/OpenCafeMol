@@ -147,6 +147,8 @@ void simulateSH3(const std::string& input_file_name)
             {
                 std::cerr << "    BondAngle     : FlexibleLocalAngle" << std::endl;
 
+                const auto& params = toml::find<toml::array>(local_ff, "parameters");
+
                 for(const auto& [aa_type, spline_table] : fla_spline_table)
                 {
                     OpenMM::Continuous1DFunction* spline_func =
@@ -171,11 +173,10 @@ void simulateSH3(const std::string& input_file_name)
                     angle_ff->addPerBondParameter("max_theta");
                     angle_ff->addPerBondParameter("max_theta_y");
 
-                    const auto& params = toml::find<toml::array>(local_ff, "parameters");
                     for(const auto& param : params)
                     {
                         const std::string y = toml::find<std::string>(param, "y");
-                        if(true)//y.substr(3, 3) == aa_type) // y is like "y1_PHE"
+                        if(y.substr(3, 3) == aa_type) // y is like "y1_PHE"
                         {
                             const auto& indices =
                                 toml::find<std::vector<int>>(param, "indices");
@@ -184,6 +185,8 @@ void simulateSH3(const std::string& input_file_name)
                             angle_ff->addBond(indices,
                                     {k, fla_spline_min_theta, min_theta_y,
                                      fla_spline_max_theta, max_theta_y});
+                            exclusion_pairs.push_back(
+                                    std::make_pair(indices[0], indices[2]));
                         }
                     }
                     system.addForce(angle_ff);
