@@ -185,8 +185,13 @@ void simulateSH3(const std::string& input_file_name)
                             angle_ff->addBond(indices,
                                     {k, fla_spline_min_theta, min_theta_y,
                                      fla_spline_max_theta, max_theta_y});
-                            exclusion_pairs.push_back(
-                                    std::make_pair(indices[0], indices[2]));
+                            // TODO
+                            // dupulication in exclusion list make error
+                            // all exclusion shoul be specified in HarmonicBond and GoContact
+                            // exclusion_pairs.push_back(std::make_pair(indices[0], indices[3]));
+
+                            // exclusion_pairs.push_back(
+                            //         std::make_pair(indices[0], indices[2]));
                         }
                     }
                     system.addForce(angle_ff);
@@ -214,7 +219,9 @@ void simulateSH3(const std::string& input_file_name)
                         toml::get<double>(find_either(param, "sigma", "σ")); // radiuns
                     torsion_ff->addTorsion(
                             indices[0], indices[1], indices[2], indices[3], {k, theta0, sigma});
-
+                    // TODO
+                    // dupulication in exclusion list make error
+                    // all exclusion shoul be specified in HarmonicBond and GoContact
                     exclusion_pairs.push_back(std::make_pair(indices[0], indices[3]));
                 }
                 system.addForce(torsion_ff);
@@ -286,7 +293,10 @@ void simulateSH3(const std::string& input_file_name)
                                 {fourier_table[0],
                                  fourier_table[1], fourier_table[2], fourier_table[3],
                                  fourier_table[4], fourier_table[5], fourier_table[6]});
-                        exclusion_pairs.push_back(std::make_pair(indices[0], indices[3]));
+                        // TODO
+                        // dupulication in exclusion list make error
+                        // all exclusion shoul be specified in HarmonicBond and GoContact
+                        // exclusion_pairs.push_back(std::make_pair(indices[0], indices[3]));
                     }
                     system.addForce(torsion_ff);
                 }
