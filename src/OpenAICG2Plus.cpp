@@ -72,7 +72,7 @@ void simulateSH3(const std::string& input_file_name)
             const std::string potential   = toml::find<std::string>(local_ff, "potential");
             if(interaction == "BondLength" && potential == "Harmonic")
             {
-                std::cerr << "    BondLegth interaction : Harmonic potential" << std::endl;
+                std::cerr << "    BondLength    : Harmonic" << std::endl;
                 OpenMM::HarmonicBondForce* bond_ff = new OpenMM::HarmonicBondForce();
 
                 const auto& params = toml::find<toml::array>(local_ff, "parameters");
@@ -93,7 +93,7 @@ void simulateSH3(const std::string& input_file_name)
             }
             else if(interaction == "BondLength" && potential == "Gaussian")
             {
-                std::cerr << "    BondLegth interaction : Gaussian potential" << std::endl;
+                std::cerr << "    BondLength    : Gaussian" << std::endl;
                 OpenMM::CustomBondForce* bond_ff =
                     new OpenMM::CustomBondForce("k*exp(-(r-v0)^2/(2*sigma^2))");
                 bond_ff->addPerBondParameter("k");
@@ -120,7 +120,7 @@ void simulateSH3(const std::string& input_file_name)
             }
             else if(interaction == "BondLength" && potential == "GoContact")
             {
-                std::cerr << "    BondLegth interaction : GoContact potential" << std::endl;
+                std::cerr << "    BondLength    : GoContact" << std::endl;
 
                 // TODO: enable to optimization based on cutoff
                 OpenMM::CustomBondForce* contact_ff =
@@ -145,7 +145,7 @@ void simulateSH3(const std::string& input_file_name)
             }
             else if(interaction == "BondAngle" && potential == "FlexibleLocalAngle")
             {
-                std::cerr << "    BondAngle interaction : FlexibleLocalAngle" << std::endl;
+                std::cerr << "    BondAngle     : FlexibleLocalAngle" << std::endl;
 
                 for(const AAType aa_type : AAType())
                 {
@@ -187,7 +187,7 @@ void simulateSH3(const std::string& input_file_name)
             }
             else if(interaction == "DihedralAngle" && potential == "Gaussian")
             {
-                std::cerr << "    DihedralAngle interaction : Gaussian potential" << std::endl;
+                std::cerr << "    DihedralAngle : Gaussian" << std::endl;
 
                 OpenMM::CustomTorsionForce* torsion_ff =
                     new OpenMM::CustomTorsionForce("k*exp(-(theta-theta0)^2/(2*sigma^2))");
@@ -224,7 +224,7 @@ void simulateSH3(const std::string& input_file_name)
             const std::string potential = toml::find<std::string>(global_ff, "potential");
             if(potential == "ExcludedVolume")
             {
-                std::cerr << "    ExcludedVolume potential" << std::endl;
+                std::cerr << "    Global        : ExcludedVolume" << std::endl;
                 // TODO: add cutoff
                 const std::string exv_expression = "epsilon*((sigma1+sigma2)/r)^12";
                 OpenMM::CustomNonbondedForce* exv_ff =
