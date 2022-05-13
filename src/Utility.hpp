@@ -81,7 +81,7 @@ T find_parameter(const toml::value& params, const toml::value& env,
         const std::string& var = p.as_string();
         if(env.is_uninitialized())
         {
-            throw std::out_of_range(toml::format_error("[error] named variable \""_s +
+            throw std::out_of_range(toml::format_error("[error] named variable \"" +
                 var + "\" used but no env is defined", params, "used here"));
         }
         if(!env.is_table() || !env.contains(var))

@@ -6,8 +6,8 @@
 #include <optional>
 #include <utility>
 #include "toml11/toml.hpp"
-#include "math/constants.hpp"
-#include "utility.hpp"
+#include "Constants.hpp"
+#include "Utility.hpp"
 
 void simulateSH3(const std::string& input_file_name)
 {
@@ -149,38 +149,40 @@ void simulateSH3(const std::string& input_file_name)
 
                 for(const AAType aa_type : AAType())
                 {
-                    std::array<double, 10>& spline_table = fla_spline_table.at(aa_type);
+                    const std::array<double, 10>& spline_table = fla_spline_table.at(aa_type);
+                    OpenMM::Continuous1DFunction spline_func =
+                        OpenMM::Continuous1DFunction(
+                            std::vector<double>(spline_table.begin(), spline_table.end()),
+                            fla_spline_min_theta, fla_spline_max_theta);
                     const double min_theta_y = spline_table[0];
                     const double max_theta_y = spline_table[9];
 
-                    OpenMM::CustomCompoundForce* angle_ff =
-                        new OpenMM::CustomCompoundForce(
-                                "k * ("
-                                   "spline(theta)"
-                                   "- (step(min_theta-theta) * 30 * (theta-min_theta) + min_theta_y)"
-                                   "+ (step(theta-max_theta) * 30 * (theta-max_theta) + max_theta_y)"
-                                ")");
-                    angle_ff->addTabulatedFunction("spline", spline_table,
-                            fla_spline_min_theta, fla_spline_max_theta);
-                    angle_ff->addPerBondParameter("k");
-                    angle_ff->addPerBondParameter("min_theta");
-                    angle_ff->addPerBondParameter("min_theta_y");
-                    angle_ff->addPerBondParameter("max_theta");
-                    angle_ff->addPerBondParameter("max_theta_y");
+                    OpenMM::CustomCompoundBondForce angle_ff =
+                        OpenMM::CustomCompoundBondForce(3,
+                            "k * ("
+                               "spline(theta)"
+                               "- (step(min_theta-theta) * 30 * (theta-min_theta) + min_theta_y)"
+                               "+ (step(theta-max_theta) * 30 * (theta-max_theta) + max_theta_y)"
+                            ")");
+                    angle_ff.addTabulatedFunction("spline", &spline_func);
+                    angle_ff.addPerBondParameter("k");
+                    angle_ff.addPerBondParameter("min_theta");
+                    angle_ff.addPerBondParameter("min_theta_y");
+                    angle_ff.addPerBondParameter("max_theta");
+                    angle_ff.addPerBondParameter("max_theta_y");
 
                     const auto& params = toml::find<toml::array>(local_ff, "parameteres");
                     for(const auto& param : params)
                     {
                         const auto& indices =
-                            toml::find<std::array<std::size_t, 3>>(param, "indices");
+                            toml::find<std::vector<int>>(param, "indices");
                         const double k =
                             toml::find<double>(param, "k") * OpenMM::KJPerKcal; // KJ/mol
-                        angle_ff->addBond(
-                                {indices[0], indices[1], indices[2]},
+                        angle_ff.addBond(indices,
                                 {k, fla_spline_min_theta, min_theta_y,
                                  fla_spline_max_theta, max_theta_y});
                     }
-                    system.addForce(angle_ff);
+                    system.addForce(&angle_ff);
                 }
             }
             else if(interaction == "DihedralAngle" && potential == "Gaussian")
