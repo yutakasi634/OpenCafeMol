@@ -219,9 +219,80 @@ void simulateSH3(const std::string& input_file_name)
                 }
                 system.addForce(torsion_ff);
             }
+            else if(interaction == "DihedralAngle" && potential == "FlexibleLocalDihedral")
+            {
+                std::cerr << "    DihedralAngle : FlexibleLocalDihedral" << std::endl;
+
+                std::map<std::pair<std::string, std::string>,
+                         std::vector<std::array<std::size_t, 4>>> group_indices;
+                for(const auto& aa_fourier : fld_fourier_table)
+                {
+                    group_indices[aa_fourier.first] =
+                        std::vector<std::array<std::size_t, 4>>();
+                }
+
+                const auto& params = toml::find<toml::array>(local_ff, "parameters");
+
+                for(const auto& param : params)
+                {
+                    const auto& indices =
+                        toml::find<std::array<std::size_t, 4>>(param, "indices");
+                    const double k =
+                        toml::find<double>(param, "k") * OpenMM::KJPerKcal; // KJ/mol
+                    const std::string coef = toml::find<std::string>(param, "coef");
+                    if(coef.substr(4, 3) == "GLY")
+                    {
+                        group_indices[std::make_pair("R1", "GLY")].push_back(indices);
+                    }
+                    else if(coef.substr(4, 3) == "PRO")
+                    {
+                        if(coef.substr(0, 3) == "GLY")
+                        {
+                            group_indices[std::make_pair("GLY", "PRO")].push_back(indices);
+                        }
+                        else
+                        {
+                            group_indices[std::make_pair("R2" , "PRO")].push_back(indices);
+                        }
+                    }
+                    else
+                    {
+                        group_indices[std::make_pair(coef.substr(0, 3), "R3")].push_back(indices);
+                    }
+                }
+
+                for(const auto& [aa_pair, indices_arr] : group_indices)
+                {
+                    const std::string fld_expression =
+                        "c + ksin1*sin(  theta) + kcos1*cos(  theta)"
+                        "  + ksin2*sin(2*theta) + kcos2*cos(2*theta)"
+                        "  + ksin3*sin(3*theta) + kcos3*cos(3*theta)";
+                    OpenMM::CustomTorsionForce* torsion_ff =
+                        new OpenMM::CustomTorsionForce(fld_expression);
+                    torsion_ff->addPerTorsionParameter("c");
+                    torsion_ff->addPerTorsionParameter("ksin1");
+                    torsion_ff->addPerTorsionParameter("kcos1");
+                    torsion_ff->addPerTorsionParameter("ksin2");
+                    torsion_ff->addPerTorsionParameter("kcos2");
+                    torsion_ff->addPerTorsionParameter("ksin3");
+                    torsion_ff->addPerTorsionParameter("kcos3");
+
+                    const std::array<double, 7>& fourier_table =
+                        fld_fourier_table.at(aa_pair);
+                    for(const auto& indices : indices_arr)
+                    {
+                        torsion_ff->addTorsion(
+                                indices[0], indices[1], indices[2], indices[3],
+                                {fourier_table[0],
+                                 fourier_table[1], fourier_table[2], fourier_table[3],
+                                 fourier_table[4], fourier_table[5], fourier_table[6]});
+                        exclusion_pairs.push_back(std::make_pair(indices[0], indices[3]));
+                    }
+                    system.addForce(torsion_ff);
+                }
+            }
         }
     }
-
     if(ff.contains("global"))
     {
         const auto& globals = toml::find(ff, "global").as_array();
