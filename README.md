@@ -15,7 +15,7 @@ $ cmake ..
 $ make
 ```
 After this, you will find an excutable binary in `bin` directory.  
-If your OpenMM is not installed under `/usr` or `/usr/local`, you need to specify the install directory like `cmake .. -DOPRNMM_ROOT=<your/openmm/installed/path>` in cmake step.
+If your OpenMM is not installed under `/usr` or `/usr/local`, you need to specify the install directory like `cmake .. -DOPENMM_ROOT=<your/openmm/installed/path>` in cmake step.
 
 ## Example
 Example input files is in the input directory. You can run this with the command below.
