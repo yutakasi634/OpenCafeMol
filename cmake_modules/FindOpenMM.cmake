@@ -3,10 +3,12 @@ find_path(OPENMM_INCLUDE_DIR
         OpenMM.h
     PATHS
         ${OPENMM_ROOT}
-        /usr
-        /usr/local
+        /usr/openmm
+        /usr/local/openmm
     PATH_SUFFIXES
-        openmm/include
+        include
+    # to ignore detect pyenv openmm prior to OPENMM_ROOT
+    NO_DEFAULT_PATH
     )
 message(STATUS "OpenMM include path : ${OPENMM_INCLUDE_DIR}")
 
@@ -15,10 +17,12 @@ find_library(OPENMM_LIBRARY
         libOpenMM.so
     PATHS
         ${OPENMM_ROOT}
-        /usr
-        /usr/local
+        /usr/openmm
+        /usr/local/openmm
     PATH_SUFFIXES
-        openmm/lib
+        lib
+    # to ignore detect pyenv openmm prior to OPENMM_ROOT
+    NO_DEFAULT_PATH
     )
 message(STATUS "OpenMM library path : ${OPENMM_LIBRARY}")
 
