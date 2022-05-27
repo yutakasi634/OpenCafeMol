@@ -9,15 +9,20 @@
 #include "Constants.hpp"
 #include "Utility.hpp"
 
+#define STR(m) STR_(m)
+#define STR_(m) #m
+
 void simulateSH3(const std::string& input_file_name)
 {
     // dump library information
     std::cerr << "OpenMM Library Information" << std::endl;
-    std::cerr << "    version : " + OpenMM::Platform::getOpenMMVersion() << std::endl;
+    std::cerr << "    version                   : "
+        + OpenMM::Platform::getOpenMMVersion() << std::endl;
+    std::cerr << "    CUDA platform plugin path : "
+        << STR(OPENMM_PLUGIN_DIR) << std::endl;
 
     // Load any shared libraries containing GPU implementations.
-    OpenMM::Platform::loadPluginsFromDirectory(
-        OpenMM::Platform::getDefaultPluginsDirectory());
+    OpenMM::Platform::loadPluginsFromDirectory(STR(OPENMM_PLUGIN_DIR));
 
     // check CUDA platform existance
     bool cuda_platform_found = false;
