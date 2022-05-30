@@ -12,6 +12,7 @@
 #include "util/Macro.hpp"
 #include "forcefield/HarmonicBondForceFieldGenerator.hpp"
 #include "forcefield/GaussianBondForceFieldGenerator.hpp"
+#include "forcefield/GoContactForceFieldGenerator.hpp"
 
 void simulate(const std::string& input_file_name)
 {
@@ -159,14 +160,12 @@ void simulate(const std::string& input_file_name)
             }
             else if(interaction == "BondLength" && potential == "GoContact")
             {
-                std::cerr << "    BondLength    : GoContact" << std::endl;
-
                 // TODO: enable to optimization based on cutoff
-                auto contact_ff = std::make_unique<OpenMM::CustomBondForce>("k*(5*(r0/r)^12-6*(r0/r)^10)");
-                contact_ff->addPerBondParameter("k");
-                contact_ff->addPerBondParameter("r0");
-
                 const auto& params = toml::find<toml::array>(local_ff, "parameters");
+                std::vector<std::pair<std::size_t, std::size_t>> indices_vec;
+                std::vector<double>                              ks;
+                std::vector<double>                              r0s;
+
                 for(const auto& param : params)
                 {
                     const auto& indices =
@@ -175,11 +174,14 @@ void simulate(const std::string& input_file_name)
                         toml::find<double>(param, "k") * OpenMM::KJPerKcal; // KJ/mol
                     const double r0 =
                         toml::find<double>(param, "v0") * OpenMM::NmPerAngstrom; // nm
-                    contact_ff->addBond(indices.first, indices.second, {k, r0});
 
-                    exclusion_pairs.push_back(std::make_pair(indices.first, indices.second));
+                    ks         .push_back(k);
+                    indices_vec.push_back(indices);
+                    r0s        .push_back(r0);
                 }
-                system.addForce(contact_ff.release());
+                const auto ff_gen = GoContactForceFieldGenerator(indices_vec, ks, r0s);
+                system.addForce(ff_gen.generate().release());
+                ff_gen.add_exclusion(exclusion_pairs);
             }
             else if(interaction == "BondAngle" && potential == "FlexibleLocalAngle")
             {
