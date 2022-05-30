@@ -11,7 +11,7 @@
 #include "Utility.hpp"
 #include "Macro.hpp"
 
-void simulateSH3(const std::string& input_file_name)
+void simulate(const std::string& input_file_name)
 {
     // dump library information
     std::cerr << "OpenMM Library Information" << std::endl;
@@ -471,7 +471,7 @@ int main(int argc, char** argv)
     }
 
     try {
-        simulateSH3(std::string(argv[1]));
+        simulate(std::string(argv[1]));
         return 0; // success!
     }
     // Catch and report usage and runtime errors detected by OpenMM and fail.
