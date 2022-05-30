@@ -87,7 +87,7 @@ void simulate(const std::string& input_file_name)
     // for exclusion list of Excluded Volume
     std::vector<std::pair<std::size_t, std::size_t>> exclusion_pairs;
 
-    std::cerr << "initializing forcefields..." << std::endl;
+    std::cerr << "generating forcefields..." << std::endl;
     // read forcefields info
     const auto  ff = toml::find(data, "forcefields").at(0);
     if(ff.contains("local"))
@@ -100,7 +100,6 @@ void simulate(const std::string& input_file_name)
             const std::string potential   = toml::find<std::string>(local_ff, "potential");
             if(interaction == "BondLength" && potential == "Harmonic")
             {
-                std::cerr << "    BondLength    : Harmonic" << std::endl;
                 auto bond_ff = std::make_unique<OpenMM::HarmonicBondForce>();
 
                 const auto& params = toml::find<toml::array>(local_ff, "parameters");
