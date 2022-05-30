@@ -13,6 +13,7 @@
 #include "forcefield/HarmonicBondForceFieldGenerator.hpp"
 #include "forcefield/GaussianBondForceFieldGenerator.hpp"
 #include "forcefield/GoContactForceFieldGenerator.hpp"
+#include "forcefield/FlexibleLocalAngleForceFieldGenerator.hpp"
 
 void simulate(const std::string& input_file_name)
 {
@@ -182,32 +183,12 @@ void simulate(const std::string& input_file_name)
             }
             else if(interaction == "BondAngle" && potential == "FlexibleLocalAngle")
             {
-                std::cerr << "    BondAngle     : FlexibleLocalAngle" << std::endl;
-
                 const auto& params = toml::find<toml::array>(local_ff, "parameters");
 
                 for(const auto& [aa_type, spline_table] : fla_spline_table)
                 {
-                    auto spline_func = std::make_unique<OpenMM::Continuous1DFunction>(
-                            std::vector<double>(spline_table.begin(), spline_table.end()),
-                            fla_spline_min_theta, fla_spline_max_theta);
-                    const double min_theta_y = spline_table[0];
-                    const double max_theta_y = spline_table[9];
-
-                    std::string flp_expression =
-                        "k * ("
-                            "spline(theta)"
-                            "- (step(min_theta-theta) * 30 * (theta-min_theta) + min_theta_y)"
-                            "+ (step(theta-max_theta) * 30 * (theta-max_theta) + max_theta_y)"
-                        ");"
-                        "theta = angle(p1,p2,p3)";
-                    auto angle_ff = std::make_unique<OpenMM::CustomCompoundBondForce>(3, flp_expression);
-                    angle_ff->addTabulatedFunction("spline", spline_func.release());
-                    angle_ff->addPerBondParameter("k");
-                    angle_ff->addPerBondParameter("min_theta");
-                    angle_ff->addPerBondParameter("min_theta_y");
-                    angle_ff->addPerBondParameter("max_theta");
-                    angle_ff->addPerBondParameter("max_theta_y");
+                    std::vector<std::vector<int>> indices_vec;
+                    std::vector<double>           ks;
 
                     for(const auto& param : params)
                     {
@@ -218,19 +199,20 @@ void simulate(const std::string& input_file_name)
                                 toml::find<std::vector<int>>(param, "indices");
                             const double k =
                                 toml::find<double>(param, "k") * OpenMM::KJPerKcal; // KJ/mol
-                            angle_ff->addBond(indices,
-                                    {k, fla_spline_min_theta, min_theta_y,
-                                     fla_spline_max_theta, max_theta_y});
-                            // TODO
-                            // dupulication in exclusion list make error
-                            // all exclusion shoul be specified in HarmonicBond and GoContact
-                            // exclusion_pairs.push_back(std::make_pair(indices[0], indices[3]));
 
-                            // exclusion_pairs.push_back(
-                            //         std::make_pair(indices[0], indices[2]));
+                            indices_vec.push_back(indices);
+                            ks         .push_back(k);
+
                         }
                     }
-                    system.addForce(angle_ff.release());
+                    const auto ff_gen = FlexibleLocalAngleForceFieldGenerator(
+                                            indices_vec, ks, spline_table, aa_type);
+                    system.addForce(ff_gen.generate().release());
+
+                    // TODO
+                    // dupulication in exclusion list make error
+                    // all exclusion shoul be specified in HarmonicBond and GoContact
+                    // ff_gen.add_exclusion(exclusion_pairs);
                 }
             }
             else if(interaction == "DihedralAngle" && potential == "Gaussian")
