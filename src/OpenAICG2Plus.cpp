@@ -11,6 +11,7 @@
 #include "Utility.hpp"
 #include "Macro.hpp"
 #include "forcefield/HarmonicBondForceFieldGenerator.hpp"
+#include "forcefield/GaussianBondForceFieldGenerator.hpp"
 
 void simulate(const std::string& input_file_name)
 {
@@ -128,29 +129,34 @@ void simulate(const std::string& input_file_name)
             }
             else if(interaction == "BondLength" && potential == "Gaussian")
             {
-                std::cerr << "    BondLength    : Gaussian" << std::endl;
-                auto bond_ff = std::make_unique<OpenMM::CustomBondForce>("k*exp(-(r-v0)^2/(2*sigma^2))");
-                bond_ff->addPerBondParameter("k");
-                bond_ff->addPerBondParameter("v0");
-                bond_ff->addPerBondParameter("sigma");
-
                 const auto& params = toml::find<toml::array>(local_ff, "parameters");
+                std::vector<std::pair<std::size_t, std::size_t>> indices_vec;
+                std::vector<double>                              v0s;
+                std::vector<double>                              ks;
+                std::vector<double>                              sigmas;
+
                 for(const auto& param : params)
                 {
                     const auto& indices =
                         toml::find<std::pair<std::size_t, std::size_t>>(param, "indices");
+                    indices_vec.push_back(indices);
+
                     const double k  =
                         toml::find<double>(param, "k") * OpenMM::KJPerKcal; // KJ/mol
+                    ks.push_back(k);
+
                     const double v0 =
                         toml::find<double>(param, "v0") * OpenMM::NmPerAngstrom; // nm
+                    v0s.push_back(v0);
+
                     const double sigma =
                         toml::get<double>(
                                 find_either(param, "sigma", "σ")) * OpenMM::NmPerAngstrom; // nm
-                    bond_ff->addBond(indices.first, indices.second, {k, v0, sigma});
-
-                    exclusion_pairs.push_back(std::make_pair(indices.first, indices.second));
+                    sigmas.push_back(sigma);
                 }
-                system.addForce(bond_ff.release());
+                const auto ff_gen = GaussianBondForceFieldGenerator(indices_vec, ks, v0s, sigmas);
+                system.addForce(ff_gen.generate().release());
+                ff_gen.add_exclusion(exclusion_pairs);
             }
             else if(interaction == "BondLength" && potential == "GoContact")
             {
