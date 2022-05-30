@@ -8,9 +8,7 @@
 #include "toml11/toml.hpp"
 #include "Constants.hpp"
 #include "Utility.hpp"
-
-#define STR(m) STR_(m)
-#define STR_(m) #m
+#include "Macro.hpp"
 
 void simulateSH3(const std::string& input_file_name)
 {
@@ -19,19 +17,20 @@ void simulateSH3(const std::string& input_file_name)
     std::cerr << "    version                   : "
         + OpenMM::Platform::getOpenMMVersion() << std::endl;
     std::cerr << "    CUDA platform plugin path : "
-        << STR(OPENMM_PLUGIN_DIR) << std::endl;
+        << OPENAICG2PLUS_EXPAND_OPTION_STR(OPENMM_PLUGIN_DIR) << std::endl;
 
     // Load any shared libraries containing GPU implementations.
-    OpenMM::Platform::loadPluginsFromDirectory(STR(OPENMM_PLUGIN_DIR));
+    OpenMM::Platform::loadPluginsFromDirectory(
+            OPENAICG2PLUS_EXPAND_OPTION_STR(OPENMM_PLUGIN_DIR));
 
     // check CUDA platform existance
     bool cuda_platform_found = false;
     for(std::size_t idx=0; idx < OpenMM::Platform::getNumPlatforms(); ++idx)
     {
-	if(OpenMM::Platform::getPlatform(idx).getName() == "CUDA")
-	{
-	    cuda_platform_found = true;
-	}
+        if(OpenMM::Platform::getPlatform(idx).getName() == "CUDA")
+        {
+            cuda_platform_found = true;
+        }
     }
     if(!cuda_platform_found)
     {
