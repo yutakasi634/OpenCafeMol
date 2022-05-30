@@ -10,6 +10,7 @@
 #include "Constants.hpp"
 #include "Utility.hpp"
 #include "Macro.hpp"
+#include "forcefield/HarmonicBondForceFieldGenerator.hpp"
 
 void simulate(const std::string& input_file_name)
 {
@@ -102,20 +103,28 @@ void simulate(const std::string& input_file_name)
                 auto bond_ff = std::make_unique<OpenMM::HarmonicBondForce>();
 
                 const auto& params = toml::find<toml::array>(local_ff, "parameters");
+                std::vector<std::pair<std::size_t, std::size_t>> indices_vec;
+                std::vector<double>                              v0s;
+                std::vector<double>                              ks;
+
                 for(const auto& param : params)
                 {
                     const auto&  indices =
                         toml::find<std::pair<std::size_t, std::size_t>>(param, "indices");
+                    indices_vec.push_back(indices);
+
                     const double v0 =
                         toml::find<double>(param, "v0") * OpenMM::NmPerAngstrom; // nm
+                    v0s.push_back(v0);
+
                     const double k =
                         toml::find<double>(param, "k") * OpenMM::KJPerKcal *
                         OpenMM::AngstromsPerNm * OpenMM::AngstromsPerNm; // KJ/(mol nm^2)
-                    bond_ff->addBond(indices.first, indices.second, v0, k);
-
-                    exclusion_pairs.push_back(std::make_pair(indices.first, indices.second));
+                    ks.push_back(k);
                 }
-                system.addForce(bond_ff.release());
+                const auto ff_gen = HarmonicBondForceFieldGenerator(indices_vec, v0s, ks);
+                system.addForce(ff_gen.generate().release());
+                ff_gen.add_exclusion(exclusion_pairs);
             }
             else if(interaction == "BondLength" && potential == "Gaussian")
             {
