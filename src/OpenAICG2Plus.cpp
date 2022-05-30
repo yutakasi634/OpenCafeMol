@@ -5,6 +5,7 @@
 #include <cmath>
 #include <optional>
 #include <utility>
+#include <memory>
 #include "toml11/toml.hpp"
 #include "Constants.hpp"
 #include "Utility.hpp"
@@ -98,7 +99,7 @@ void simulateSH3(const std::string& input_file_name)
             if(interaction == "BondLength" && potential == "Harmonic")
             {
                 std::cerr << "    BondLength    : Harmonic" << std::endl;
-                OpenMM::HarmonicBondForce* bond_ff = new OpenMM::HarmonicBondForce();
+                auto bond_ff = std::make_unique<OpenMM::HarmonicBondForce>();
 
                 const auto& params = toml::find<toml::array>(local_ff, "parameters");
                 for(const auto& param : params)
@@ -114,13 +115,12 @@ void simulateSH3(const std::string& input_file_name)
 
                     exclusion_pairs.push_back(std::make_pair(indices.first, indices.second));
                 }
-                system.addForce(bond_ff);
+                system.addForce(bond_ff.release());
             }
             else if(interaction == "BondLength" && potential == "Gaussian")
             {
                 std::cerr << "    BondLength    : Gaussian" << std::endl;
-                OpenMM::CustomBondForce* bond_ff =
-                    new OpenMM::CustomBondForce("k*exp(-(r-v0)^2/(2*sigma^2))");
+                auto bond_ff = std::make_unique<OpenMM::CustomBondForce>("k*exp(-(r-v0)^2/(2*sigma^2))");
                 bond_ff->addPerBondParameter("k");
                 bond_ff->addPerBondParameter("v0");
                 bond_ff->addPerBondParameter("sigma");
@@ -141,15 +141,14 @@ void simulateSH3(const std::string& input_file_name)
 
                     exclusion_pairs.push_back(std::make_pair(indices.first, indices.second));
                 }
-                system.addForce(bond_ff);
+                system.addForce(bond_ff.release());
             }
             else if(interaction == "BondLength" && potential == "GoContact")
             {
                 std::cerr << "    BondLength    : GoContact" << std::endl;
 
                 // TODO: enable to optimization based on cutoff
-                OpenMM::CustomBondForce* contact_ff =
-                    new OpenMM::CustomBondForce("k*(5*(r0/r)^12-6*(r0/r)^10)");
+                auto contact_ff = std::make_unique<OpenMM::CustomBondForce>("k*(5*(r0/r)^12-6*(r0/r)^10)");
                 contact_ff->addPerBondParameter("k");
                 contact_ff->addPerBondParameter("r0");
 
@@ -166,7 +165,7 @@ void simulateSH3(const std::string& input_file_name)
 
                     exclusion_pairs.push_back(std::make_pair(indices.first, indices.second));
                 }
-                system.addForce(contact_ff);
+                system.addForce(contact_ff.release());
             }
             else if(interaction == "BondAngle" && potential == "FlexibleLocalAngle")
             {
@@ -176,22 +175,21 @@ void simulateSH3(const std::string& input_file_name)
 
                 for(const auto& [aa_type, spline_table] : fla_spline_table)
                 {
-                    OpenMM::Continuous1DFunction* spline_func =
-                        new OpenMM::Continuous1DFunction(
+                    auto spline_func = std::make_unique<OpenMM::Continuous1DFunction>(
                             std::vector<double>(spline_table.begin(), spline_table.end()),
                             fla_spline_min_theta, fla_spline_max_theta);
                     const double min_theta_y = spline_table[0];
                     const double max_theta_y = spline_table[9];
 
-                    OpenMM::CustomCompoundBondForce* angle_ff =
-                        new OpenMM::CustomCompoundBondForce(3,
-                            "k * ("
-                               "spline(theta)"
-                               "- (step(min_theta-theta) * 30 * (theta-min_theta) + min_theta_y)"
-                               "+ (step(theta-max_theta) * 30 * (theta-max_theta) + max_theta_y)"
-                            ");"
-                          "theta = angle(p1,p2,p3)");
-                    angle_ff->addTabulatedFunction("spline", spline_func);
+                    std::string flp_expression =
+                        "k * ("
+                            "spline(theta)"
+                            "- (step(min_theta-theta) * 30 * (theta-min_theta) + min_theta_y)"
+                            "+ (step(theta-max_theta) * 30 * (theta-max_theta) + max_theta_y)"
+                        ");"
+                        "theta = angle(p1,p2,p3)";
+                    auto angle_ff = std::make_unique<OpenMM::CustomCompoundBondForce>(3, flp_expression);
+                    angle_ff->addTabulatedFunction("spline", spline_func.release());
                     angle_ff->addPerBondParameter("k");
                     angle_ff->addPerBondParameter("min_theta");
                     angle_ff->addPerBondParameter("min_theta_y");
@@ -219,15 +217,14 @@ void simulateSH3(const std::string& input_file_name)
                             //         std::make_pair(indices[0], indices[2]));
                         }
                     }
-                    system.addForce(angle_ff);
+                    system.addForce(angle_ff.release());
                 }
             }
             else if(interaction == "DihedralAngle" && potential == "Gaussian")
             {
                 std::cerr << "    DihedralAngle : Gaussian" << std::endl;
 
-                OpenMM::CustomTorsionForce* torsion_ff =
-                    new OpenMM::CustomTorsionForce("k*exp(-(theta-theta0)^2/(2*sigma^2))");
+                auto torsion_ff = std::make_unique<OpenMM::CustomTorsionForce>("k*exp(-(theta-theta0)^2/(2*sigma^2))");
                 torsion_ff->addPerTorsionParameter("k");
                 torsion_ff->addPerTorsionParameter("theta0");
                 torsion_ff->addPerTorsionParameter("sigma");
@@ -249,7 +246,7 @@ void simulateSH3(const std::string& input_file_name)
                     // all exclusion shoul be specified in HarmonicBond and GoContact
                     exclusion_pairs.push_back(std::make_pair(indices[0], indices[3]));
                 }
-                system.addForce(torsion_ff);
+                system.addForce(torsion_ff.release());
             }
             else if(interaction == "DihedralAngle" && potential == "FlexibleLocalDihedral")
             {
@@ -299,8 +296,7 @@ void simulateSH3(const std::string& input_file_name)
                         "c + ksin1*sin(  theta) + kcos1*cos(  theta)"
                         "  + ksin2*sin(2*theta) + kcos2*cos(2*theta)"
                         "  + ksin3*sin(3*theta) + kcos3*cos(3*theta)";
-                    OpenMM::CustomTorsionForce* torsion_ff =
-                        new OpenMM::CustomTorsionForce(fld_expression);
+                    auto torsion_ff = std::make_unique<OpenMM::CustomTorsionForce>(fld_expression);
                     torsion_ff->addPerTorsionParameter("c");
                     torsion_ff->addPerTorsionParameter("ksin1");
                     torsion_ff->addPerTorsionParameter("kcos1");
@@ -323,7 +319,7 @@ void simulateSH3(const std::string& input_file_name)
                         // all exclusion shoul be specified in HarmonicBond and GoContact
                         // exclusion_pairs.push_back(std::make_pair(indices[0], indices[3]));
                     }
-                    system.addForce(torsion_ff);
+                    system.addForce(torsion_ff.release());
                 }
             }
         }
@@ -340,8 +336,7 @@ void simulateSH3(const std::string& input_file_name)
                 std::cerr << "    Global        : ExcludedVolume" << std::endl;
                 // TODO: add cutoff
                 const std::string exv_expression = "epsilon*((sigma1+sigma2)/r)^12";
-                OpenMM::CustomNonbondedForce* exv_ff =
-                    new OpenMM::CustomNonbondedForce(exv_expression);
+                auto exv_ff = std::make_unique<OpenMM::CustomNonbondedForce>(exv_expression);
                 exv_ff->addPerParticleParameter("sigma");
 
                 const double eps =
@@ -376,7 +371,7 @@ void simulateSH3(const std::string& input_file_name)
                     exv_ff->addExclusion(exclusion_pair.first, exclusion_pair.second);
                 }
 
-                system.addForce(exv_ff);
+                system.addForce(exv_ff.release());
             }
         }
     }
