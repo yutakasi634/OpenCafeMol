@@ -37,7 +37,7 @@ void simulateSH3(const std::string& input_file_name)
         throw std::runtime_error(
             "[error] There is no CUDA platform loaded. "
             "You need to set the correct OpenMM plugins directory path "
-            "to the environment variable OPENMM_PLUGIN_DIR.");
+            "to the CMake option -DOPENMM_PLUGIN_DIR.");
     }
 
     const std::size_t file_path_len   = input_file_name.rfind("/")+1;

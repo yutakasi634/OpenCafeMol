@@ -46,9 +46,6 @@ find_package_handle_standard_args(OpenMM
         OPENMM_LIBRARY
     )
 
-message(STATUS "OpenMM include path : ${OPENMM_INCLUDE_DIR}")
-message(STATUS "OpenMM plugin  path : ${OPENMM_PLUGIN_DIR}")
-message(STATUS "OpenMM library path : ${OPENMM_LIBRARY}")
 
 if(OPENMM_FOUND AND NOT TARGET OpenMM::OpenMM)
     add_library(OpenMM::OpenMM UNKNOWN IMPORTED)
