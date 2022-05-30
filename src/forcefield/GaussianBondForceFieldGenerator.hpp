@@ -1,6 +1,11 @@
 #ifndef OPEN_AICG2_PLUS_GAUSSIAN_BOND_FORCE_FIELD_GENERATOR_HPP
 #define OPEN_AICG2_PLUS_GAUSSIAN_BOND_FORCE_FIELD_GENERATOR_HPP
 
+#include <memory>
+#include <sstream>
+#include <string>
+#include <OpenMM.h>
+
 class GaussianBondForceFieldGenerator
 {
   public:
@@ -20,8 +25,8 @@ class GaussianBondForceFieldGenerator
                    "indices_vec (" << indices_vec.size() << "), "
                    "k ("           << ks.size()          << "), "
                    "v0 ("          << v0s.size()         << ") and "
-                   "sgmas ("       << sigmas.size()      << ") is not matched."
-                << "The number os these parameters must be same.";
+                   "sigmas ("      << sigmas.size()      << ") is not matched."
+                   "The number of these parameters must be same.";
             throw std::runtime_error(oss.str());
         }
     }
@@ -50,7 +55,7 @@ class GaussianBondForceFieldGenerator
     {
         for(const auto& indices : indices_vec_)
         {
-            exclusion_pairs.push_back(std::make_pair(indices.first, indices.second));
+            exclusion_pairs.push_back(indices);
         }
     }
 

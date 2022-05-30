@@ -112,16 +112,15 @@ void simulate(const std::string& input_file_name)
                 {
                     const auto&  indices =
                         toml::find<std::pair<std::size_t, std::size_t>>(param, "indices");
-                    indices_vec.push_back(indices);
-
                     const double v0 =
                         toml::find<double>(param, "v0") * OpenMM::NmPerAngstrom; // nm
-                    v0s.push_back(v0);
-
                     const double k =
                         toml::find<double>(param, "k") * OpenMM::KJPerKcal *
                         OpenMM::AngstromsPerNm * OpenMM::AngstromsPerNm; // KJ/(mol nm^2)
-                    ks.push_back(k);
+
+                    indices_vec.push_back(indices);
+                    v0s        .push_back(v0);
+                    ks         .push_back(k);
                 }
                 const auto ff_gen = HarmonicBondForceFieldGenerator(indices_vec, v0s, ks);
                 system.addForce(ff_gen.generate().release());
@@ -139,20 +138,18 @@ void simulate(const std::string& input_file_name)
                 {
                     const auto& indices =
                         toml::find<std::pair<std::size_t, std::size_t>>(param, "indices");
-                    indices_vec.push_back(indices);
-
                     const double k  =
                         toml::find<double>(param, "k") * OpenMM::KJPerKcal; // KJ/mol
-                    ks.push_back(k);
-
                     const double v0 =
                         toml::find<double>(param, "v0") * OpenMM::NmPerAngstrom; // nm
-                    v0s.push_back(v0);
-
                     const double sigma =
                         toml::get<double>(
                                 find_either(param, "sigma", "σ")) * OpenMM::NmPerAngstrom; // nm
-                    sigmas.push_back(sigma);
+
+                    indices_vec.push_back(indices);
+                    ks         .push_back(k);
+                    v0s        .push_back(v0);
+                    sigmas     .push_back(sigma);
                 }
                 const auto ff_gen = GaussianBondForceFieldGenerator(indices_vec, ks, v0s, sigmas);
                 system.addForce(ff_gen.generate().release());
