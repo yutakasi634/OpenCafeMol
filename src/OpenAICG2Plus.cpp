@@ -51,6 +51,7 @@ void simulate(const std::string& input_file_name)
     const std::string file_path       = input_file_name.substr(0, file_path_len);
     const std::string file_prefix     = input_file_name.substr(file_path_len, file_prefix_len);
     // read input toml file
+    std::cerr << "parsing " << input_file_name << "..." << std::endl;
     auto data = toml::parse(input_file_name);
 
     // read simulator table
@@ -72,6 +73,7 @@ void simulate(const std::string& input_file_name)
     OpenMM::System system;
 
     std::size_t system_size = particles.size();
+    std::cerr << "generating system with size " << system_size << "..." << std::endl;
     std::vector<OpenMM::Vec3> initPosInNm(system_size);
     for (std::size_t i=0; i<system_size; ++i)
     {
