@@ -14,7 +14,7 @@ class GoContactForceFieldGenerator
   public:
     GoContactForceFieldGenerator(
         const std::vector<indices_type>& indices_vec,
-        const std::vector<double>& ks, const std::vector<double> r0s)
+        const std::vector<double>& ks, const std::vector<double>& r0s)
         : indices_vec_(indices_vec), ks_(ks), r0s_(r0s)
     {
         if(!(indices_vec.size() == ks.size() && ks.size() == r0s.size()))

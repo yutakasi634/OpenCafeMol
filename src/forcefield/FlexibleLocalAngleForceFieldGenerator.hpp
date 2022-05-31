@@ -15,7 +15,7 @@ class FlexibleLocalAngleForceFieldGenerator
   public:
     FlexibleLocalAngleForceFieldGenerator(
         const std::vector<indices_type>& indices_vec, const std::vector<double>& ks,
-        const std::array<double, 10>& spline_table, const std::string aa_name,
+        const std::array<double, 10>& spline_table, const std::string& aa_name,
         const double min_theta = fla_spline_min_theta,
         const double max_theta = fla_spline_max_theta)
         : indices_vec_(indices_vec), ks_(ks), aa_name_(aa_name),

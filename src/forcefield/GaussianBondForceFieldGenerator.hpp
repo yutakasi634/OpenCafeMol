@@ -14,7 +14,7 @@ class GaussianBondForceFieldGenerator
   public:
     GaussianBondForceFieldGenerator(
         const std::vector<indices_type>& indices_vec, const std::vector<double>& ks,
-        const std::vector<double> v0s, const std::vector<double>& sigmas)
+        const std::vector<double>& v0s, const std::vector<double>& sigmas)
         : indices_vec_(indices_vec), ks_(ks), v0s_(v0s), sigmas_(sigmas)
     {
         if(!(indices_vec.size() == v0s.size() && v0s.size() == ks.size()))
