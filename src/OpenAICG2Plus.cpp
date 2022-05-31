@@ -14,6 +14,7 @@
 #include "forcefield/GaussianBondForceFieldGenerator.hpp"
 #include "forcefield/GoContactForceFieldGenerator.hpp"
 #include "forcefield/FlexibleLocalAngleForceFieldGenerator.hpp"
+#include "forcefield/GaussianDihedralForceFieldGenerator.hpp"
 
 void simulate(const std::string& input_file_name)
 {
@@ -217,14 +218,12 @@ void simulate(const std::string& input_file_name)
             }
             else if(interaction == "DihedralAngle" && potential == "Gaussian")
             {
-                std::cerr << "    DihedralAngle : Gaussian" << std::endl;
-
-                auto torsion_ff = std::make_unique<OpenMM::CustomTorsionForce>("k*exp(-(theta-theta0)^2/(2*sigma^2))");
-                torsion_ff->addPerTorsionParameter("k");
-                torsion_ff->addPerTorsionParameter("theta0");
-                torsion_ff->addPerTorsionParameter("sigma");
-
                 const auto& params = toml::find<toml::array>(local_ff, "parameters");
+                std::vector<std::array<std::size_t, 4>> indices_vec;
+                std::vector<double>                     ks;
+                std::vector<double>                     theta0s;
+                std::vector<double>                     sigmas;
+
                 for(const auto& param : params)
                 {
                     const auto& indices =
@@ -234,14 +233,18 @@ void simulate(const std::string& input_file_name)
                     const double theta0 = toml::find<double>(param, "v0"); // radiuns
                     const double sigma =
                         toml::get<double>(find_either(param, "sigma", "σ")); // radiuns
-                    torsion_ff->addTorsion(
-                            indices[0], indices[1], indices[2], indices[3], {k, theta0, sigma});
-                    // TODO
-                    // dupulication in exclusion list make error
-                    // all exclusion shoul be specified in HarmonicBond and GoContact
-                    exclusion_pairs.push_back(std::make_pair(indices[0], indices[3]));
+
+                    indices_vec.push_back(indices);
+                    ks         .push_back(k);
+                    theta0s    .push_back(theta0);
+                    sigmas     .push_back(sigma);
                 }
-                system.addForce(torsion_ff.release());
+                const auto ff_gen = GaussianDihedralForceFieldGenerator(indices_vec, ks, theta0s, sigmas);
+                system.addForce(ff_gen.generate().release());
+                // TODO
+                // dupulication in exclusion list make error
+                // all exclusion shoul be specified in HarmonicBond and GoContact
+                ff_gen.add_exclusion(exclusion_pairs);
             }
             else if(interaction == "DihedralAngle" && potential == "FlexibleLocalDihedral")
             {
