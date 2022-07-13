@@ -15,6 +15,7 @@
 #include "forcefield/GoContactForceFieldGenerator.hpp"
 #include "forcefield/FlexibleLocalAngleForceFieldGenerator.hpp"
 #include "forcefield/GaussianDihedralForceFieldGenerator.hpp"
+#include "forcefield/FlexibleLocalDihedralForceFieldGenerator.hpp"
 
 void simulate(const std::string& input_file_name)
 {
@@ -25,7 +26,7 @@ void simulate(const std::string& input_file_name)
     std::cerr << "    CUDA platform plugin path : "
         << OPENAICG2PLUS_EXPAND_OPTION_STR(OPENMM_PLUGIN_DIR) << std::endl;
 
-    // Load any shared libraries containing GPU implementations.
+    // Load any shared libraries containing GPU implementations
     OpenMM::Platform::loadPluginsFromDirectory(
             OPENAICG2PLUS_EXPAND_OPTION_STR(OPENMM_PLUGIN_DIR));
 
@@ -205,7 +206,6 @@ void simulate(const std::string& input_file_name)
 
                             indices_vec.push_back(indices);
                             ks         .push_back(k);
-
                         }
                     }
                     const auto ff_gen = FlexibleLocalAngleForceFieldGenerator(
@@ -250,76 +250,100 @@ void simulate(const std::string& input_file_name)
             }
             else if(interaction == "DihedralAngle" && potential == "FlexibleLocalDihedral")
             {
-                std::cerr << "    DihedralAngle : FlexibleLocalDihedral" << std::endl;
-
-                std::map<std::pair<std::string, std::string>,
-                         std::vector<std::array<std::size_t, 4>>> group_indices;
-                for(const auto& aa_fourier : fld_fourier_table)
-                {
-                    group_indices[aa_fourier.first] =
-                        std::vector<std::array<std::size_t, 4>>();
-                }
-
                 const auto& params = toml::find<toml::array>(local_ff, "parameters");
 
-                for(const auto& param : params)
+                for(const auto& [aa_pair_type, fourier_table] : fld_fourier_table)
                 {
-                    const auto& indices =
-                        toml::find<std::array<std::size_t, 4>>(param, "indices");
-                    const double k =
-                        toml::find<double>(param, "k") * OpenMM::KJPerKcal; // KJ/mol
-                    const std::string coef = toml::find<std::string>(param, "coef");
-                    if(coef.substr(4, 3) == "GLY")
+                    std::vector<std::array<std::size_t, 4>> indices_vec;
+                    std::vector<double>                     ks;
+                    std::string                             aa_pair_name;
+
+                    if(aa_pair_type.second == "GLY") // R1-GLY case
                     {
-                        group_indices[std::make_pair("R1", "GLY")].push_back(indices);
-                    }
-                    else if(coef.substr(4, 3) == "PRO")
-                    {
-                        if(coef.substr(0, 3) == "GLY")
+                        for(const auto& param : params)
                         {
-                            group_indices[std::make_pair("GLY", "PRO")].push_back(indices);
+                            const std::string coef    = toml::find<std::string>(param, "coef");
+                            const auto&       indices =
+                                toml::find<std::array<std::size_t, 4>>(param, "indices");
+                            const double      k       = toml::find<double>(param, "k");
+
+                            if(coef.substr(4, 3) == "GLY")
+                            {
+                                indices_vec.push_back(indices);
+                                ks         .push_back(k);
+                            }
+                        }
+                        aa_pair_name = aa_pair_type.first + "-" + aa_pair_type.second;
+                    }
+                    else if(aa_pair_type.second == "PRO")
+                    {
+                        if(aa_pair_type.first == "GLY") // GLY-PRO case
+                        {
+                            for(const auto& param : params)
+                            {
+                                const std::string coef    =
+                                    toml::find<std::string>(param, "coef");
+                                const auto&       indices =
+                                    toml::find<std::array<std::size_t, 4>>(param, "indices");
+                                const double      k       = toml::find<double>(param, "k");
+
+                                if(coef == "GLY-PRO")
+                                {
+                                    indices_vec.push_back(indices);
+                                    ks         .push_back(k);
+                                }
+                            }
+                            aa_pair_name = aa_pair_type.first + "-" + aa_pair_type.second;
                         }
                         else
                         {
-                            group_indices[std::make_pair("R2" , "PRO")].push_back(indices);
+                            for(const auto& param : params)
+                            {
+                                const std::string coef    =
+                                    toml::find<std::string>(param, "coef");
+                                const auto&       indices =
+                                    toml::find<std::array<std::size_t, 4>>(param, "indices");
+                                const double      k       = toml::find<double>(param, "k");
+
+                                if(coef.substr(4, 3) == "PRO") // R2-PRO case
+                                {
+                                    indices_vec.push_back(indices);
+                                    ks         .push_back(k);
+                                }
+                            }
+                            aa_pair_name = aa_pair_type.first + "-" + aa_pair_type.second;
                         }
                     }
-                    else
+                    else // R1-R3 case
                     {
-                        group_indices[std::make_pair(coef.substr(0, 3), "R3")].push_back(indices);
-                    }
-                }
+                        for(const auto& param : params)
+                        {
+                            const std::string coef    =
+                                toml::find<std::string>(param, "coef");
+                            const auto&       indices =
+                                toml::find<std::array<std::size_t, 4>>(param, "indices");
+                            const double      k       = toml::find<double>(param, "k");
 
-                for(const auto& [aa_pair, indices_arr] : group_indices)
-                {
-                    const std::string fld_expression =
-                        "c + ksin1*sin(  theta) + kcos1*cos(  theta)"
-                        "  + ksin2*sin(2*theta) + kcos2*cos(2*theta)"
-                        "  + ksin3*sin(3*theta) + kcos3*cos(3*theta)";
-                    auto torsion_ff = std::make_unique<OpenMM::CustomTorsionForce>(fld_expression);
-                    torsion_ff->addPerTorsionParameter("c");
-                    torsion_ff->addPerTorsionParameter("ksin1");
-                    torsion_ff->addPerTorsionParameter("kcos1");
-                    torsion_ff->addPerTorsionParameter("ksin2");
-                    torsion_ff->addPerTorsionParameter("kcos2");
-                    torsion_ff->addPerTorsionParameter("ksin3");
-                    torsion_ff->addPerTorsionParameter("kcos3");
-
-                    const std::array<double, 7>& fourier_table =
-                        fld_fourier_table.at(aa_pair);
-                    for(const auto& indices : indices_arr)
-                    {
-                        torsion_ff->addTorsion(
-                                indices[0], indices[1], indices[2], indices[3],
-                                {fourier_table[0],
-                                 fourier_table[1], fourier_table[2], fourier_table[3],
-                                 fourier_table[4], fourier_table[5], fourier_table[6]});
-                        // TODO
-                        // dupulication in exclusion list make error
-                        // all exclusion shoul be specified in HarmonicBond and GoContact
-                        // exclusion_pairs.push_back(std::make_pair(indices[0], indices[3]));
+                            const std::string second_aa = coef.substr(4, 3);
+                            if(second_aa != "GLY" && second_aa != "PRO")
+                            {
+                                if(coef.substr(0, 3) == aa_pair_type.first)
+                                {
+                                    indices_vec.push_back(indices);
+                                    ks         .push_back(k);
+                                }
+                            }
+                        }
+                        aa_pair_name = aa_pair_type.first + "-" + aa_pair_type.second;
                     }
-                    system.addForce(torsion_ff.release());
+                    const auto ff_gen = FlexibleLocalDihedralForceFieldGenerator(
+                            indices_vec, ks, fourier_table, aa_pair_name);
+                    system.addForce(ff_gen.generate().release());
+
+                    // TODO
+                    // dupulication in exclusion list make error
+                    // all exclusion shoul be specified in HarmonicBond and GoContact
+                    // ff_gen.add_exclusion(exclusion_pairs);
                 }
             }
         }
