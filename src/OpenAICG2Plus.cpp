@@ -16,6 +16,7 @@
 #include "forcefield/FlexibleLocalAngleForceFieldGenerator.hpp"
 #include "forcefield/GaussianDihedralForceFieldGenerator.hpp"
 #include "forcefield/FlexibleLocalDihedralForceFieldGenerator.hpp"
+#include "forcefield/ExcludedVolumeForceFieldGenerator.hpp"
 
 void simulate(const std::string& input_file_name)
 {
@@ -348,6 +349,7 @@ void simulate(const std::string& input_file_name)
             }
         }
     }
+
     if(ff.contains("global"))
     {
         const auto& globals = toml::find(ff, "global").as_array();
@@ -357,15 +359,8 @@ void simulate(const std::string& input_file_name)
             const std::string potential = toml::find<std::string>(global_ff, "potential");
             if(potential == "ExcludedVolume")
             {
-                std::cerr << "    Global        : ExcludedVolume" << std::endl;
-                // TODO: add cutoff
-                const std::string exv_expression = "epsilon*((sigma1+sigma2)/r)^12";
-                auto exv_ff = std::make_unique<OpenMM::CustomNonbondedForce>(exv_expression);
-                exv_ff->addPerParticleParameter("sigma");
-
                 const double eps =
                     toml::find<double>(global_ff, "epsilon") * OpenMM::KJPerKcal; // KJPermol
-                exv_ff->addGlobalParameter("epsilon", eps);
 
                 const auto&  params = toml::find<toml::array>(global_ff, "parameters");
                 std::vector<std::optional<double>> radius_vec(system_size, std::nullopt);
@@ -385,17 +380,9 @@ void simulate(const std::string& input_file_name)
                             " does not have radius parameter.");
                 }
 
-                for(const auto& radius : radius_vec)
-                {
-                    exv_ff->addParticle({ radius.value() });
-                }
-
-                for(const auto& exclusion_pair : exclusion_pairs)
-                {
-                    exv_ff->addExclusion(exclusion_pair.first, exclusion_pair.second);
-                }
-
-                system.addForce(exv_ff.release());
+                const auto ff_gen = ExcludedVolumeForceFieldGenerator(
+                        eps, radius_vec, exclusion_pairs);
+                system.addForce(ff_gen.generate().release());
             }
         }
     }
