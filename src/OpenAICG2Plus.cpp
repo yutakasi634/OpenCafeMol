@@ -7,7 +7,6 @@
 #include <utility>
 #include <memory>
 #include "toml11/toml.hpp"
-#include "util/Constants.hpp"
 #include "util/Utility.hpp"
 #include "util/Macro.hpp"
 #include "forcefield/HarmonicBondForceFieldGenerator.hpp"
