@@ -4,3 +4,4 @@ input/*
 bin/*
 *.out
 *.swp
+*.swo
