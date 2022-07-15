@@ -13,10 +13,11 @@ class ExcludedVolumeForceFieldGenerator
     using exclusion_pairs_type = std::vector<std::pair<std::size_t, std::size_t>>;
 
   public:
-    ExcludedVolumeForceFieldGenerator(const double eps,
+    ExcludedVolumeForceFieldGenerator(const double eps, const double cutoff,
         const std::vector<std::optional<double>>& radiuses,
         const exclusion_pairs_type& exclusion_pairs)
-        : eps_(eps), radiuses_(radiuses), exclusion_pairs_(exclusion_pairs)
+        : eps_(eps), cutoff_(cutoff),
+          radiuses_(radiuses), exclusion_pairs_(exclusion_pairs)
     {}
 
     std::unique_ptr<OpenMM::CustomNonbondedForce> generate() const noexcept
@@ -72,7 +73,7 @@ class ExcludedVolumeForceFieldGenerator
 
         // set cutoff
         exv_ff->setNonbondedMethod(OpenMM::CustomNonbondedForce::CutoffNonPeriodic);
-        exv_ff->setCutoffDistance((max_radius + second_max_radius)*2.0);
+        exv_ff->setCutoffDistance((max_radius + second_max_radius)*cutoff_);
 
         for(const auto& exclusion_pair : exclusion_pairs_)
         {
@@ -84,6 +85,7 @@ class ExcludedVolumeForceFieldGenerator
 
   private:
     double                             eps_;
+    double                             cutoff_;
     std::vector<std::optional<double>> radiuses_;
     exclusion_pairs_type               exclusion_pairs_;
 };

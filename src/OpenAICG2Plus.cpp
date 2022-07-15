@@ -360,6 +360,7 @@ void simulate(const std::string& input_file_name)
             {
                 const double eps =
                     toml::find<double>(global_ff, "epsilon") * OpenMM::KJPerKcal; // KJPermol
+                const double cutoff = toml::find_or(global_ff, "cutoff", 2.0);
 
                 const auto&  params = toml::find<toml::array>(global_ff, "parameters");
                 std::vector<std::optional<double>> radius_vec(system_size, std::nullopt);
@@ -380,7 +381,7 @@ void simulate(const std::string& input_file_name)
                 }
 
                 const auto ff_gen = ExcludedVolumeForceFieldGenerator(
-                        eps, radius_vec, exclusion_pairs);
+                        eps, cutoff, radius_vec, exclusion_pairs);
                 system.addForce(ff_gen.generate().release());
             }
         }
