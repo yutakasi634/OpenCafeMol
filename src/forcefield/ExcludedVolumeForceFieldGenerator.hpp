@@ -10,14 +10,16 @@
 class ExcludedVolumeForceFieldGenerator
 {
   public:
-    using exclusion_pairs_type = std::vector<std::pair<std::size_t, std::size_t>>;
+    using index_pairs_type = std::vector<std::pair<std::size_t, std::size_t>>;
 
   public:
     ExcludedVolumeForceFieldGenerator(const double eps, const double cutoff,
         const std::vector<std::optional<double>>& radiuses,
-        const exclusion_pairs_type& exclusion_pairs)
-        : eps_(eps), cutoff_(cutoff),
-          radiuses_(radiuses), exclusion_pairs_(exclusion_pairs)
+        const index_pairs_type& bonded_pairs,
+        const index_pairs_type& additional_exclusion_pairs)
+        : eps_(eps), cutoff_(cutoff), radiuses_(radiuses),
+          bonded_pairs_(bonded_pairs),
+          additional_exclusion_pairs_(additional_exclusion_pairs)
     {}
 
     std::unique_ptr<OpenMM::CustomNonbondedForce> generate() const noexcept
@@ -79,19 +81,53 @@ class ExcludedVolumeForceFieldGenerator
         exv_ff->setCutoffDistance(cutoff_distance);
         exv_ff->addGlobalParameter("cutoff_correction", cutoff_correction);
 
-        for(const auto& exclusion_pair : exclusion_pairs_)
-        {
-            exv_ff->addExclusion(exclusion_pair.first, exclusion_pair.second);
-        }
+        create_exclusion_from_bond(exv_ff, bonded_pairs_);
+        add_exclusion(exv_ff, additional_exclusion_pairs_);
 
         return exv_ff;
+    }
+
+  private:
+    void create_exclusion_from_bond(
+            std::unique_ptr<OpenMM::CustomNonbondedForce>& exv_ff,
+            const index_pairs_type& bonded_pairs) const noexcept
+    {
+        exv_ff->createExclusionsFromBonds({bonded_pairs.begin(), bonded_pairs.end()}, 3);
+    }
+
+    void add_exclusion(
+            std::unique_ptr<OpenMM::CustomNonbondedForce>& exv_ff,
+            const index_pairs_type& additional_exclusion_pairs) const noexcept
+    {
+        const std::size_t num_exclusions = exv_ff->getNumExclusions();
+
+        std::vector<std::pair<std::size_t, std::size_t>> exclusion_pairs;
+        for(std::size_t pair_idx=0; pair_idx<num_exclusions; ++pair_idx)
+        {
+            int first, second;
+            exv_ff->getExclusionParticles(pair_idx, first, second);
+            exclusion_pairs.push_back(std::make_pair(first, second));
+        }
+
+        for(const auto& pair : additional_exclusion_pairs)
+        {
+            const auto result =
+                std::find(exclusion_pairs.begin(), exclusion_pairs.end(), pair);
+            if(result == exclusion_pairs.end())
+            {
+                exv_ff->addExclusion(pair.first, pair.second);
+            }
+        }
+
     }
 
   private:
     double                             eps_;
     double                             cutoff_;
     std::vector<std::optional<double>> radiuses_;
-    exclusion_pairs_type               exclusion_pairs_;
+    const index_pairs_type&            bonded_pairs_;
+    const index_pairs_type&            additional_exclusion_pairs_;
+
 };
 
 #endif // OPEN_AICG2_PLUS_EXCLUDED_VOLUME_FORCE_FIELD_GENERATOR_HPP

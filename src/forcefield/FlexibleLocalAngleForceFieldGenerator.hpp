@@ -10,7 +10,7 @@
 class FlexibleLocalAngleForceFieldGenerator
 {
   public:
-    using indices_type = std::vector<int>;
+    using indices_type = std::vector<std::size_t>;
 
   public:
     FlexibleLocalAngleForceFieldGenerator(
@@ -62,7 +62,8 @@ class FlexibleLocalAngleForceFieldGenerator
 
         for(std::size_t idx=0; idx<indices_vec_.size(); ++idx)
         {
-            angle_ff->addBond(indices_vec_[idx],
+            const std::vector<std::size_t>& triplet = indices_vec_[idx];
+            angle_ff->addBond({triplet.begin(), triplet.end()},
                               {ks_[idx], min_theta_, min_theta_y, max_theta_, max_theta_y});
         }
 

@@ -91,7 +91,8 @@ void simulate(const std::string& input_file_name)
     }
 
     // for exclusion list of Excluded Volume
-    std::vector<std::pair<std::size_t, std::size_t>> exclusion_pairs;
+    std::vector<std::pair<std::size_t, std::size_t>> bonded_pairs;
+    std::vector<std::pair<std::size_t, std::size_t>> contacted_pairs;
 
     std::cerr << "generating forcefields..." << std::endl;
     // read forcefields info
@@ -129,7 +130,7 @@ void simulate(const std::string& input_file_name)
                 }
                 const auto ff_gen = HarmonicBondForceFieldGenerator(indices_vec, v0s, ks);
                 system.addForce(ff_gen.generate().release());
-                ff_gen.add_exclusion(exclusion_pairs);
+                bonded_pairs = ff_gen.indices();
             }
             else if(interaction == "BondLength" && potential == "Gaussian")
             {
@@ -158,7 +159,6 @@ void simulate(const std::string& input_file_name)
                 }
                 const auto ff_gen = GaussianBondForceFieldGenerator(indices_vec, ks, v0s, sigmas);
                 system.addForce(ff_gen.generate().release());
-                ff_gen.add_exclusion(exclusion_pairs);
             }
             else if(interaction == "BondLength" && potential == "GoContact")
             {
@@ -183,7 +183,7 @@ void simulate(const std::string& input_file_name)
                 }
                 const auto ff_gen = GoContactForceFieldGenerator(indices_vec, ks, r0s);
                 system.addForce(ff_gen.generate().release());
-                ff_gen.add_exclusion(exclusion_pairs);
+                contacted_pairs = indices_vec;
             }
             else if(interaction == "BondAngle" && potential == "FlexibleLocalAngle")
             {
@@ -191,8 +191,8 @@ void simulate(const std::string& input_file_name)
 
                 for(const auto& [aa_type, spline_table] : fla_spline_table)
                 {
-                    std::vector<std::vector<int>> indices_vec;
-                    std::vector<double>           ks;
+                    std::vector<std::vector<std::size_t>> indices_vec;
+                    std::vector<double>                   ks;
 
                     for(const auto& param : params)
                     {
@@ -200,7 +200,7 @@ void simulate(const std::string& input_file_name)
                         if(y.substr(3, 3) == aa_type) // y is like "y1_PHE"
                         {
                             const auto& indices =
-                                toml::find<std::vector<int>>(param, "indices");
+                                toml::find<std::vector<std::size_t>>(param, "indices");
                             const double k =
                                 toml::find<double>(param, "k") * OpenMM::KJPerKcal; // KJ/mol
 
@@ -211,11 +211,6 @@ void simulate(const std::string& input_file_name)
                     const auto ff_gen = FlexibleLocalAngleForceFieldGenerator(
                                             indices_vec, ks, spline_table, aa_type);
                     system.addForce(ff_gen.generate().release());
-
-                    // TODO
-                    // dupulication in exclusion list make error
-                    // all exclusion shoul be specified in HarmonicBond and GoContact
-                    // ff_gen.add_exclusion(exclusion_pairs);
                 }
             }
             else if(interaction == "DihedralAngle" && potential == "Gaussian")
@@ -243,10 +238,6 @@ void simulate(const std::string& input_file_name)
                 }
                 const auto ff_gen = GaussianDihedralForceFieldGenerator(indices_vec, ks, theta0s, sigmas);
                 system.addForce(ff_gen.generate().release());
-                // TODO
-                // dupulication in exclusion list make error
-                // all exclusion shoul be specified in HarmonicBond and GoContact
-                ff_gen.add_exclusion(exclusion_pairs);
             }
             else if(interaction == "DihedralAngle" && potential == "FlexibleLocalDihedral")
             {
@@ -339,11 +330,6 @@ void simulate(const std::string& input_file_name)
                     const auto ff_gen = FlexibleLocalDihedralForceFieldGenerator(
                             indices_vec, ks, fourier_table, aa_pair_name);
                     system.addForce(ff_gen.generate().release());
-
-                    // TODO
-                    // dupulication in exclusion list make error
-                    // all exclusion shoul be specified in HarmonicBond and GoContact
-                    // ff_gen.add_exclusion(exclusion_pairs);
                 }
             }
         }
@@ -372,16 +358,8 @@ void simulate(const std::string& input_file_name)
                     radius_vec.at(index) = radius;
                 }
 
-                const auto& itr = std::find(radius_vec.begin(), radius_vec.end(), std::nullopt);
-                if(itr != radius_vec.end())
-                {
-                    std::size_t index = std::distance(radius_vec.begin(), itr);
-                    throw std::runtime_error("[error] particle index " + std::to_string(index) +
-                            " does not have radius parameter.");
-                }
-
                 const auto ff_gen = ExcludedVolumeForceFieldGenerator(
-                        eps, cutoff, radius_vec, exclusion_pairs);
+                        eps, cutoff, radius_vec, bonded_pairs, contacted_pairs);
                 system.addForce(ff_gen.generate().release());
             }
         }
