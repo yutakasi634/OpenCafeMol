@@ -24,7 +24,8 @@ class ExcludedVolumeForceFieldGenerator
     {
         std::cerr << "    Global        : ExcludedVolume" << std::endl;
 
-        const std::string potential_formula = "epsilon*((sigma1+sigma2)/r)^12";
+        const std::string potential_formula =
+            "epsilon*(sigma1+sigma2)^12*((1/r)^12-cutoff_correction)";
         auto exv_ff = std::make_unique<OpenMM::CustomNonbondedForce>(potential_formula);
 
 
@@ -73,7 +74,10 @@ class ExcludedVolumeForceFieldGenerator
 
         // set cutoff
         exv_ff->setNonbondedMethod(OpenMM::CustomNonbondedForce::CutoffNonPeriodic);
-        exv_ff->setCutoffDistance((max_radius + second_max_radius)*cutoff_);
+        const double cutoff_distance   = (max_radius + second_max_radius)*cutoff_;
+        const double cutoff_correction = std::pow(1.0 / cutoff_distance, 12);
+        exv_ff->setCutoffDistance(cutoff_distance);
+        exv_ff->addGlobalParameter("cutoff_correction", cutoff_correction);
 
         for(const auto& exclusion_pair : exclusion_pairs_)
         {
