@@ -92,6 +92,8 @@ class ExcludedVolumeForceFieldGenerator
             std::unique_ptr<OpenMM::CustomNonbondedForce>& exv_ff,
             const index_pairs_type& bonded_pairs) const noexcept
     {
+        std::cerr << "        generating exclusion list from system topology..."
+                  << std::endl;
         exv_ff->createExclusionsFromBonds({bonded_pairs.begin(), bonded_pairs.end()}, 3);
     }
 
