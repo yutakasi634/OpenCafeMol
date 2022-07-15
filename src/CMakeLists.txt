@@ -4,16 +4,11 @@ find_package(OpenMM REQUIRED)
 message(STATUS "OpenMM include path : ${OPENMM_INCLUDE_DIR}")
 message(STATUS "OpenMM library path : ${OPENMM_LIBRARY}")
 
-## set environment variable for openmm plugin directory
-if(OPENMM_PLUGIN_DIR)
-    # the case openmm plugin directory is manulally set
-    add_definitions(-DOPENMM_PLUGIN_DIR)
-else()
-    get_target_property(OPENMM_PLUGIN_DIR OpenMM::OpenMM PLUGIN_DIRECTORY)
-endif()
+## set option for openmm plugin directory
+get_target_property(EXPECTED_OPENMM_PLUGIN_DIR OpenMM::OpenMM PLUGIN_DIRECTORY)
+set(OPENMM_PLUGIN_DIR ${EXPECTED_OPENMM_PLUGIN_DIR} CACHE PATH "The plugin path for OpenMM")
 message(STATUS "OpenMM plugin  path : ${OPENMM_PLUGIN_DIR}")
 set(CMAKE_CXX_FLAGS "-DOPENMM_PLUGIN_DIR=${OPENMM_PLUGIN_DIR}")
-
 
 add_executable(open_aicg2plus OpenAICG2Plus.cpp)
 set_target_properties(open_aicg2plus PROPERTIES
