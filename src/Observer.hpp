@@ -2,6 +2,8 @@
 #define OPEN_AICG2_PLUS_OBSERVER_HPP
 
 #include <string>
+#include <iostream>
+#include <OpenMM.h>
 
 class Observer
 {
@@ -11,7 +13,7 @@ class Observer
           pos_filename_("output/"+file_prefix+".pdb"),
           ene_filename_("output/"+file_prefix+".ene")
     {
-        std::cerr << "output file information" << std::endl;
+        std::cerr << "initializing observer..." << std::endl;
 
         this->clear_file(pos_filename_);
         std::cerr << "    output trajectory file : " << pos_filename_ << std::endl;
