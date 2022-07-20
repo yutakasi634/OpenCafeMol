@@ -9,6 +9,7 @@
 #include "toml11/toml.hpp"
 #include "util/Utility.hpp"
 #include "util/Macro.hpp"
+#include "Simulator.hpp"
 #include "Observer.hpp"
 #include "forcefield/HarmonicBondForceFieldGenerator.hpp"
 #include "forcefield/GaussianBondForceFieldGenerator.hpp"
@@ -57,12 +58,12 @@ void simulate(const std::string& input_file_name)
     auto data = toml::parse(input_file_name);
 
     // read simulator table
-    const auto& simulator              = toml::find(data, "simulator");
-    const std::size_t total_step       = toml::find<std::size_t>(simulator, "total_step");
-    const std::size_t save_step        = toml::find<std::size_t>(simulator, "save_step");
-    const double      delta_t          = toml::find<double>(simulator, "delta_t");
-    const auto&       integrator_info  = toml::find(simulator, "integrator");
-    const auto&       gammas           = toml::find<toml::array>(integrator_info, "gammas");
+    const auto&       simulator_table = toml::find(data, "simulator");
+    const std::size_t total_step      = toml::find<std::size_t>(simulator_table, "total_step");
+    const std::size_t save_step       = toml::find<std::size_t>(simulator_table, "save_step");
+    const double      delta_t         = toml::find<double>(simulator_table, "delta_t");
+    const auto&       integrator_info = toml::find(simulator_table, "integrator");
+    const auto&       gammas          = toml::find<toml::array>(integrator_info, "gammas");
 
     // read systems tables
     const auto& systems     = toml::find(data, "systems");
@@ -371,35 +372,17 @@ void simulate(const std::string& input_file_name)
     // So in this implementation, we fix the gamma to 0.2 ps^-1 temporary, correspond to
     // approximatry 0.01 in cafemol friction coefficient. We need to implement new
     // LangevinIntegrator which can use different gamma for different particles.
-    std::cerr << "initializing integrator..." << std::endl;
-    std::cerr << "    temperature : "
-        << std::setw(7) << std::fixed << std::setprecision(2) << temperature << " K" << std::endl;
-    std::cerr << "    delta t     : "
-        << std::setw(7) << std::fixed << std::setprecision(2) << delta_t << " cafetime" << std::endl;
-    std::cerr << "    total step  : "
-        << std::setw(7) << total_step << " step" << std::endl;
-    OpenMM::LangevinIntegrator integrator(
-            temperature, 0.3/*friction coef ps^-1*/, delta_t*cafetime);
+    Simulator simulator(system,
+                  OpenMM::LangevinIntegrator(temperature,
+                                             0.3/*friction coef ps^-1*/,
+                                             delta_t*cafetime),
+                  initPosInNm, total_step, save_step, Observer(file_prefix));
 
-    OpenMM::Context context(system, integrator,
-            OpenMM::Platform::getPlatformByName("CUDA"));
-
-    // Set starting positions of the atoms.
-    context.setPositions(initPosInNm);
-
-    const Observer obs(file_prefix);
-
-    // Simulate
+    // excute simulation
     const auto start = std::chrono::system_clock::now();
     std::cerr << "calculation start!" << std::endl;
 
-    const std::size_t total_frame = std::floor(total_step/save_step);
-    for (std::size_t frame_num=0; frame_num<total_frame; ++frame_num)
-    {
-        obs.output(frame_num*save_step, context);
-
-        integrator.step(save_step);
-    }
+    simulator.run();
 
     const auto stop  = std::chrono::system_clock::now();
     const auto total = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count();
