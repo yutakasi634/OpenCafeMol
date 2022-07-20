@@ -9,6 +9,7 @@
 #include "toml11/toml.hpp"
 #include "util/Utility.hpp"
 #include "util/Macro.hpp"
+#include "Observer.hpp"
 #include "forcefield/HarmonicBondForceFieldGenerator.hpp"
 #include "forcefield/GaussianBondForceFieldGenerator.hpp"
 #include "forcefield/GoContactForceFieldGenerator.hpp"
@@ -62,8 +63,6 @@ void simulate(const std::string& input_file_name)
     const double      delta_t          = toml::find<double>(simulator, "delta_t");
     const auto&       integrator_info  = toml::find(simulator, "integrator");
     const auto&       gammas           = toml::find<toml::array>(integrator_info, "gammas");
-
-    const std::size_t total_frame = std::floor(total_step/save_step);
 
     // read systems tables
     const auto& systems     = toml::find(data, "systems");
@@ -377,6 +376,8 @@ void simulate(const std::string& input_file_name)
         << std::setw(7) << std::fixed << std::setprecision(2) << temperature << " K" << std::endl;
     std::cerr << "    delta t     : "
         << std::setw(7) << std::fixed << std::setprecision(2) << delta_t << " cafetime" << std::endl;
+    std::cerr << "    total step  : "
+        << std::setw(7) << total_step << " step" << std::endl;
     OpenMM::LangevinIntegrator integrator(
             temperature, 0.3/*friction coef ps^-1*/, delta_t*cafetime);
 
@@ -386,36 +387,16 @@ void simulate(const std::string& input_file_name)
     // Set starting positions of the atoms.
     context.setPositions(initPosInNm);
 
-    std::cerr << "output file information" << std::endl;
-    std::string output_coordinate_file = "output/" + file_prefix + ".pdb";
-    std::cerr << "    output trajectory file : " << output_coordinate_file << std::endl;
-    std::ofstream pdb_fp(output_coordinate_file, std::ios::out);
-    if(not pdb_fp.good())
-    {
-        throw std::runtime_error("file open error : " + output_coordinate_file);
-    }
-
-    std::string output_energy_file     = "output/" + file_prefix + ".ene";
-    std::cerr << "    output energy file     : " << output_energy_file << std::endl;
-    std::ofstream ene_fp(output_energy_file, std::ios::out);
-    if(not ene_fp.good())
-    {
-        throw std::runtime_error("file open error : " + output_coordinate_file);
-    }
-
-    ene_fp << "# unit of energy : kcal/mol" << std::endl;
-    ene_fp << "# timestep  potential_energy  kinetic_energy" << std::endl;
+    const Observer obs(file_prefix);
 
     // Simulate
     const auto start = std::chrono::system_clock::now();
     std::cerr << "calculation start!" << std::endl;
 
+    const std::size_t total_frame = std::floor(total_step/save_step);
     for (std::size_t frame_num=0; frame_num<total_frame; ++frame_num)
     {
-        OpenMM::State pos    = context.getState(OpenMM::State::Positions);
-        OpenMM::State energy = context.getState(OpenMM::State::Energy);
-        writePdbFrame(pdb_fp, frame_num*save_step, pos); // output coordinates
-        writeEnergy  (ene_fp, frame_num*save_step, energy); // output energy
+        obs.output(frame_num*save_step, context);
 
         integrator.step(save_step);
     }
@@ -446,9 +427,6 @@ void simulate(const std::string& input_file_name)
         std::cerr << total * 0.001 * 0.0167 * 0.0167 * 0.0417 << " [day]";
     }
     std::cerr << std::endl;
-
-    pdb_fp.close();
-    ene_fp.close();
 }
 
 int main(int argc, char** argv)
