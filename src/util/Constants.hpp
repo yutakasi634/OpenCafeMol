@@ -3,6 +3,8 @@
 
 #include <string>
 
+namespace Constant
+{
 // define physical constnt
 static const double Na = 6.02214076e23;
 static const double kB = 1.380649e-23; // J/K
@@ -66,5 +68,6 @@ static const std::map<std::pair<std::string, std::string>,
         {{"VAL", "R3" }, {2.2583,  0.4104, -0.0268, -0.0534, -0.3637, -0.0139, -0.0752}},
         {{"GLY", "PRO"}, {2.4898, -0.4513,  0.8492, -0.0040, -0.1115,  0.2602,  0.0636}},
     };
+} // namespace Constant
 
 #endif // OPEN_AICG2PLUS_CONSTANTS_HPP

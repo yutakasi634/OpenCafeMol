@@ -189,7 +189,7 @@ void simulate(const std::string& input_file_name)
             {
                 const auto& params = toml::find<toml::array>(local_ff, "parameters");
 
-                for(const auto& [aa_type, spline_table] : fla_spline_table)
+                for(const auto& [aa_type, spline_table] : Constant::fla_spline_table)
                 {
                     std::vector<std::vector<std::size_t>> indices_vec;
                     std::vector<double>                   ks;
@@ -243,7 +243,7 @@ void simulate(const std::string& input_file_name)
             {
                 const auto& params = toml::find<toml::array>(local_ff, "parameters");
 
-                for(const auto& [aa_pair_type, fourier_table] : fld_fourier_table)
+                for(const auto& [aa_pair_type, fourier_table] : Constant::fld_fourier_table)
                 {
                     std::vector<std::array<std::size_t, 4>> indices_vec;
                     std::vector<double>                     ks;
@@ -375,7 +375,7 @@ void simulate(const std::string& input_file_name)
     Simulator simulator(system,
                   OpenMM::LangevinIntegrator(temperature,
                                              0.3/*friction coef ps^-1*/,
-                                             delta_t*cafetime),
+                                             delta_t*Constant::cafetime),
                   initPosInNm, total_step, save_step, Observer(file_prefix));
 
     // excute simulation
