@@ -19,36 +19,9 @@
 #include "forcefield/FlexibleLocalDihedralForceFieldGenerator.hpp"
 #include "forcefield/ExcludedVolumeForceFieldGenerator.hpp"
 
+
 void simulate(const std::string& input_file_name)
 {
-    // dump library information
-    std::cerr << "OpenMM Library Information" << std::endl;
-    std::cerr << "    version                   : "
-        + OpenMM::Platform::getOpenMMVersion() << std::endl;
-    std::cerr << "    CUDA platform plugin path : "
-        << OPENAICG2PLUS_EXPAND_OPTION_STR(OPENMM_PLUGIN_DIR) << std::endl;
-
-    // Load any shared libraries containing GPU implementations
-    OpenMM::Platform::loadPluginsFromDirectory(
-            OPENAICG2PLUS_EXPAND_OPTION_STR(OPENMM_PLUGIN_DIR));
-
-    // check CUDA platform existance
-    bool cuda_platform_found = false;
-    for(std::size_t idx=0; idx < OpenMM::Platform::getNumPlatforms(); ++idx)
-    {
-        if(OpenMM::Platform::getPlatform(idx).getName() == "CUDA")
-        {
-            cuda_platform_found = true;
-        }
-    }
-    if(!cuda_platform_found)
-    {
-        throw std::runtime_error(
-            "[error] There is no CUDA platform loaded. "
-            "You need to set the correct OpenMM plugins directory path "
-            "to the CMake option -DOPENMM_PLUGIN_DIR.");
-    }
-
     const std::size_t file_path_len   = input_file_name.rfind("/")+1;
     const std::size_t file_prefix_len = input_file_name.rfind(".") - file_path_len;
     const std::string file_path       = input_file_name.substr(0, file_path_len);
@@ -372,6 +345,7 @@ void simulate(const std::string& input_file_name)
     // So in this implementation, we fix the gamma to 0.2 ps^-1 temporary, correspond to
     // approximatry 0.01 in cafemol friction coefficient. We need to implement new
     // LangevinIntegrator which can use different gamma for different particles.
+
     Simulator simulator(system,
                   OpenMM::LangevinIntegrator(temperature,
                                              0.3/*friction coef ps^-1*/,
@@ -412,13 +386,44 @@ void simulate(const std::string& input_file_name)
     std::cerr << std::endl;
 }
 
+
 int main(int argc, char** argv)
 {
+    // check command line argument
     if(argc != 2)
     {
         std::cerr << "Usage: " << argv[0] << " <input.toml>" << std::endl;
         return 1;
     }
+
+    // dump library information
+    std::cerr << "OpenMM Library Information" << std::endl;
+    std::cerr << "    version                   : "
+        + OpenMM::Platform::getOpenMMVersion() << std::endl;
+    std::cerr << "    CUDA platform plugin path : "
+        << OPENAICG2PLUS_EXPAND_OPTION_STR(OPENMM_PLUGIN_DIR) << std::endl;
+
+    // Load any shared libraries containing GPU implementations
+    OpenMM::Platform::loadPluginsFromDirectory(
+            OPENAICG2PLUS_EXPAND_OPTION_STR(OPENMM_PLUGIN_DIR));
+
+    // check CUDA platform existance
+    bool cuda_platform_found = false;
+    for(std::size_t idx=0; idx < OpenMM::Platform::getNumPlatforms(); ++idx)
+    {
+        if(OpenMM::Platform::getPlatform(idx).getName() == "CUDA")
+        {
+            cuda_platform_found = true;
+        }
+    }
+    if(!cuda_platform_found)
+    {
+        throw std::runtime_error(
+            "[error] There is no CUDA platform loaded. "
+            "You need to set the correct OpenMM plugins directory path "
+            "to the CMake option -DOPENMM_PLUGIN_DIR.");
+    }
+
 
     try {
         simulate(std::string(argv[1]));
