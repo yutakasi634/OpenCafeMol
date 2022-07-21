@@ -70,4 +70,4 @@ static const std::map<std::pair<std::string, std::string>,
     };
 } // namespace Constant
 
-#endif // OPEN_AICG2PLUS_CONSTANTS_HPP
+#endif // OPEN_AICG2_PLUS_CONSTANTS_HPP
