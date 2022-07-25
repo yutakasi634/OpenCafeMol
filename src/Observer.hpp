@@ -4,14 +4,16 @@
 #include <string>
 #include <iostream>
 #include <OpenMM.h>
+#include "util/ProgressBar.hpp"
 
 class Observer
 {
   public:
-    Observer(const std::string& file_prefix)
-        : file_prefix_(file_prefix),
-          pos_filename_("output/"+file_prefix+".pdb"),
-          ene_filename_("output/"+file_prefix+".ene")
+    Observer(const std::string& file_prefix, bool output_progress = true)
+        : pos_filename_("output/"+file_prefix+".pdb"),
+          ene_filename_("output/"+file_prefix+".ene"),
+          output_progress_(output_progress),
+          progress_bar_(/* width of bar = */ 50)
     {
         std::cerr << "initializing observer..." << std::endl;
 
@@ -27,6 +29,11 @@ class Observer
             ofs << "# timestep potential_energy kinetic_energy" << std::endl;
             ofs.close();
         }
+    }
+
+    void initialize(const std::size_t total_step)
+    {
+        total_step_ = total_step;
     }
 
     void output(const std::size_t step, const OpenMM::Context& context) const
@@ -46,6 +53,19 @@ class Observer
             writeEnergy(ofs, step, ene);
             ofs.close();
         }
+
+        if(output_progress_)
+        {
+            progress_bar_.format(step, total_step_, std::cerr);
+        }
+    }
+
+    void finalize() const
+    {
+        if(output_progress_)
+        {
+            progress_bar_.finalize(std::cerr);
+        }
     }
 
   private:
@@ -61,9 +81,11 @@ class Observer
     }
 
   private:
-    std::string file_prefix_;
     std::string pos_filename_;
     std::string ene_filename_;
+    bool        output_progress_;
+    ProgressBar progress_bar_;
+    std::size_t total_step_;
 };
 
 #endif // OPEN_AICG2_PLUS_OBSERVER_HPP

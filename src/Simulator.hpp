@@ -40,6 +40,8 @@ class Simulator
             << std::setw(7) << std::fixed << std::setprecision(3)
             << integrator_.getStepSize() / Constant::cafetime << " cafetime"
             << std::endl;
+
+        observer_.initialize(total_step);
     }
 
     void initialize(const std::vector<OpenMM::Vec3>& initial_position)
@@ -57,6 +59,8 @@ class Simulator
 
             integrator_.step(save_step_);
         }
+
+        observer_.finalize();
     }
 
     const std::size_t total_step() const noexcept { return total_step_; }

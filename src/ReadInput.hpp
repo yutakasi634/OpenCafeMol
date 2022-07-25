@@ -334,6 +334,7 @@ Simulator read_input(const std::string input_file_name)
     const std::size_t file_prefix_len = input_file_name.rfind(".") - file_path_len;
     const std::string file_path       = input_file_name.substr(0, file_path_len);
     const std::string file_prefix     = input_file_name.substr(file_path_len, file_prefix_len);
+
     // read input toml file
     std::cerr << "parsing " << input_file_name << "..." << std::endl;
     auto data = toml::parse(input_file_name);
