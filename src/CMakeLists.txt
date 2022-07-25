@@ -14,7 +14,7 @@ message(STATUS "OpenMM plugin  path : ${OPENMM_PLUGIN_DIR}")
 
 
 # =============================================================================
-set(CMAKE_CXX_FLAGS "-DOPENMM_PLUGIN_DIR=${OPENMM_PLUGIN_DIR} ${OPEN_AICG2PLUS_OPTIMIZATION_FLAGS}")
+set(CMAKE_CXX_FLAGS "-DOPENMM_PLUGIN_DIR=${OPENMM_PLUGIN_DIR} ${OPEN_AICG2PLUS_OPTIMIZATION_FLAGS} ${OPEN_AICG2PLUS_DEBUGGER_FLAGS}")
 message(STATUS "CXX compiler flags are ${CMAKE_CXX_FLAGS}")
 
 add_executable(open_aicg2plus OpenAICG2Plus.cpp)
