@@ -33,12 +33,12 @@ endif()
 # =============================================================================
 # debugger flags
 
-set(OPEN_AICG2PLUS_COMPILER_FLAGS "")
-option(GDB "add flag for gdb")
+set(OPEN_AICG2PLUS_DEBUGGER_FLAGS "")
+option(GDB "add flag for gdb" OFF)
 if(GDB)
     check_cxx_compiler_flag("-ggdb" OPEN_AICG2PLUS_COMPILER_HAS_GGDB)
     if(OPEN_AICG2PLUS_COMPILER_HAS_GGDB)
-        set(OPEN_AICG2PLUS_DEBUGGER_FLAGS "${OPEN_AICG2PLUS_COMPILER_FLAGS} -ggdb")
+        set(OPEN_AICG2PLUS_DEBUGGER_FLAGS "${OPEN_AICG2PLUS_DEBUGGER_FLAGS} -ggdb")
     endif()
 endif()
 

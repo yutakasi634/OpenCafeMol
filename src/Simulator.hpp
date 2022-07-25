@@ -25,7 +25,7 @@ class Simulator
         const Observer&& observer)
         : system_ptr_(std::move(system_ptr)), integrator_(std::move(integrator)),
           context_(*system_ptr_, integrator_,
-                    OpenMM::Platform::getPlatformByName("Reference")),
+                    OpenMM::Platform::getPlatformByName("CUDA")),
           total_step_(total_step), save_step_(save_step),
           observer_(std::move(observer))
     {
