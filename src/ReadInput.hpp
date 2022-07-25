@@ -12,9 +12,9 @@
 #include "forcefield/FlexibleLocalDihedralForceFieldGenerator.hpp"
 #include "forcefield/ExcludedVolumeForceFieldGenerator.hpp"
 
-OpenMM::System read_system(const toml::value& data)
+std::unique_ptr<OpenMM::System> read_system(const toml::value& data)
 {
-    OpenMM::System system;
+    auto system_ptr = std::make_unique<OpenMM::System>();
 
     // read systems tables
     const auto& systems   = toml::find(data, "systems");
@@ -26,7 +26,7 @@ OpenMM::System read_system(const toml::value& data)
     {
         // set mass
         const auto& p = particles.at(i);
-        system.addParticle(toml::get<double>(find_either(p, "m", "mass"))); // amu
+        system_ptr->addParticle(toml::get<double>(find_either(p, "m", "mass"))); // amu
     }
 
     // for exclusion list of Excluded Volume
@@ -68,7 +68,7 @@ OpenMM::System read_system(const toml::value& data)
                     ks         .push_back(k);
                 }
                 const auto ff_gen = HarmonicBondForceFieldGenerator(indices_vec, v0s, ks);
-                system.addForce(ff_gen.generate().release());
+                system_ptr->addForce(ff_gen.generate().release());
                 bonded_pairs = ff_gen.indices();
             }
             else if(interaction == "BondLength" && potential == "Gaussian")
@@ -97,7 +97,7 @@ OpenMM::System read_system(const toml::value& data)
                     sigmas     .push_back(sigma);
                 }
                 const auto ff_gen = GaussianBondForceFieldGenerator(indices_vec, ks, v0s, sigmas);
-                system.addForce(ff_gen.generate().release());
+                system_ptr->addForce(ff_gen.generate().release());
             }
             else if(interaction == "BondLength" && potential == "GoContact")
             {
@@ -121,7 +121,7 @@ OpenMM::System read_system(const toml::value& data)
                     r0s        .push_back(r0);
                 }
                 const auto ff_gen = GoContactForceFieldGenerator(indices_vec, ks, r0s);
-                system.addForce(ff_gen.generate().release());
+                system_ptr->addForce(ff_gen.generate().release());
                 contacted_pairs = indices_vec;
             }
             else if(interaction == "BondAngle" && potential == "FlexibleLocalAngle")
@@ -149,7 +149,7 @@ OpenMM::System read_system(const toml::value& data)
                     }
                     const auto ff_gen = FlexibleLocalAngleForceFieldGenerator(
                                             indices_vec, ks, spline_table, aa_type);
-                    system.addForce(ff_gen.generate().release());
+                    system_ptr->addForce(ff_gen.generate().release());
                 }
             }
             else if(interaction == "DihedralAngle" && potential == "Gaussian")
@@ -176,7 +176,7 @@ OpenMM::System read_system(const toml::value& data)
                     sigmas     .push_back(sigma);
                 }
                 const auto ff_gen = GaussianDihedralForceFieldGenerator(indices_vec, ks, theta0s, sigmas);
-                system.addForce(ff_gen.generate().release());
+                system_ptr->addForce(ff_gen.generate().release());
             }
             else if(interaction == "DihedralAngle" && potential == "FlexibleLocalDihedral")
             {
@@ -268,7 +268,7 @@ OpenMM::System read_system(const toml::value& data)
                     }
                     const auto ff_gen = FlexibleLocalDihedralForceFieldGenerator(
                             indices_vec, ks, fourier_table, aa_pair_name);
-                    system.addForce(ff_gen.generate().release());
+                    system_ptr->addForce(ff_gen.generate().release());
                 }
             }
         }
@@ -299,12 +299,12 @@ OpenMM::System read_system(const toml::value& data)
 
                 const auto ff_gen = ExcludedVolumeForceFieldGenerator(
                         eps, cutoff, radius_vec, bonded_pairs, contacted_pairs);
-                system.addForce(ff_gen.generate().release());
+                system_ptr->addForce(ff_gen.generate().release());
             }
         }
     }
 
-    return system;
+    return system_ptr;
 }
 
 std::vector<OpenMM::Vec3> read_initial_conf(const toml::value& data)
@@ -326,6 +326,42 @@ std::vector<OpenMM::Vec3> read_initial_conf(const toml::value& data)
     }
 
     return initPosInNm;
+}
+
+Simulator read_input(const std::string input_file_name)
+{
+    const std::size_t file_path_len   = input_file_name.rfind("/")+1;
+    const std::size_t file_prefix_len = input_file_name.rfind(".") - file_path_len;
+    const std::string file_path       = input_file_name.substr(0, file_path_len);
+    const std::string file_prefix     = input_file_name.substr(file_path_len, file_prefix_len);
+    // read input toml file
+    std::cerr << "parsing " << input_file_name << "..." << std::endl;
+    auto data = toml::parse(input_file_name);
+
+    // read system table
+    const auto&    systems     = toml::find(data, "systems");
+    const auto&    attr        = toml::find(systems[0], "attributes");
+    const auto&    temperature = toml::find<double>(attr, "temperature");
+    const std::vector<OpenMM::Vec3> initial_position_in_nm(read_initial_conf(data));
+
+    // read simulator table
+    const auto&       simulator_table = toml::find(data, "simulator");
+    const std::size_t total_step      = toml::find<std::size_t>(simulator_table, "total_step");
+    const std::size_t save_step       = toml::find<std::size_t>(simulator_table, "save_step");
+    const double      delta_t         = toml::find<double>(simulator_table, "delta_t");
+
+    // setup OpenMM simulator
+    // In OpenMM, we cannot use different friction coefficiet, gamma, for different molecules.
+    // However, cafemol use different gamma depends on the mass of each particle, and the
+    // product of mass and gamma is constant in there.
+    // So in this implementation, we fix the gamma to 0.2 ps^-1 temporary, correspond to
+    // approximatry 0.01 in cafemol friction coefficient. We need to implement new
+    // LangevinIntegrator which can use different gamma for different particles.
+    return Simulator(std::move(read_system(data)),
+               OpenMM::LangevinIntegrator(temperature,
+                                          0.3/*friction coef ps^-1*/,
+                                          delta_t*Constant::cafetime),
+               initial_position_in_nm, total_step, save_step, Observer(file_prefix));
 }
 
 #endif // OPEN_AICG2_PLUS_READ_INPUT_HPP

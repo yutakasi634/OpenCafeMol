@@ -15,41 +15,7 @@
 
 void simulate(const std::string& input_file_name)
 {
-    const std::size_t file_path_len   = input_file_name.rfind("/")+1;
-    const std::size_t file_prefix_len = input_file_name.rfind(".") - file_path_len;
-    const std::string file_path       = input_file_name.substr(0, file_path_len);
-    const std::string file_prefix     = input_file_name.substr(file_path_len, file_prefix_len);
-    // read input toml file
-    std::cerr << "parsing " << input_file_name << "..." << std::endl;
-    auto data = toml::parse(input_file_name);
-
-    // read system table
-    const auto&    systems     = toml::find(data, "systems");
-    const auto&    attr        = toml::find(systems[0], "attributes");
-    const auto&    temperature = toml::find<double>(attr, "temperature");
-    const std::vector<OpenMM::Vec3> initial_position_in_nm(read_initial_conf(data));
-
-    // read information for OpenMM::System
-    OpenMM::System system(read_system(data));
-
-    // read simulator table
-    const auto&       simulator_table = toml::find(data, "simulator");
-    const std::size_t total_step      = toml::find<std::size_t>(simulator_table, "total_step");
-    const std::size_t save_step       = toml::find<std::size_t>(simulator_table, "save_step");
-    const double      delta_t         = toml::find<double>(simulator_table, "delta_t");
-
-    // setup OpenMM simulator
-    // In OpenMM, we cannot use different friction coefficiet, gamma, for different molecules.
-    // However, cafemol use different gamma depends on the mass of each particle, and the
-    // product of mass and gamma is constant in there.
-    // So in this implementation, we fix the gamma to 0.2 ps^-1 temporary, correspond to
-    // approximatry 0.01 in cafemol friction coefficient. We need to implement new
-    // LangevinIntegrator which can use different gamma for different particles.
-    Simulator simulator(system,
-                  OpenMM::LangevinIntegrator(temperature,
-                                             0.3/*friction coef ps^-1*/,
-                                             delta_t*Constant::cafetime),
-                  initial_position_in_nm, total_step, save_step, Observer(file_prefix));
+    Simulator simulator(read_input(input_file_name));
 
     // excute simulation
     const auto start = std::chrono::system_clock::now();

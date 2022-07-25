@@ -8,21 +8,24 @@
 class Simulator
 {
   public:
-    Simulator(OpenMM::System& system, OpenMM::LangevinIntegrator&& integrator,
+    Simulator(
+        std::unique_ptr<OpenMM::System>&& system_ptr, OpenMM::LangevinIntegrator&& integrator,
         const std::vector<OpenMM::Vec3>& initial_position,
         const std::size_t total_step, const std::size_t save_step,
         const Observer&& observer)
-        : Simulator(system, std::move(integrator),
+        : Simulator(std::move(system_ptr), std::move(integrator),
                     total_step, save_step, std::move(observer))
     {
         this->initialize(initial_position);
     }
 
-    Simulator(OpenMM::System& system, OpenMM::LangevinIntegrator&& integrator,
+    Simulator(
+        std::unique_ptr<OpenMM::System>&& system_ptr, OpenMM::LangevinIntegrator&& integrator,
         const std::size_t total_step, const std::size_t save_step,
         const Observer&& observer)
-        : integrator_(std::move(integrator)),
-          context_(system, integrator_, OpenMM::Platform::getPlatformByName("CUDA")),
+        : system_ptr_(std::move(system_ptr)), integrator_(std::move(integrator)),
+          context_(*system_ptr_, integrator_,
+                    OpenMM::Platform::getPlatformByName("Reference")),
           total_step_(total_step), save_step_(save_step),
           observer_(std::move(observer))
     {
@@ -56,12 +59,16 @@ class Simulator
         }
     }
 
+    const std::size_t total_step() const noexcept { return total_step_; }
+    const std::size_t save_step()  const noexcept { return save_step_; }
+
   private:
-    OpenMM::LangevinIntegrator integrator_;
-    OpenMM::Context            context_;
-    std::size_t                total_step_;
-    std::size_t                save_step_;
-    Observer                   observer_;
+    std::unique_ptr<OpenMM::System> system_ptr_;
+    OpenMM::LangevinIntegrator      integrator_;
+    OpenMM::Context                 context_;
+    std::size_t                     total_step_;
+    std::size_t                     save_step_;
+    Observer                        observer_;
 };
 
 #endif // OPEN_AICG2_PLUS_SIMULATOR_HPP
