@@ -4,13 +4,7 @@
 #include <memory>
 #include <OpenMM.h>
 #include "src/Simulator.hpp"
-#include "src/forcefield/HarmonicBondForceFieldGenerator.hpp"
-#include "src/forcefield/GaussianBondForceFieldGenerator.hpp"
-#include "src/forcefield/GoContactForceFieldGenerator.hpp"
-#include "src/forcefield/FlexibleLocalAngleForceFieldGenerator.hpp"
-#include "src/forcefield/GaussianDihedralForceFieldGenerator.hpp"
-#include "src/forcefield/FlexibleLocalDihedralForceFieldGenerator.hpp"
-#include "src/forcefield/ExcludedVolumeForceFieldGenerator.hpp"
+#include "ReadForceFieldGenerator.hpp"
 
 std::unique_ptr<OpenMM::System> read_system(const toml::value& data)
 {
@@ -46,226 +40,47 @@ std::unique_ptr<OpenMM::System> read_system(const toml::value& data)
             const std::string potential   = toml::find<std::string>(local_ff, "potential");
             if(interaction == "BondLength" && potential == "Harmonic")
             {
-                const auto& params = toml::find<toml::array>(local_ff, "parameters");
-                std::vector<std::pair<std::size_t, std::size_t>> indices_vec;
-                std::vector<double>                              v0s;
-                std::vector<double>                              ks;
-
-                for(const auto& param : params)
-                {
-                    const auto&  indices =
-                        toml::find<std::pair<std::size_t, std::size_t>>(param, "indices");
-                    const double v0 =
-                        toml::find<double>(param, "v0") * OpenMM::NmPerAngstrom; // nm
-                    const double k =
-                        toml::find<double>(param, "k") * OpenMM::KJPerKcal *
-                        OpenMM::AngstromsPerNm * OpenMM::AngstromsPerNm; // KJ/(mol nm^2)
-
-                    indices_vec.push_back(indices);
-                    v0s        .push_back(v0);
-                    ks         .push_back(k);
-                }
-                const auto ff_gen = HarmonicBondForceFieldGenerator(indices_vec, v0s, ks);
+                const auto ff_gen =
+                    read_harmonic_bond_ff_generator(local_ff);
                 system_ptr->addForce(ff_gen.generate().release());
                 bonded_pairs = ff_gen.indices();
             }
             else if(interaction == "BondLength" && potential == "Gaussian")
             {
-                const auto& params = toml::find<toml::array>(local_ff, "parameters");
-                std::vector<std::pair<std::size_t, std::size_t>> indices_vec;
-                std::vector<double>                              v0s;
-                std::vector<double>                              ks;
-                std::vector<double>                              sigmas;
-
-                for(const auto& param : params)
-                {
-                    const auto& indices =
-                        toml::find<std::pair<std::size_t, std::size_t>>(param, "indices");
-                    const double k  =
-                        toml::find<double>(param, "k") * OpenMM::KJPerKcal; // KJ/mol
-                    const double v0 =
-                        toml::find<double>(param, "v0") * OpenMM::NmPerAngstrom; // nm
-                    const double sigma =
-                        toml::get<double>(
-                                find_either(param, "sigma", "σ")) * OpenMM::NmPerAngstrom; // nm
-
-                    indices_vec.push_back(indices);
-                    ks         .push_back(k);
-                    v0s        .push_back(v0);
-                    sigmas     .push_back(sigma);
-                }
-                const auto ff_gen = GaussianBondForceFieldGenerator(indices_vec, ks, v0s, sigmas);
+                const auto ff_gen =
+                    read_gaussian_bond_ff_generator(local_ff);
                 system_ptr->addForce(ff_gen.generate().release());
             }
             else if(interaction == "BondLength" && potential == "GoContact")
             {
-                // TODO: enable to optimization based on cutoff
-                const auto& params = toml::find<toml::array>(local_ff, "parameters");
-                std::vector<std::pair<std::size_t, std::size_t>> indices_vec;
-                std::vector<double>                              ks;
-                std::vector<double>                              r0s;
-
-                for(const auto& param : params)
-                {
-                    const auto& indices =
-                        toml::find<std::pair<std::size_t, std::size_t>>(param, "indices");
-                    const double k =
-                        toml::find<double>(param, "k") * OpenMM::KJPerKcal; // KJ/mol
-                    const double r0 =
-                        toml::find<double>(param, "v0") * OpenMM::NmPerAngstrom; // nm
-
-                    ks         .push_back(k);
-                    indices_vec.push_back(indices);
-                    r0s        .push_back(r0);
-                }
-                const auto ff_gen = GoContactForceFieldGenerator(indices_vec, ks, r0s);
+                const auto ff_gen =
+                    read_go_contact_ff_generator(local_ff);
                 system_ptr->addForce(ff_gen.generate().release());
-                contacted_pairs = indices_vec;
+                contacted_pairs = ff_gen.indices();
             }
             else if(interaction == "BondAngle" && potential == "FlexibleLocalAngle")
             {
-                const auto& params = toml::find<toml::array>(local_ff, "parameters");
-
                 for(const auto& [aa_type, spline_table] : Constant::fla_spline_table)
                 {
-                    std::vector<std::vector<std::size_t>> indices_vec;
-                    std::vector<double>                   ks;
-
-                    for(const auto& param : params)
-                    {
-                        const std::string y = toml::find<std::string>(param, "y");
-                        if(y.substr(3, 3) == aa_type) // y is like "y1_PHE"
-                        {
-                            const auto& indices =
-                                toml::find<std::vector<std::size_t>>(param, "indices");
-                            const double k =
-                                toml::find<double>(param, "k") * OpenMM::KJPerKcal; // KJ/mol
-
-                            indices_vec.push_back(indices);
-                            ks         .push_back(k);
-                        }
-                    }
-                    const auto ff_gen = FlexibleLocalAngleForceFieldGenerator(
-                                            indices_vec, ks, spline_table, aa_type);
+                    const auto ff_gen =
+                        read_flexible_local_angle_ff_generator(
+                                local_ff, aa_type, spline_table);
                     system_ptr->addForce(ff_gen.generate().release());
                 }
             }
             else if(interaction == "DihedralAngle" && potential == "Gaussian")
             {
-                const auto& params = toml::find<toml::array>(local_ff, "parameters");
-                std::vector<std::array<std::size_t, 4>> indices_vec;
-                std::vector<double>                     ks;
-                std::vector<double>                     theta0s;
-                std::vector<double>                     sigmas;
-
-                for(const auto& param : params)
-                {
-                    const auto& indices =
-                        toml::find<std::array<std::size_t, 4>>(param, "indices");
-                    const double k  =
-                        toml::find<double>(param, "k") * OpenMM::KJPerKcal; // KJ/mol
-                    const double theta0 = toml::find<double>(param, "v0"); // radiuns
-                    const double sigma =
-                        toml::get<double>(find_either(param, "sigma", "σ")); // radiuns
-
-                    indices_vec.push_back(indices);
-                    ks         .push_back(k);
-                    theta0s    .push_back(theta0);
-                    sigmas     .push_back(sigma);
-                }
-                const auto ff_gen = GaussianDihedralForceFieldGenerator(indices_vec, ks, theta0s, sigmas);
+                const auto ff_gen =
+                    read_gaussian_dihedral_ff_generator(local_ff);
                 system_ptr->addForce(ff_gen.generate().release());
             }
             else if(interaction == "DihedralAngle" && potential == "FlexibleLocalDihedral")
             {
-                const auto& params = toml::find<toml::array>(local_ff, "parameters");
-
                 for(const auto& [aa_pair_type, fourier_table] : Constant::fld_fourier_table)
                 {
-                    std::vector<std::array<std::size_t, 4>> indices_vec;
-                    std::vector<double>                     ks;
-                    std::string                             aa_pair_name;
-
-                    if(aa_pair_type.second == "GLY") // R1-GLY case
-                    {
-                        for(const auto& param : params)
-                        {
-                            const std::string coef    = toml::find<std::string>(param, "coef");
-                            const auto&       indices =
-                                toml::find<std::array<std::size_t, 4>>(param, "indices");
-                            const double      k       = toml::find<double>(param, "k");
-
-                            if(coef.substr(4, 3) == "GLY")
-                            {
-                                indices_vec.push_back(indices);
-                                ks         .push_back(k);
-                            }
-                        }
-                        aa_pair_name = aa_pair_type.first + "-" + aa_pair_type.second;
-                    }
-                    else if(aa_pair_type.second == "PRO")
-                    {
-                        if(aa_pair_type.first == "GLY") // GLY-PRO case
-                        {
-                            for(const auto& param : params)
-                            {
-                                const std::string coef    =
-                                    toml::find<std::string>(param, "coef");
-                                const auto&       indices =
-                                    toml::find<std::array<std::size_t, 4>>(param, "indices");
-                                const double      k       = toml::find<double>(param, "k");
-
-                                if(coef == "GLY-PRO")
-                                {
-                                    indices_vec.push_back(indices);
-                                    ks         .push_back(k);
-                                }
-                            }
-                            aa_pair_name = aa_pair_type.first + "-" + aa_pair_type.second;
-                        }
-                        else
-                        {
-                            for(const auto& param : params)
-                            {
-                                const std::string coef    =
-                                    toml::find<std::string>(param, "coef");
-                                const auto&       indices =
-                                    toml::find<std::array<std::size_t, 4>>(param, "indices");
-                                const double      k       = toml::find<double>(param, "k");
-
-                                if(coef.substr(4, 3) == "PRO") // R2-PRO case
-                                {
-                                    indices_vec.push_back(indices);
-                                    ks         .push_back(k);
-                                }
-                            }
-                            aa_pair_name = aa_pair_type.first + "-" + aa_pair_type.second;
-                        }
-                    }
-                    else // R1-R3 case
-                    {
-                        for(const auto& param : params)
-                        {
-                            const std::string coef    =
-                                toml::find<std::string>(param, "coef");
-                            const auto&       indices =
-                                toml::find<std::array<std::size_t, 4>>(param, "indices");
-                            const double      k       = toml::find<double>(param, "k");
-
-                            const std::string second_aa = coef.substr(4, 3);
-                            if(second_aa != "GLY" && second_aa != "PRO")
-                            {
-                                if(coef.substr(0, 3) == aa_pair_type.first)
-                                {
-                                    indices_vec.push_back(indices);
-                                    ks         .push_back(k);
-                                }
-                            }
-                        }
-                        aa_pair_name = aa_pair_type.first + "-" + aa_pair_type.second;
-                    }
-                    const auto ff_gen = FlexibleLocalDihedralForceFieldGenerator(
-                            indices_vec, ks, fourier_table, aa_pair_name);
+                    const auto ff_gen =
+                        read_flexible_local_dihedral_ff_generator(
+                            local_ff, aa_pair_type, fourier_table);
                     system_ptr->addForce(ff_gen.generate().release());
                 }
             }
@@ -281,22 +96,9 @@ std::unique_ptr<OpenMM::System> read_system(const toml::value& data)
             const std::string potential = toml::find<std::string>(global_ff, "potential");
             if(potential == "ExcludedVolume")
             {
-                const double eps =
-                    toml::find<double>(global_ff, "epsilon") * OpenMM::KJPerKcal; // KJPermol
-                const double cutoff = toml::find_or(global_ff, "cutoff", 2.0);
-
-                const auto&  params = toml::find<toml::array>(global_ff, "parameters");
-                std::vector<std::optional<double>> radius_vec(system_size, std::nullopt);
-                for(const auto& param : params)
-                {
-                    const std::size_t index  = toml::find<std::size_t>(param, "index");
-                    const double      radius =
-                        toml::find<double>(param, "radius") * OpenMM::NmPerAngstrom; // nm
-                    radius_vec.at(index) = radius;
-                }
-
-                const auto ff_gen = ExcludedVolumeForceFieldGenerator(
-                        eps, cutoff, radius_vec, bonded_pairs, contacted_pairs);
+                const auto ff_gen =
+                    read_excluded_volume_ff_generator(
+                        global_ff, system_size, bonded_pairs, contacted_pairs);
                 system_ptr->addForce(ff_gen.generate().release());
             }
         }
