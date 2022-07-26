@@ -3,8 +3,9 @@
 
 #include <memory>
 #include <OpenMM.h>
+#include "ForceFieldGeneratorBase.hpp"
 
-class FlexibleLocalDihedralForceFieldGenerator
+class FlexibleLocalDihedralForceFieldGenerator final : public ForceFieldGeneratorBase
 {
   public:
     using indices_type = std::array<std::size_t, 4>;
@@ -29,7 +30,7 @@ class FlexibleLocalDihedralForceFieldGenerator
         }
     }
 
-    std::unique_ptr<OpenMM::CustomTorsionForce> generate() const noexcept
+    std::unique_ptr<OpenMM::Force> generate() const noexcept override
     {
         std::cerr << "    DihedralAngle : FlexibleLocalDihedral ("
                   << aa_pair_name_ << ")" << std::endl;
@@ -55,6 +56,7 @@ class FlexibleLocalDihedralForceFieldGenerator
                      fourier_table_[1], fourier_table_[2], fourier_table_[3],
                      fourier_table_[4], fourier_table_[5], fourier_table_[6]});
         }
+
         return torsion_ff;
     }
 

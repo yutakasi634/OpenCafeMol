@@ -5,8 +5,9 @@
 #include <sstream>
 #include <string>
 #include <OpenMM.h>
+#include "ForceFieldGeneratorBase.hpp"
 
-class GoContactForceFieldGenerator
+class GoContactForceFieldGenerator final : public ForceFieldGeneratorBase
 {
   public:
     using indices_type = std::pair<std::size_t, std::size_t>;
@@ -30,7 +31,7 @@ class GoContactForceFieldGenerator
         }
     }
 
-    std::unique_ptr<OpenMM::CustomBondForce> generate() const noexcept
+    std::unique_ptr<OpenMM::Force> generate() const noexcept override
     {
         std::cerr << "    BondLength    : GoContact" << std::endl;
 

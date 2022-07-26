@@ -6,7 +6,7 @@
 #include <string>
 #include <OpenMM.h>
 
-class GaussianBondForceFieldGenerator
+class GaussianBondForceFieldGenerator final : public ForceFieldGeneratorBase
 {
   public:
     using indices_type = std::pair<std::size_t, std::size_t>;
@@ -31,7 +31,7 @@ class GaussianBondForceFieldGenerator
         }
     }
 
-    std::unique_ptr<OpenMM::CustomBondForce> generate() const noexcept
+    std::unique_ptr<OpenMM::Force> generate() const noexcept override
     {
         std::cerr << "    BondLength    : Gaussian" << std::endl;
 

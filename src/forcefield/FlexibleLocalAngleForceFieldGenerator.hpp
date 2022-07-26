@@ -7,7 +7,7 @@
 #include <OpenMM.h>
 #include "../util/Constants.hpp"
 
-class FlexibleLocalAngleForceFieldGenerator
+class FlexibleLocalAngleForceFieldGenerator final : public ForceFieldGeneratorBase
 {
   public:
     using indices_type = std::vector<std::size_t>;
@@ -34,7 +34,7 @@ class FlexibleLocalAngleForceFieldGenerator
         }
     }
 
-    std::unique_ptr<OpenMM::CustomCompoundBondForce> generate() const noexcept
+    std::unique_ptr<OpenMM::Force> generate() const noexcept override
     {
         std::cerr << "    BondAngle     : FlexibleLocalAngle ("
                   << aa_name_ << ")" << std::endl;

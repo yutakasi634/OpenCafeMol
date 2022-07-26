@@ -5,8 +5,9 @@
 #include <sstream>
 #include <string>
 #include <OpenMM.h>
+#include "ForceFieldGeneratorBase.hpp"
 
-class HarmonicBondForceFieldGenerator
+class HarmonicBondForceFieldGenerator final : public ForceFieldGeneratorBase
 {
   public:
     using indices_type = std::pair<std::size_t, std::size_t>;
@@ -30,7 +31,7 @@ class HarmonicBondForceFieldGenerator
         }
     }
 
-    std::unique_ptr<OpenMM::HarmonicBondForce> generate() const noexcept
+    std::unique_ptr<OpenMM::Force> generate() const noexcept override
     {
         std::cerr << "    BondLength    : Harmonic" << std::endl;
 

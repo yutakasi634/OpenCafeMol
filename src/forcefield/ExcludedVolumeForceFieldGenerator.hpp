@@ -7,7 +7,7 @@
 #include <optional>
 #include <OpenMM.h>
 
-class ExcludedVolumeForceFieldGenerator
+class ExcludedVolumeForceFieldGenerator final: public ForceFieldGeneratorBase
 {
   public:
     using index_pairs_type = std::vector<std::pair<std::size_t, std::size_t>>;
@@ -22,7 +22,7 @@ class ExcludedVolumeForceFieldGenerator
           additional_exclusion_pairs_(additional_exclusion_pairs)
     {}
 
-    std::unique_ptr<OpenMM::CustomNonbondedForce> generate() const noexcept
+    std::unique_ptr<OpenMM::Force> generate() const noexcept override
     {
         std::cerr << "    Global        : ExcludedVolume" << std::endl;
 

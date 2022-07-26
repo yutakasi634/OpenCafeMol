@@ -1,7 +1,7 @@
 #ifndef OPEN_AICG2_PLUS_GAUSSIAN_DIHEDRAL_FORCE_FIELD_GENERATOR_HPP
 #define OPEN_AICG2_PLUS_GAUSSIAN_DIHEDRAL_FORCE_FIELD_GENERATOR_HPP
 
-class GaussianDihedralForceFieldGenerator
+class GaussianDihedralForceFieldGenerator final : public ForceFieldGeneratorBase
 {
   public:
     using indices_type    = std::array<std::size_t, 4>;
@@ -29,7 +29,7 @@ class GaussianDihedralForceFieldGenerator
         }
     }
 
-    std::unique_ptr<OpenMM::CustomTorsionForce> generate() const noexcept
+    std::unique_ptr<OpenMM::Force> generate() const noexcept override
     {
         std::cerr << "    DihedralAngle : Gaussian" << std::endl;
 
