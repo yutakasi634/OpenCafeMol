@@ -17,7 +17,6 @@ class FlexibleLocalDihedralForceFieldGenerator final : public ForceFieldGenerato
         : indices_vec_(indices_vec), ks_(ks),
           fourier_table_(fourier_table), aa_pair_name_(aa_pair_name)
     {
-        const std::size_t system_size = indices_vec.size();
         if(!(indices_vec.size() == ks.size()))
         {
             std::ostringstream oss;

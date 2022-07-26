@@ -74,7 +74,8 @@ int main(int argc, char** argv)
 
     // check CUDA platform existance
     bool cuda_platform_found = false;
-    for(std::size_t idx=0; idx < OpenMM::Platform::getNumPlatforms(); ++idx)
+    const std::size_t platform_num = OpenMM::Platform::getNumPlatforms();
+    for(std::size_t idx=0; idx<platform_num; ++idx)
     {
         if(OpenMM::Platform::getPlatform(idx).getName() == "CUDA")
         {

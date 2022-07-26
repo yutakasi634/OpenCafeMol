@@ -21,7 +21,6 @@ class FlexibleLocalAngleForceFieldGenerator final : public ForceFieldGeneratorBa
         : indices_vec_(indices_vec), ks_(ks), aa_name_(aa_name),
           min_theta_(min_theta), max_theta_(max_theta), spline_table_(spline_table)
     {
-        const std::size_t system_size = indices_vec.size();
         if(!(indices_vec.size() == ks.size()))
         {
             std::ostringstream oss;
