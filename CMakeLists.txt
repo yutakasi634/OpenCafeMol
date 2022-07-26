@@ -7,10 +7,24 @@ set(CMAKE_CXX_STANDARD          17)
 # for headder include with the path from project root
 include_directories(${PROJECT_SOURCE_DIR})
 
+
+# =============================================================================
+# include CMake modules
+include(CheckCXXCompilerFlag)
+
+# =============================================================================
+# warning flags
+
+set(OPEN_AICG2PLUS_WARNING_FLAGS "")
+check_cxx_compiler_flag("-Wall" OPEN_AICG2PLUS_COMPILER_HAS_WALL)
+if(OPEN_AICG2PLUS_COMPILER_HAS_WALL)
+    set(OPEN_AICG2PLUS_WARNING_FLAGS "${OPEN_AICG2PLUS_WARNING_FLAGS} -Wall")
+endif()
+
+message(STATUS "warning flags are ${OPEN_AICG2PLUS_WARNING_FLAGS}")
+
 # =============================================================================
 # optimization flags
-
-include(CheckCXXCompilerFlag)
 
 set(OPEN_AICG2PLUS_OPTIMIZATION_FLAGS "")
 option(DEBUG "compile in debug mode" OFF)
@@ -30,6 +44,8 @@ else()
     endif()
 endif()
 
+message(STATUS "optimization flags are ${OPEN_AICG2PLUS_OPTIMIZATION_FLAGS}")
+
 # =============================================================================
 # debugger flags
 
@@ -41,6 +57,8 @@ if(GDB)
         set(OPEN_AICG2PLUS_DEBUGGER_FLAGS "${OPEN_AICG2PLUS_DEBUGGER_FLAGS} -ggdb")
     endif()
 endif()
+
+message(STATUS "debugger flags are ${OPEN_AICG2PLUS_DEBUGGER_FLAGS}")
 
 # =============================================================================
 # Build the code
