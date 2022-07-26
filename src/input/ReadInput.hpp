@@ -46,8 +46,6 @@ std::unique_ptr<OpenMM::System> read_system(const toml::value& data)
             const std::string potential   = toml::find<std::string>(local_ff, "potential");
             if(interaction == "BondLength" && potential == "Harmonic")
             {
-                auto bond_ff = std::make_unique<OpenMM::HarmonicBondForce>();
-
                 const auto& params = toml::find<toml::array>(local_ff, "parameters");
                 std::vector<std::pair<std::size_t, std::size_t>> indices_vec;
                 std::vector<double>                              v0s;
