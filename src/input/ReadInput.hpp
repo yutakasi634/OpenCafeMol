@@ -3,14 +3,14 @@
 
 #include <memory>
 #include <OpenMM.h>
-#include "../Simulator.hpp"
-#include "../forcefield/HarmonicBondForceFieldGenerator.hpp"
-#include "../forcefield/GaussianBondForceFieldGenerator.hpp"
-#include "../forcefield/GoContactForceFieldGenerator.hpp"
-#include "../forcefield/FlexibleLocalAngleForceFieldGenerator.hpp"
-#include "../forcefield/GaussianDihedralForceFieldGenerator.hpp"
-#include "../forcefield/FlexibleLocalDihedralForceFieldGenerator.hpp"
-#include "../forcefield/ExcludedVolumeForceFieldGenerator.hpp"
+#include "src/Simulator.hpp"
+#include "src/forcefield/HarmonicBondForceFieldGenerator.hpp"
+#include "src/forcefield/GaussianBondForceFieldGenerator.hpp"
+#include "src/forcefield/GoContactForceFieldGenerator.hpp"
+#include "src/forcefield/FlexibleLocalAngleForceFieldGenerator.hpp"
+#include "src/forcefield/GaussianDihedralForceFieldGenerator.hpp"
+#include "src/forcefield/FlexibleLocalDihedralForceFieldGenerator.hpp"
+#include "src/forcefield/ExcludedVolumeForceFieldGenerator.hpp"
 
 std::unique_ptr<OpenMM::System> read_system(const toml::value& data)
 {

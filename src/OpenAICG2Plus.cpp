@@ -7,8 +7,8 @@
 #include <utility>
 #include <memory>
 #include "toml11/toml.hpp"
-#include "util/Utility.hpp"
-#include "util/Macro.hpp"
+#include "src/util/Utility.hpp"
+#include "src/util/Macro.hpp"
 #include "input/ReadInput.hpp"
 #include "Simulator.hpp"
 #include "Observer.hpp"
