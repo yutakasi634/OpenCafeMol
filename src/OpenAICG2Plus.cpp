@@ -9,9 +9,9 @@
 #include "toml11/toml.hpp"
 #include "util/Utility.hpp"
 #include "util/Macro.hpp"
+#include "input/ReadInput.hpp"
 #include "Simulator.hpp"
 #include "Observer.hpp"
-#include "ReadInput.hpp"
 
 void simulate(const std::string& input_file_name)
 {
