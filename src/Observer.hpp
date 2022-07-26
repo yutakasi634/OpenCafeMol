@@ -42,7 +42,7 @@ class Observer
         {
             std::ofstream ofs(pos_filename_, std::ios::app);
             OpenMM::State pos = context.getState(OpenMM::State::Positions);
-            writePdbFrame(ofs, step, pos);
+            write_pdb_frame(ofs, step, pos);
             ofs.close();
         }
 
@@ -50,7 +50,7 @@ class Observer
         {
             std::ofstream ofs(ene_filename_, std::ios::app);
             OpenMM::State ene = context.getState(OpenMM::State::Energy);
-            writeEnergy(ofs, step, ene);
+            write_energy(ofs, step, ene);
             ofs.close();
         }
 
@@ -78,6 +78,35 @@ class Observer
         }
         ofs.close();
         return;
+    }
+
+    // Handy homebrew PDB writer for quick-and-dirty trajectory output.
+    void write_pdb_frame(std::ofstream& fp, int frame_num, const OpenMM::State& state) const
+    {
+        // Reference atomic positions in the OpenMM State.
+        const std::vector<OpenMM::Vec3>& pos_in_nm = state.getPositions();
+
+        // Use PDB MODEL cards to number trajectory frames
+        fp << "MODEL     " << frame_num << std::endl; // start of frame
+        for (int a = 0; a < (int)pos_in_nm.size(); ++a)
+        {
+            fp << std::setprecision(3);
+            fp << "ATOM  " << std::setw(5) << a+1 << "  AR   AR     1    "; // atom number
+            fp << std::setw(8) << std::fixed
+               << std::setw(8) << std::fixed << pos_in_nm[a][0]*OpenMM::AngstromsPerNm
+               << std::setw(8) << std::fixed << pos_in_nm[a][1]*OpenMM::AngstromsPerNm
+               << std::setw(8) << std::fixed << pos_in_nm[a][2]*OpenMM::AngstromsPerNm << "  1.00  0.00" << std::endl;
+        }
+        fp << "ENDMDL" << std::endl; // end of frame
+    }
+
+    void write_energy(std::ofstream& fp, int frame_num, const OpenMM::State& state) const
+    {
+        const double pot_ene = state.getPotentialEnergy() * OpenMM::KcalPerKJ; // kcal/mol
+        const double kin_ene = state.getKineticEnergy() * OpenMM::KcalPerKJ; // kcal/mol
+        fp << std::setw(11) << std::left << frame_num << ' ';
+        fp << std::setw(16) << std::right << std::fixed << pot_ene;
+        fp << "  " << std::setw(14) << std::right << std::fixed << kin_ene << std::endl;
     }
 
   private:

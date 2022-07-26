@@ -1,35 +1,6 @@
 #ifndef OPEN_AICG2_PLUS_UTILITY_HPP
 #define OPEN_AICG2_PLUS_UTILITY_HPP
 
-// Handy homebrew PDB writer for quick-and-dirty trajectory output.
-void writePdbFrame(std::ofstream& fp, int frameNum, const OpenMM::State& state)
-{
-    // Reference atomic positions in the OpenMM State.
-    const std::vector<OpenMM::Vec3>& posInNm = state.getPositions();
-
-    // Use PDB MODEL cards to number trajectory frames
-    fp << "MODEL     " << frameNum << std::endl; // start of frame
-    for (int a = 0; a < (int)posInNm.size(); ++a)
-    {
-        fp << std::setprecision(3);
-        fp << "ATOM  " << std::setw(5) << a+1 << "  AR   AR     1    "; // atom number
-        fp << std::setw(8) << std::fixed
-           << std::setw(8) << std::fixed << posInNm[a][0]*OpenMM::AngstromsPerNm
-           << std::setw(8) << std::fixed << posInNm[a][1]*OpenMM::AngstromsPerNm
-           << std::setw(8) << std::fixed << posInNm[a][2]*OpenMM::AngstromsPerNm << "  1.00  0.00" << std::endl;
-    }
-    fp << "ENDMDL" << std::endl; // end of frame
-}
-
-void writeEnergy(std::ofstream& fp, int frameNum, const OpenMM::State& state)
-{
-    const double pot_ene = state.getPotentialEnergy() * OpenMM::KcalPerKJ; // kcal/mol
-    const double kin_ene = state.getKineticEnergy() * OpenMM::KcalPerKJ; // kcal/mol
-    fp << std::setw(11) << std::left << frameNum << ' ';
-    fp << std::setw(16) << std::right << std::fixed << pot_ene;
-    fp << "  " << std::setw(14) << std::right << std::fixed << kin_ene << std::endl;
-}
-
 const toml::value& find_either(
         const toml::value& v, const std::string& key1, const std::string& key2)
 {
