@@ -30,7 +30,6 @@ class ExcludedVolumeForceFieldGenerator final: public ForceFieldGeneratorBase
             "epsilon*(sigma1+sigma2)^12*((1/r)^12-cutoff_correction)";
         auto exv_ff = std::make_unique<OpenMM::CustomNonbondedForce>(potential_formula);
 
-
         exv_ff->addPerParticleParameter("sigma");
         exv_ff->addGlobalParameter("epsilon", eps_);
 
@@ -120,7 +119,6 @@ class ExcludedVolumeForceFieldGenerator final: public ForceFieldGeneratorBase
                 exv_ff->addExclusion(pair.first, pair.second);
             }
         }
-
     }
 
   private:

@@ -9,6 +9,7 @@
 #include "src/forcefield/GaussianDihedralForceFieldGenerator.hpp"
 #include "src/forcefield/FlexibleLocalDihedralForceFieldGenerator.hpp"
 #include "src/forcefield/ExcludedVolumeForceFieldGenerator.hpp"
+#include "src/forcefield/DebyeHuckelForceFieldGenerator.hpp"
 
 const HarmonicBondForceFieldGenerator
 read_harmonic_bond_ff_generator(const toml::value& local_ff_data)
@@ -265,6 +266,7 @@ read_excluded_volume_ff_generator(
     return ExcludedVolumeForceFieldGenerator(
                eps, cutoff, radius_vec, bonded_pairs, contacted_pairs);
 }
+
 
 
 #endif // OPEN_AICG2_PLUS_READ_FORCE_FIELD_GENERATOR_HPP
