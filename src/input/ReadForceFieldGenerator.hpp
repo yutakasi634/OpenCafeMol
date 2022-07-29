@@ -267,6 +267,26 @@ read_excluded_volume_ff_generator(
                eps, cutoff, radius_vec, bonded_pairs, contacted_pairs);
 }
 
+const DebyeHuckelForceFieldGenerator
+read_debye_huckel_ff_generator(
+    const toml::value& global_ff_data, const std::size_t system_size,
+    const double ionic_strength, const double temperature,
+    const DebyeHuckelForceFieldGenerator::index_pairs_type& bonded_pairs,
+    const DebyeHuckelForceFieldGenerator::index_pairs_type& contacted_pairs)
+{
+    const double cutoff = toml::find_or(global_ff_data, "cutoff", 5.5);
 
+    const auto& params = toml::find<toml::array>(global_ff_data, "parameters");
+    std::vector<std::optional<double>> charge_vec(system_size, std::nullopt);
+    for(const auto& param : params)
+    {
+        const std::size_t index  = toml::find<std::size_t>(param, "index");
+        const double      charge = toml::find<double>(param, "charge");
+        charge_vec.at(index) = charge;
+    }
+
+    return DebyeHuckelForceFieldGenerator(ionic_strength, temperature,
+            cutoff, charge_vec, bonded_pairs, contacted_pairs);
+}
 
 #endif // OPEN_AICG2_PLUS_READ_FORCE_FIELD_GENERATOR_HPP

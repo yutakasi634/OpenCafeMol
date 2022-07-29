@@ -19,14 +19,16 @@ class DebyeHuckelForceFieldGenerator final : public ForceFieldGeneratorBase
           cutoff_ratio_(cutoff_ratio), charges_(charges), bonded_pairs_(bonded_pairs),
           additional_exclusion_pairs_(additional_exclusion_pairs)
     {
-        const double epsk = calc_dielectric_water(temperature_, ionic_strength_);
-        inv_4_pi_eps0_epsk_ = 1.0 / (4 * Constant::pi * Constant::eps0 * epsk);
+        const double epsk    = calc_dielectric_water(temperature_, ionic_strength_);
+        const double eps0_ee = Constant::eps0 / Constant::elementary_charge
+                                              / Constant::elementary_charge;
+        inv_4_pi_eps0_epsk_ = 1.0 / (4 * Constant::pi * eps0_ee * epsk);
 
         // convert [M] (mol/L) to [mol/m^3]
         const double I = ionic_strength_ * 1.0e-3; // [M/m^3]
 
-        debye_length_ = std::sqrt((Constant::eps0 * epsk * Constant::kB * temperature_) /
-                                  (2. * Constant::Na * I));
+        debye_length_ = std::sqrt((eps0_ee * epsk * Constant::kB * temperature_) /
+                                  (2. * Constant::Na * I)) * 10e9; // [nm]
         abs_cutoff_   = debye_length_ * cutoff_ratio_;
         cutoff_correction_ = std::exp(cutoff_ratio_) / abs_cutoff_;
     }
@@ -39,9 +41,10 @@ class DebyeHuckelForceFieldGenerator final : public ForceFieldGeneratorBase
             "q1*q2*inv_4_pi_eps0_epsk*(exp(-r/debye_length)-cutoff_correction)";
         auto dh_ff = std::make_unique<OpenMM::CustomNonbondedForce>(potential_formula);
 
+        dh_ff->addPerParticleParameter("q");
         dh_ff->addGlobalParameter("inv_4_pi_eps0_epsk", inv_4_pi_eps0_epsk_);
         dh_ff->addGlobalParameter("debye_length",       debye_length_);
-        dh_ff->addGlobalParameter("coeff_at_cutoff",    cutoff_correction_);
+        dh_ff->addGlobalParameter("cutoff_correction",  cutoff_correction_);
 
         const auto& itr = std::find(charges_.begin(), charges_.end(), std::nullopt);
         if(itr != charges_.end())
@@ -60,6 +63,7 @@ class DebyeHuckelForceFieldGenerator final : public ForceFieldGeneratorBase
                     dh_ff->addParticle({std::numeric_limits<double>::quiet_NaN()});
                 }
             }
+            dh_ff->addInteractionGroup(participants, participants);
         }
         else
         {

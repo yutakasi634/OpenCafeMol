@@ -101,6 +101,29 @@ std::unique_ptr<OpenMM::System> read_system(const toml::value& data)
                         global_ff, system_size, bonded_pairs, contacted_pairs);
                 system_ptr->addForce(ff_gen.generate().release());
             }
+            if(potential == "DebyeHuckel")
+            {
+                const auto attr = toml::find(systems[0], "attributes");
+
+                const auto temperature = toml::expect<double>(attr, "temperature");
+                if(!temperature.is_ok())
+                {
+                    std::cerr << temperature.unwrap_err() << std::endl;
+                }
+
+                const auto ionic_strength = toml::expect<double>(attr, "ionic_strength");
+                if(ionic_strength.is_ok())
+                else
+                {
+                    std::cerr << ionic_strength.unwrap_err() << std::endl;
+                }
+
+                const auto ff_gen =
+                    read_debye_huckel_ff_generator(global_ff, system_size,
+                        ionic_strength.unwrap(), temperature.unwrap(),
+                        bonded_pairs, contacted_pairs);
+                system_ptr->addForce(ff_gen.generate().release());
+            }
         }
     }
 
