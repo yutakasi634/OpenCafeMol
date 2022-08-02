@@ -276,6 +276,47 @@ read_debye_huckel_ff_generator(
 {
     const double cutoff = toml::find_or(global_ff_data, "cutoff", 5.5);
 
+    std::size_t ignore_bond_within = 0;
+    if(global_ff_data.contains("ignore"))
+    {
+        const auto& ignore = toml::find(global_ff_data, "ignore");
+        if(ignore.contains("molecule"))
+        {
+            const std::string name = toml::find<std::string>(ignore, "molecule");
+            if(name == "Intra" || name == "Self")
+            {
+                // In ignore intra molecule case, all the interaction between
+                // the particles connected with the number of bond lesser than
+                // system size  will be ignored.
+                ignore_bond_within = system_size;
+            }
+            else if(name == "Others" || name == "Inter")
+            {
+                throw std::runtime_error(
+                    "[error] ignore molecule for the DebyeHuckelPotential do not support "
+                    "\"Others\" or \"Inter\".");
+            }
+        }
+
+        if(ignore.contains("particle_within"))
+        {
+            const auto particle_within = toml::find(ignore, "particle_within");
+            if(particle_within.contains("bond"))
+            {
+                if(ignore_bond_within == system_size)
+                {
+                    std::cerr <<
+                        "[warning] ignore molecule \"Intra\" or \"Self\" was defined,"
+                        "so this ignore particle within bond will be ignored." << std::endl;
+                }
+                else
+                {
+                    ignore_bond_within = toml::find<std::size_t>(particle_within, "bond");
+                }
+            }
+        }
+    }
+
     const auto& params = toml::find<toml::array>(global_ff_data, "parameters");
     std::vector<std::optional<double>> charge_vec(system_size, std::nullopt);
     for(const auto& param : params)
@@ -286,7 +327,7 @@ read_debye_huckel_ff_generator(
     }
 
     return DebyeHuckelForceFieldGenerator(ionic_strength, temperature,
-            cutoff, charge_vec, bonded_pairs, contacted_pairs);
+            cutoff, charge_vec, bonded_pairs, ignore_bond_within, contacted_pairs);
 }
 
 #endif // OPEN_AICG2_PLUS_READ_FORCE_FIELD_GENERATOR_HPP

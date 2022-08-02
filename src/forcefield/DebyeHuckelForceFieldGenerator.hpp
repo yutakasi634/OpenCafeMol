@@ -13,10 +13,11 @@ class DebyeHuckelForceFieldGenerator final : public ForceFieldGeneratorBase
     DebyeHuckelForceFieldGenerator(const double ionic_strength,
         const double temperature, const double cutoff_ratio,
         const std::vector<std::optional<double>>& charges,
-        const index_pairs_type& bonded_pairs,
+        const index_pairs_type& bonded_pairs, const std::size_t ignore_bond_within,
         const index_pairs_type& additional_exclusion_pairs)
         : ionic_strength_(ionic_strength), temperature_(temperature),
-          cutoff_ratio_(cutoff_ratio), charges_(charges), bonded_pairs_(bonded_pairs),
+          cutoff_ratio_(cutoff_ratio), charges_(charges),
+          bonded_pairs_(bonded_pairs), ignore_bond_within_(ignore_bond_within),
           additional_exclusion_pairs_(additional_exclusion_pairs)
     {
         const double epsk    = calc_dielectric_water(temperature_, ionic_strength_);
@@ -35,7 +36,7 @@ class DebyeHuckelForceFieldGenerator final : public ForceFieldGeneratorBase
 
     std::unique_ptr<OpenMM::Force> generate() const noexcept override
     {
-        std::cerr << "   Global        : DebyeHuckel" << std::endl;
+        std::cerr << "    Global        : DebyeHuckel" << std::endl;
 
         const std::string potential_formula =
             "q1*q2*inv_4_pi_eps0_epsk*(exp(-r/debye_length)-cutoff_correction)";
@@ -78,7 +79,7 @@ class DebyeHuckelForceFieldGenerator final : public ForceFieldGeneratorBase
         dh_ff->setNonbondedMethod(OpenMM::CustomNonbondedForce::CutoffNonPeriodic);
         dh_ff->setCutoffDistance(abs_cutoff_);
 
-        create_exclusion_from_bond(dh_ff, bonded_pairs_);
+        create_exclusion_from_bond(dh_ff, bonded_pairs_, ignore_bond_within_);
         add_exclusion(dh_ff, additional_exclusion_pairs_);
 
         return dh_ff;
@@ -93,11 +94,14 @@ class DebyeHuckelForceFieldGenerator final : public ForceFieldGeneratorBase
 
     void create_exclusion_from_bond(
             std::unique_ptr<OpenMM::CustomNonbondedForce>& exv_ff,
-            const index_pairs_type& bonded_pairs) const noexcept
+            const index_pairs_type& bonded_pairs,
+            const std::size_t ignore_bond_within) const noexcept
     {
         std::cerr << "        generating exclusion list from system topology..."
                   << std::endl;
-        exv_ff->createExclusionsFromBonds({bonded_pairs.begin(), bonded_pairs.end()}, 3);
+
+        exv_ff->createExclusionsFromBonds(
+                {bonded_pairs.begin(), bonded_pairs.end()}, ignore_bond_within);
     }
 
     void add_exclusion(
@@ -131,6 +135,7 @@ class DebyeHuckelForceFieldGenerator final : public ForceFieldGeneratorBase
     const double                             cutoff_ratio_;   // relative to the debye length
     const std::vector<std::optional<double>> charges_;
     const index_pairs_type&                  bonded_pairs_;
+    const std::size_t                        ignore_bond_within_;
     const index_pairs_type&                  additional_exclusion_pairs_;
 
     double                             debye_length_;

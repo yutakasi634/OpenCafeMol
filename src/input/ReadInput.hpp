@@ -112,8 +112,7 @@ std::unique_ptr<OpenMM::System> read_system(const toml::value& data)
                 }
 
                 const auto ionic_strength = toml::expect<double>(attr, "ionic_strength");
-                if(ionic_strength.is_ok())
-                else
+                if(!ionic_strength.is_ok())
                 {
                     std::cerr << ionic_strength.unwrap_err() << std::endl;
                 }
