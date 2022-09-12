@@ -90,7 +90,6 @@ int main(int argc, char** argv)
             "to the CMake option -DOPENMM_PLUGIN_DIR.");
     }
 
-
     try {
         simulate(std::string(argv[1]));
         return 0; // success!

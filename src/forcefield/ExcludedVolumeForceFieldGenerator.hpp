@@ -15,17 +15,12 @@ class ExcludedVolumeForceFieldGenerator final: public ForceFieldGeneratorBase
   public:
     ExcludedVolumeForceFieldGenerator(const double eps, const double cutoff,
         const std::vector<std::optional<double>>& radiuses,
-        const index_pairs_type& bonded_pairs,
-        const index_pairs_type& additional_exclusion_pairs)
-        : eps_(eps), cutoff_(cutoff), radiuses_(radiuses),
-          bonded_pairs_(bonded_pairs),
-          additional_exclusion_pairs_(additional_exclusion_pairs)
+        const index_pairs_type& ignore_list)
+        : eps_(eps), cutoff_(cutoff), radiuses_(radiuses), ignore_list_(ignore_list)
     {}
 
     std::unique_ptr<OpenMM::Force> generate() const noexcept override
     {
-        std::cerr << "    Global        : ExcludedVolume" << std::endl;
-
         const std::string potential_formula =
             "epsilon*(sigma1+sigma2)^12*((1/r)^12-cutoff_correction)";
         auto exv_ff = std::make_unique<OpenMM::CustomNonbondedForce>(potential_formula);
@@ -80,43 +75,36 @@ class ExcludedVolumeForceFieldGenerator final: public ForceFieldGeneratorBase
         exv_ff->setCutoffDistance(cutoff_distance);
         exv_ff->addGlobalParameter("cutoff_correction", cutoff_correction);
 
-        create_exclusion_from_bond(exv_ff, bonded_pairs_);
-        add_exclusion(exv_ff, additional_exclusion_pairs_);
+        // set exclusion list
+        for(const auto& pair : ignore_list_)
+        {
+            exv_ff->addExclusion(pair.first, pair.second);
+        }
 
         return exv_ff;
     }
 
-  private:
-    void create_exclusion_from_bond(
-            std::unique_ptr<OpenMM::CustomNonbondedForce>& exv_ff,
-            const index_pairs_type& bonded_pairs) const noexcept
+    void add_exclusion(index_pairs_type exclusion_pairs) noexcept
     {
-        std::cerr << "        generating exclusion list from system topology..."
-                  << std::endl;
-        exv_ff->createExclusionsFromBonds({bonded_pairs.begin(), bonded_pairs.end()}, 3);
-    }
 
-    void add_exclusion(
-            std::unique_ptr<OpenMM::CustomNonbondedForce>& exv_ff,
-            const index_pairs_type& additional_exclusion_pairs) const noexcept
-    {
-        const std::size_t num_exclusions = exv_ff->getNumExclusions();
-
-        std::vector<std::pair<std::size_t, std::size_t>> exclusion_pairs;
-        for(std::size_t pair_idx=0; pair_idx<num_exclusions; ++pair_idx)
+        for(auto& pair : exclusion_pairs)
         {
-            int first, second;
-            exv_ff->getExclusionParticles(pair_idx, first, second);
-            exclusion_pairs.push_back(std::make_pair(first, second));
+            if(pair.first > pair.second)
+            {
+                const std::size_t first  = pair.first;
+                const std::size_t second = pair.second;
+                pair.first = second;
+                pair.second = first;
+            }
         }
 
-        for(const auto& pair : additional_exclusion_pairs)
+        for(const auto& pair : exclusion_pairs)
         {
             const auto result =
-                std::find(exclusion_pairs.begin(), exclusion_pairs.end(), pair);
-            if(result == exclusion_pairs.end())
+                std::find(ignore_list_.begin(), ignore_list_.end(), pair);
+            if(result == ignore_list_.end())
             {
-                exv_ff->addExclusion(pair.first, pair.second);
+                ignore_list_.push_back(std::make_pair(pair.first, pair.second));
             }
         }
     }
@@ -125,8 +113,7 @@ class ExcludedVolumeForceFieldGenerator final: public ForceFieldGeneratorBase
     double                             eps_;
     double                             cutoff_;
     std::vector<std::optional<double>> radiuses_;
-    const index_pairs_type&            bonded_pairs_;
-    const index_pairs_type&            additional_exclusion_pairs_;
+    index_pairs_type                   ignore_list_;
 
 };
 

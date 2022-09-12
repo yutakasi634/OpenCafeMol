@@ -33,8 +33,6 @@ class HarmonicBondForceFieldGenerator final : public ForceFieldGeneratorBase
 
     std::unique_ptr<OpenMM::Force> generate() const noexcept override
     {
-        std::cerr << "    BondLength    : Harmonic" << std::endl;
-
         auto bond_ff = std::make_unique<OpenMM::HarmonicBondForce>();
         for(std::size_t idx=0; idx<indices_vec_.size(); ++idx)
         {

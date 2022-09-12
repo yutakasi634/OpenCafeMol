@@ -31,8 +31,6 @@ class GaussianDihedralForceFieldGenerator final : public ForceFieldGeneratorBase
 
     std::unique_ptr<OpenMM::Force> generate() const noexcept override
     {
-        std::cerr << "    DihedralAngle : Gaussian" << std::endl;
-
         const std::string potential_formula = "k*exp(-(theta-theta0)^2/(2*sigma^2))";
         auto torsion_ff = std::make_unique<OpenMM::CustomTorsionForce>(potential_formula);
         torsion_ff->addPerTorsionParameter("k");

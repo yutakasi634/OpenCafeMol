@@ -33,8 +33,6 @@ class GaussianBondForceFieldGenerator final : public ForceFieldGeneratorBase
 
     std::unique_ptr<OpenMM::Force> generate() const noexcept override
     {
-        std::cerr << "    BondLength    : Gaussian" << std::endl;
-
         const std::string potential_formula = "k*exp(-(r-v0)^2/(2*sigma^2))";
         auto bond_ff = std::make_unique<OpenMM::CustomBondForce>(potential_formula);
         bond_ff->addPerBondParameter("k");

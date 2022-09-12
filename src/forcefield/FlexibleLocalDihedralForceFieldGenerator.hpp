@@ -31,9 +31,6 @@ class FlexibleLocalDihedralForceFieldGenerator final : public ForceFieldGenerato
 
     std::unique_ptr<OpenMM::Force> generate() const noexcept override
     {
-        std::cerr << "    DihedralAngle : FlexibleLocalDihedral ("
-                  << aa_pair_name_ << ")" << std::endl;
-
         const std::string fld_expression =
             "c + ksin1*sin(  theta) + kcos1*cos(  theta)"
             "  + ksin2*sin(2*theta) + kcos2*cos(2*theta)"

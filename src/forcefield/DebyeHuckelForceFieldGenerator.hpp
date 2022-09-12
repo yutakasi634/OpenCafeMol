@@ -13,12 +13,9 @@ class DebyeHuckelForceFieldGenerator final : public ForceFieldGeneratorBase
     DebyeHuckelForceFieldGenerator(const double ionic_strength,
         const double temperature, const double cutoff_ratio,
         const std::vector<std::optional<double>>& charges,
-        const index_pairs_type& bonded_pairs, const std::size_t ignore_bond_within,
-        const index_pairs_type& additional_exclusion_pairs)
+        const index_pairs_type& ignore_list)
         : ionic_strength_(ionic_strength), temperature_(temperature),
-          cutoff_ratio_(cutoff_ratio), charges_(charges),
-          bonded_pairs_(bonded_pairs), ignore_bond_within_(ignore_bond_within),
-          additional_exclusion_pairs_(additional_exclusion_pairs)
+          cutoff_ratio_(cutoff_ratio), charges_(charges), ignore_list_(ignore_list)
     {
         const double epsk    = calc_dielectric_water(temperature_, ionic_strength_);
         const double eps0_ee = Constant::eps0 / Constant::elementary_charge
@@ -29,14 +26,13 @@ class DebyeHuckelForceFieldGenerator final : public ForceFieldGeneratorBase
         const double I = ionic_strength_ * 1.0e-3; // [M/m^3]
 
         debye_length_ = std::sqrt((eps0_ee * epsk * Constant::kB * temperature_) /
-                                  (2. * Constant::Na * I)) * 10e9; // [nm]
+                                 (2. * Constant::Na * I)) * 10e9; // [nm]
         abs_cutoff_   = debye_length_ * cutoff_ratio_;
         cutoff_correction_ = std::exp(cutoff_ratio_) / abs_cutoff_;
     }
 
     std::unique_ptr<OpenMM::Force> generate() const noexcept override
     {
-        std::cerr << "    Global        : DebyeHuckel" << std::endl;
 
         const std::string potential_formula =
             "q1*q2*inv_4_pi_eps0_epsk*(exp(-r/debye_length)-cutoff_correction)";
@@ -79,8 +75,11 @@ class DebyeHuckelForceFieldGenerator final : public ForceFieldGeneratorBase
         dh_ff->setNonbondedMethod(OpenMM::CustomNonbondedForce::CutoffNonPeriodic);
         dh_ff->setCutoffDistance(abs_cutoff_);
 
-        create_exclusion_from_bond(dh_ff, bonded_pairs_, ignore_bond_within_);
-        add_exclusion(dh_ff, additional_exclusion_pairs_);
+        // set exclusion list
+        for(const auto& pair : ignore_list_)
+        {
+            dh_ff->addExclusion(pair.first, pair.second);
+        }
 
         return dh_ff;
     }
@@ -92,56 +91,17 @@ class DebyeHuckelForceFieldGenerator final : public ForceFieldGeneratorBase
             (1. - 2.551e-1 * C + 5.151e-2 * C * C - 6.889e-3 * C * C * C);
     }
 
-    void create_exclusion_from_bond(
-            std::unique_ptr<OpenMM::CustomNonbondedForce>& exv_ff,
-            const index_pairs_type& bonded_pairs,
-            const std::size_t ignore_bond_within) const noexcept
-    {
-        std::cerr << "        generating exclusion list from system topology..."
-                  << std::endl;
-
-        exv_ff->createExclusionsFromBonds(
-                {bonded_pairs.begin(), bonded_pairs.end()}, ignore_bond_within);
-    }
-
-    void add_exclusion(
-            std::unique_ptr<OpenMM::CustomNonbondedForce>& exv_ff,
-            const index_pairs_type& additional_exclusion_pairs) const noexcept
-    {
-        const std::size_t num_exclusions = exv_ff->getNumExclusions();
-
-        std::vector<std::pair<std::size_t, std::size_t>> exclusion_pairs;
-        for(std::size_t pair_idx=0; pair_idx<num_exclusions; ++pair_idx)
-        {
-            int first, second;
-            exv_ff->getExclusionParticles(pair_idx, first, second);
-            exclusion_pairs.push_back(std::make_pair(first, second));
-        }
-
-        for(const auto& pair : additional_exclusion_pairs)
-        {
-            const auto result =
-                std::find(exclusion_pairs.begin(), exclusion_pairs.end(), pair);
-            if(result == exclusion_pairs.end())
-            {
-                exv_ff->addExclusion(pair.first, pair.second);
-            }
-        }
-    }
-
   private:
     const double                             ionic_strength_; // [M]
     const double                             temperature_;    // [K]
     const double                             cutoff_ratio_;   // relative to the debye length
     const std::vector<std::optional<double>> charges_;
-    const index_pairs_type&                  bonded_pairs_;
-    const std::size_t                        ignore_bond_within_;
-    const index_pairs_type&                  additional_exclusion_pairs_;
+    index_pairs_type                         ignore_list_;
 
-    double                             debye_length_;
-    double                             inv_4_pi_eps0_epsk_;
-    double                             cutoff_correction_;
-    double                             abs_cutoff_;
+    double debye_length_;
+    double inv_4_pi_eps0_epsk_;
+    double cutoff_correction_;
+    double abs_cutoff_;
 };
 
 #endif // OPEN_AICG2_PLUS_DEBYE_HUCKEL_FORCE_FIELD_GENERATOR_HPP

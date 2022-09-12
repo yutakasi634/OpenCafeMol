@@ -4,6 +4,7 @@
 #include <memory>
 #include <OpenMM.h>
 #include "src/Simulator.hpp"
+#include "src/Topology.hpp"
 #include "ReadForceFieldGenerator.hpp"
 
 std::unique_ptr<OpenMM::System> read_system(const toml::value& data)
@@ -29,7 +30,8 @@ std::unique_ptr<OpenMM::System> read_system(const toml::value& data)
 
     std::cerr << "generating forcefields..." << std::endl;
     // read forcefields info
-    const auto  ff = toml::find(data, "forcefields").at(0);
+    const auto ff = toml::find(data, "forcefields").at(0);
+    Topology topology(system_size);
     if(ff.contains("local"))
     {
         const auto& locals = toml::find(ff, "local").as_array();
@@ -41,9 +43,8 @@ std::unique_ptr<OpenMM::System> read_system(const toml::value& data)
             if(interaction == "BondLength" && potential == "Harmonic")
             {
                 const auto ff_gen =
-                    read_harmonic_bond_ff_generator(local_ff);
+                    read_harmonic_bond_ff_generator(local_ff, topology);
                 system_ptr->addForce(ff_gen.generate().release());
-                bonded_pairs = ff_gen.indices();
             }
             else if(interaction == "BondLength" && potential == "Gaussian")
             {
@@ -54,9 +55,8 @@ std::unique_ptr<OpenMM::System> read_system(const toml::value& data)
             else if(interaction == "BondLength" && potential == "GoContact")
             {
                 const auto ff_gen =
-                    read_go_contact_ff_generator(local_ff);
+                    read_go_contact_ff_generator(local_ff, topology);
                 system_ptr->addForce(ff_gen.generate().release());
-                contacted_pairs = ff_gen.indices();
             }
             else if(interaction == "BondAngle" && potential == "FlexibleLocalAngle")
             {
@@ -86,6 +86,7 @@ std::unique_ptr<OpenMM::System> read_system(const toml::value& data)
             }
         }
     }
+    topology.make_molecule("bond");
 
     if(ff.contains("global"))
     {
@@ -97,8 +98,7 @@ std::unique_ptr<OpenMM::System> read_system(const toml::value& data)
             if(potential == "ExcludedVolume")
             {
                 const auto ff_gen =
-                    read_excluded_volume_ff_generator(
-                        global_ff, system_size, bonded_pairs, contacted_pairs);
+                    read_excluded_volume_ff_generator(global_ff, system_size, topology);
                 system_ptr->addForce(ff_gen.generate().release());
             }
             if(potential == "DebyeHuckel")
@@ -120,7 +120,7 @@ std::unique_ptr<OpenMM::System> read_system(const toml::value& data)
                 const auto ff_gen =
                     read_debye_huckel_ff_generator(global_ff, system_size,
                         ionic_strength.unwrap(), temperature.unwrap(),
-                        bonded_pairs, contacted_pairs);
+                        topology, contacted_pairs);
                 system_ptr->addForce(ff_gen.generate().release());
             }
         }

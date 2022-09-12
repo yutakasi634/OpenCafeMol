@@ -33,8 +33,6 @@ class GoContactForceFieldGenerator final : public ForceFieldGeneratorBase
 
     std::unique_ptr<OpenMM::Force> generate() const noexcept override
     {
-        std::cerr << "    BondLength    : GoContact" << std::endl;
-
         const std::string potential_formula = "k*(5*(r0/r)^12-6*(r0/r)^10)";
         auto contact_ff = std::make_unique<OpenMM::CustomBondForce>(potential_formula);
         contact_ff->addPerBondParameter("k");

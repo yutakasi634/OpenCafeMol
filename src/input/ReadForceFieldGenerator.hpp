@@ -12,7 +12,8 @@
 #include "src/forcefield/DebyeHuckelForceFieldGenerator.hpp"
 
 const HarmonicBondForceFieldGenerator
-read_harmonic_bond_ff_generator(const toml::value& local_ff_data)
+read_harmonic_bond_ff_generator(
+        const toml::value& local_ff_data, Topology& topology)
 {
     const auto& params = toml::find<toml::array>(local_ff_data, "parameters");
 
@@ -34,7 +35,9 @@ read_harmonic_bond_ff_generator(const toml::value& local_ff_data)
         v0s        .push_back(v0);
         ks         .push_back(k);
     }
+    topology.add_edges(indices_vec, "bond");
 
+    std::cerr << "    BondLength    : Harmonic" << std::endl;
     return HarmonicBondForceFieldGenerator(indices_vec, v0s, ks);
 }
 
@@ -66,11 +69,12 @@ read_gaussian_bond_ff_generator(const toml::value& local_ff_data)
         sigmas     .push_back(sigma);
     }
 
+    std::cerr << "    BondLength    : Gaussian" << std::endl;
     return GaussianBondForceFieldGenerator(indices_vec, ks, v0s, sigmas);
 }
 
 const GoContactForceFieldGenerator
-read_go_contact_ff_generator(const toml::value& local_ff_data)
+read_go_contact_ff_generator(const toml::value& local_ff_data, Topology& topology)
 {
     // TODO: enable to optimization based on cutoff
     const auto& params = toml::find<toml::array>(local_ff_data, "parameters");
@@ -92,6 +96,9 @@ read_go_contact_ff_generator(const toml::value& local_ff_data)
         indices_vec.push_back(indices);
         r0s        .push_back(r0);
     }
+    topology.add_edges(indices_vec, "contact");
+
+    std::cerr << "    BondLength    : GoContact" << std::endl;
     return GoContactForceFieldGenerator(indices_vec, ks, r0s);
 }
 
@@ -118,6 +125,10 @@ read_flexible_local_angle_ff_generator(const toml::value& local_ff_data,
             ks         .push_back(k);
         }
     }
+
+    std::cerr << "    BondAngle     : FlexibleLocalAngle ("
+              << aa_type << ")" << std::endl;
+
     return FlexibleLocalAngleForceFieldGenerator(
                indices_vec, ks, spline_table, aa_type);
 }
@@ -125,6 +136,7 @@ read_flexible_local_angle_ff_generator(const toml::value& local_ff_data,
 const GaussianDihedralForceFieldGenerator
 read_gaussian_dihedral_ff_generator(const toml::value& local_ff_data)
 {
+
     const auto& params = toml::find<toml::array>(local_ff_data, "parameters");
 
     std::vector<std::array<std::size_t, 4>> indices_vec;
@@ -147,6 +159,8 @@ read_gaussian_dihedral_ff_generator(const toml::value& local_ff_data)
         theta0s    .push_back(theta0);
         sigmas     .push_back(sigma);
     }
+
+    std::cerr << "    DihedralAngle : Gaussian" << std::endl;
     return GaussianDihedralForceFieldGenerator(indices_vec, ks, theta0s, sigmas);
 }
 
@@ -239,15 +253,16 @@ read_flexible_local_dihedral_ff_generator(const toml::value& local_ff_data,
         }
         aa_pair_name = aa_pair_type.first + "-" + aa_pair_type.second;
     }
+
+    std::cerr << "    DihedralAngle : FlexibleLocalDihedral ("
+              << aa_pair_name << ")" << std::endl;
     return FlexibleLocalDihedralForceFieldGenerator(
                indices_vec, ks, fourier_table, aa_pair_name);
 }
 
 const ExcludedVolumeForceFieldGenerator
 read_excluded_volume_ff_generator(
-    const toml::value& global_ff_data, const std::size_t system_size,
-    const ExcludedVolumeForceFieldGenerator::index_pairs_type& bonded_pairs,
-    const ExcludedVolumeForceFieldGenerator::index_pairs_type& contacted_pairs)
+    const toml::value& global_ff_data, const std::size_t system_size, const Topology& topology)
 {
     const double eps =
         toml::find<double>(global_ff_data, "epsilon") * OpenMM::KJPerKcal; // KJPermol
@@ -263,20 +278,34 @@ read_excluded_volume_ff_generator(
         radius_vec.at(index) = radius;
     }
 
-    return ExcludedVolumeForceFieldGenerator(
-               eps, cutoff, radius_vec, bonded_pairs, contacted_pairs);
+    ExcludedVolumeForceFieldGenerator::index_pairs_type ignore_list =
+        topology.ignore_list_within_edge(3, "bond");
+    ExcludedVolumeForceFieldGenerator::index_pairs_type contact_ignore_list =
+        topology.ignore_list_within_edge(1, "contact");
+    ignore_list.insert(ignore_list.end(),
+          contact_ignore_list.begin(), contact_ignore_list.end());
+
+    std::sort(ignore_list.begin(), ignore_list.end());
+    const auto& result = std::unique(ignore_list.begin(), ignore_list.end());
+    ignore_list.erase(result, ignore_list.end());
+
+    std::cerr << "    Global        : ExcludedVolume" << std::endl;
+    return ExcludedVolumeForceFieldGenerator(eps, cutoff, radius_vec, ignore_list);
 }
 
 const DebyeHuckelForceFieldGenerator
 read_debye_huckel_ff_generator(
     const toml::value& global_ff_data, const std::size_t system_size,
-    const double ionic_strength, const double temperature,
-    const DebyeHuckelForceFieldGenerator::index_pairs_type& bonded_pairs,
+    const double ionic_strength, const double temperature, const Topology& topology,
     const DebyeHuckelForceFieldGenerator::index_pairs_type& contacted_pairs)
 {
+    using index_pairs_type = DebyeHuckelForceFieldGenerator::index_pairs_type;
+
     const double cutoff = toml::find_or(global_ff_data, "cutoff", 5.5);
 
-    std::size_t ignore_bond_within = 0;
+    bool        ignore_molecule_flag = false;
+    index_pairs_type ignore_list;
+
     if(global_ff_data.contains("ignore"))
     {
         const auto& ignore = toml::find(global_ff_data, "ignore");
@@ -285,10 +314,11 @@ read_debye_huckel_ff_generator(
             const std::string name = toml::find<std::string>(ignore, "molecule");
             if(name == "Intra" || name == "Self")
             {
-                // In ignore intra molecule case, all the interaction between
-                // the particles connected with the number of bond lesser than
-                // system size  will be ignored.
-                ignore_bond_within = system_size;
+                ignore_molecule_flag = true;
+                index_pairs_type mol_ignore_list =
+                    topology.ignore_list_within_molecule();
+                ignore_list.insert(ignore_list.end(),
+                     mol_ignore_list.begin(), mol_ignore_list.end());
             }
             else if(name == "Others" || name == "Inter")
             {
@@ -303,7 +333,7 @@ read_debye_huckel_ff_generator(
             const auto particle_within = toml::find(ignore, "particle_within");
             if(particle_within.contains("bond"))
             {
-                if(ignore_bond_within == system_size)
+                if(ignore_molecule_flag)
                 {
                     std::cerr <<
                         "[warning] ignore molecule \"Intra\" or \"Self\" was defined,"
@@ -311,11 +341,28 @@ read_debye_huckel_ff_generator(
                 }
                 else
                 {
-                    ignore_bond_within = toml::find<std::size_t>(particle_within, "bond");
+                    std::size_t ignore_bond_within =
+                        toml::find<std::size_t>(particle_within, "bond");
+                    index_pairs_type bond_ignore_list =
+                        topology.ignore_list_within_edge(ignore_bond_within, "bond");
+                    ignore_list.insert(ignore_list.end(),
+                        bond_ignore_list.begin(), bond_ignore_list.end());
                 }
+            }
+            if(particle_within.contains("contact"))
+            {
+                std::size_t ignore_contact_within =
+                    toml::find<std::size_t>(particle_within, "contact");
+                index_pairs_type contact_ignore_list =
+                    topology.ignore_list_within_edge(ignore_contact_within, "contact");
+                ignore_list.insert(ignore_list.end(),
+                    contact_ignore_list.begin(), contact_ignore_list.end());
             }
         }
     }
+    std::sort(ignore_list.begin(), ignore_list.end());
+    const auto& result = std::unique(ignore_list.begin(), ignore_list.end());
+    ignore_list.erase(result, ignore_list.end());
 
     const auto& params = toml::find<toml::array>(global_ff_data, "parameters");
     std::vector<std::optional<double>> charge_vec(system_size, std::nullopt);
@@ -326,8 +373,9 @@ read_debye_huckel_ff_generator(
         charge_vec.at(index) = charge;
     }
 
-    return DebyeHuckelForceFieldGenerator(ionic_strength, temperature,
-            cutoff, charge_vec, bonded_pairs, ignore_bond_within, contacted_pairs);
+    std::cerr << "    Global        : DebyeHuckel" << std::endl;
+    return DebyeHuckelForceFieldGenerator(
+            ionic_strength, temperature, cutoff, charge_vec, ignore_list);
 }
 
 #endif // OPEN_AICG2_PLUS_READ_FORCE_FIELD_GENERATOR_HPP

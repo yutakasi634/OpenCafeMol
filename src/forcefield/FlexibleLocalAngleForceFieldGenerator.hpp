@@ -35,9 +35,6 @@ class FlexibleLocalAngleForceFieldGenerator final : public ForceFieldGeneratorBa
 
     std::unique_ptr<OpenMM::Force> generate() const noexcept override
     {
-        std::cerr << "    BondAngle     : FlexibleLocalAngle ("
-                  << aa_name_ << ")" << std::endl;
-
         auto spline_func = std::make_unique<OpenMM::Continuous1DFunction>(
                 std::vector<double>(spline_table_.begin(), spline_table_.end()),
                 min_theta_, max_theta_);
