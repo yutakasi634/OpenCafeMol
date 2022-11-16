@@ -264,6 +264,8 @@ const ExcludedVolumeForceFieldGenerator
 read_excluded_volume_ff_generator(
     const toml::value& global_ff_data, const std::size_t system_size, const Topology& topology)
 {
+    std::cerr << "    Global        : ExcludedVolume" << std::endl;
+
     const double eps =
         toml::find<double>(global_ff_data, "epsilon") * OpenMM::KJPerKcal; // KJPermol
     const double cutoff = toml::find_or(global_ff_data, "cutoff", 2.0);
@@ -289,16 +291,16 @@ read_excluded_volume_ff_generator(
     const auto& result = std::unique(ignore_list.begin(), ignore_list.end());
     ignore_list.erase(result, ignore_list.end());
 
-    std::cerr << "    Global        : ExcludedVolume" << std::endl;
     return ExcludedVolumeForceFieldGenerator(eps, cutoff, radius_vec, ignore_list);
 }
 
 const DebyeHuckelForceFieldGenerator
 read_debye_huckel_ff_generator(
     const toml::value& global_ff_data, const std::size_t system_size,
-    const double ionic_strength, const double temperature, const Topology& topology,
-    const DebyeHuckelForceFieldGenerator::index_pairs_type& contacted_pairs)
+    const double ionic_strength, const double temperature, const Topology& topology)
 {
+    std::cerr << "    Global        : DebyeHuckel" << std::endl;
+
     using index_pairs_type = DebyeHuckelForceFieldGenerator::index_pairs_type;
 
     const double cutoff = toml::find_or(global_ff_data, "cutoff", 5.5);
@@ -328,9 +330,9 @@ read_debye_huckel_ff_generator(
             }
         }
 
-        if(ignore.contains("particle_within"))
+        if(ignore.contains("particles_within"))
         {
-            const auto particle_within = toml::find(ignore, "particle_within");
+            const auto particle_within = toml::find(ignore, "particles_within");
             if(particle_within.contains("bond"))
             {
                 if(ignore_molecule_flag)
@@ -373,7 +375,6 @@ read_debye_huckel_ff_generator(
         charge_vec.at(index) = charge;
     }
 
-    std::cerr << "    Global        : DebyeHuckel" << std::endl;
     return DebyeHuckelForceFieldGenerator(
             ionic_strength, temperature, cutoff, charge_vec, ignore_list);
 }

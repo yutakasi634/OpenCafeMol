@@ -119,8 +119,7 @@ std::unique_ptr<OpenMM::System> read_system(const toml::value& data)
 
                 const auto ff_gen =
                     read_debye_huckel_ff_generator(global_ff, system_size,
-                        ionic_strength.unwrap(), temperature.unwrap(),
-                        topology, contacted_pairs);
+                        ionic_strength.unwrap(), temperature.unwrap(), topology);
                 system_ptr->addForce(ff_gen.generate().release());
             }
         }
