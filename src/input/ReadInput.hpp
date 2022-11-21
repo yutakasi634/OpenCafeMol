@@ -149,10 +149,36 @@ std::vector<OpenMM::Vec3> read_initial_conf(const toml::value& data)
     return initPosInNm;
 }
 
-Simulator read_input(const std::string input_file_name)
+const std::string get_file_suffix(const std::string& filename)
 {
-    const std::size_t file_path_len   = input_file_name.rfind("/")+1;
-    const std::size_t file_prefix_len = input_file_name.rfind(".") - file_path_len;
+    const std::size_t file_suffix_from = filename.rfind(".");
+    if(file_suffix_from == std::string::npos)
+    {
+        throw std::runtime_error(
+                "[error] There is no file extension in " + filename + "."
+                " The file type can not be specified.");
+    }
+    const std::size_t file_suffix_len  = filename.length() - file_suffix_from;
+    return filename.substr(file_suffix_from, file_suffix_len);
+}
+
+Simulator read_toml_input(const std::string& input_file_name)
+{
+    std::size_t file_path_len   = input_file_name.rfind("/")+1;
+    if(file_path_len == std::string::npos)
+    {
+        file_path_len = 0;
+    }
+
+    const std::string file_suffix = get_file_suffix(input_file_name);
+    if(file_suffix != ".toml")
+    {
+            throw std::runtime_error(
+                    "[error] File suffix is `" + file_suffix + "`."
+                    " Toml mode needs `.toml` file for input.");
+    }
+    const std::size_t file_prefix_from = input_file_name.rfind(".");
+    const std::size_t file_prefix_len = file_prefix_from - file_path_len;
     const std::string file_path       = input_file_name.substr(0, file_path_len);
     const std::string file_prefix     = input_file_name.substr(file_path_len, file_prefix_len);
 
@@ -186,4 +212,65 @@ Simulator read_input(const std::string input_file_name)
                initial_position_in_nm, total_step, save_step, Observer(file_prefix));
 }
 
+
+Simulator read_input(int argc, char** argv)
+{
+    // check command line argument
+    if(argc == 2)
+    {
+        return read_toml_input(std::string(argv[1]));
+    }
+    else if(argc == 4)
+    {
+        std::array<std::string, 3> filenames, file_suffixes;
+        for(std::size_t file_idx=0; file_idx<3; ++file_idx)
+        {
+            filenames[file_idx]     = std::string(argv[file_idx+1]);
+            file_suffixes[file_idx] = get_file_suffix(filenames[file_idx]);
+        }
+
+        std::string gro_file, top_file, itp_file;
+        // get each type file name
+        for(std::size_t file_idx=0; file_idx<3; ++file_idx)
+        {
+            if(file_suffixes[file_idx] == ".gro"){ gro_file = filenames[file_idx]; }
+            if(file_suffixes[file_idx] == ".top"){ top_file = filenames[file_idx]; }
+            if(file_suffixes[file_idx] == ".itp"){ itp_file = filenames[file_idx]; }
+        }
+
+        if(gro_file.empty())
+        {
+            throw std::runtime_error(
+                    "[error] There is no `.gro` file in input files."
+                    " Genesis mode needs `.gro`, `.top` and `.itp` file for input.");
+        }
+        if(top_file.empty())
+        {
+            throw std::runtime_error(
+                    "[error] There is no `.top` file in input files."
+                    " Genesis mode needs `.gro`, `.top` and `.itp` file for input.");
+        }
+        if(itp_file.empty())
+        {
+            throw std::runtime_error(
+                    "[error] There is no `.itp` file in input files."
+                    " Genesis mode needs `.gro`, `.top` and `.itp` file for input.");
+        }
+
+        std::cerr << "gro file is " << gro_file << std::endl;
+        std::cerr << "top file is " << top_file << std::endl;
+        std::cerr << "itp file is " << itp_file << std::endl;
+
+        throw std::runtime_error(
+                "[error] Input files are " + std::string(argv[1]) + " " +
+                std::string(argv[2]) + " " + argv[3] + ".\n" +
+                "Genesis mode has not yet been implemented.");
+    }
+    else
+    {
+        throw std::runtime_error(
+                "Usage: " + std::string(argv[0]) + " <input.toml> or " +
+                 std::string(argv[0]) + " <input.gro> <input.itp> <input.top>");
+    }
+}
 #endif // OPEN_AICG2_PLUS_READ_INPUT_HPP

@@ -13,10 +13,8 @@
 #include "Simulator.hpp"
 #include "Observer.hpp"
 
-void simulate(const std::string& input_file_name)
+void simulate(Simulator& simulator)
 {
-    Simulator simulator(read_input(input_file_name));
-
     // excute simulation
     const auto start = std::chrono::system_clock::now();
     std::cerr << "calculation start!" << std::endl;
@@ -54,13 +52,6 @@ void simulate(const std::string& input_file_name)
 
 int main(int argc, char** argv)
 {
-    // check command line argument
-    if(argc != 2)
-    {
-        std::cerr << "Usage: " << argv[0] << " <input.toml>" << std::endl;
-        return 1;
-    }
-
     // dump library information
     std::cerr << "OpenMM Library Information" << std::endl;
     std::cerr << "    version                   : "
@@ -91,12 +82,13 @@ int main(int argc, char** argv)
     }
 
     try {
-        simulate(std::string(argv[1]));
+        Simulator simulator(read_input(argc, argv));
+        simulate(simulator);
         return 0; // success!
     }
     // Catch and report usage and runtime errors detected by OpenMM and fail.
     catch(const std::exception& e) {
-        printf("EXCEPTION: %s\n", e.what());
+        printf("%s\n", e.what());
         return 1; // failure!
     }
 }
