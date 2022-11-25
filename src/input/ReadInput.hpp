@@ -2,10 +2,10 @@
 #define OPEN_AICG2_PLUS_READ_INPUT_HPP
 
 #include <memory>
-#include <regex>
 #include <OpenMM.h>
 #include "src/Simulator.hpp"
 #include "src/Topology.hpp"
+#include "ReadGenesisInput.hpp"
 #include "ReadForceFieldGenerator.hpp"
 
 std::unique_ptr<OpenMM::System> read_system(const toml::value& data)
@@ -213,198 +213,6 @@ Simulator read_toml_input(const std::string& input_file_name)
                initial_position_in_nm, total_step, save_step, Observer(file_prefix));
 }
 
-void read_genesis_input(
-        const std::string& input_gro, const std::string& input_itp, const std::string& input_top)
-{
-    std::cerr << "gro file is " << input_gro << std::endl;
-    std::cerr << "itp file is " << input_itp << std::endl;
-    std::cerr << "top file is " << input_top << std::endl;
-
-    // read input itp file
-    std::cerr << "parsing " << input_itp << "..." << std::endl;
-    std::ifstream ifs(input_itp);
-    if(!ifs.good())
-    {
-        throw std::runtime_error("[error] file open error ->" + input_itp);
-    }
-
-    std::string line, next_section_name;
-    while(std::getline(ifs, line))
-    {
-        std::smatch result;
-        std::string section_name;
-        if(!next_section_name.empty())
-        {
-            section_name = next_section_name;
-            next_section_name.clear();
-        }
-        else if(std::regex_match(line, result, std::regex("\\s*\\[\\s*(\\S.*?)\\s*]\\s*")))
-        {
-            section_name = result.str(1);
-        }
-
-        if(!section_name.empty())
-        {
-            std::cerr << section_name << " section detected" << std::endl;
-            if(section_name == "moleculetype")
-            {
-                while(std::getline(ifs, line))
-                {
-                    if(line.empty() || std::regex_match(line, std::regex("^\\s*")))
-                    {
-                        continue; // skip empty line
-                    }
-                    else if(std::regex_match(line, std::regex("^;.*")))
-                    {
-                        continue; // skip comment line
-                    }
-                    else if(std::regex_match(line, result, std::regex("\\s*\\[\\s*(\\S.*?)\\s*]\\s*")))
-                    {
-                        next_section_name = result.str(1);
-                        std::cerr << "next section name is " << next_section_name << std::endl;
-                        break;
-                    }
-                    else
-                    {
-                        std::cerr << "in moleculetype table " << line << std::endl;
-                    }
-                }
-            }
-            else if(section_name == "atoms")
-            {
-                while(std::getline(ifs, line))
-                {
-                    if(line.empty() || std::regex_match(line, std::regex("^\\s*")))
-                    {
-                        continue; // skip empty line
-                    }
-                    else if(std::regex_match(line, std::regex("^;.*")))
-                    {
-                        continue; // skip comment line
-                    }
-                    else if(std::regex_match(line, result, std::regex("\\s*\\[\\s*(\\S.*?)\\s*]\\s*")))
-                    {
-                        next_section_name = result.str(1);
-                        std::cerr << "next section name is " << next_section_name << std::endl;
-                        break;
-                    }
-                    else
-                    {
-                        std::cerr << "in atom table " << line << std::endl;
-                    }
-                }
-            }
-            else if(section_name == "bonds")
-            {
-                while(std::getline(ifs, line))
-                {
-                    if(line.empty() || std::regex_match(line, std::regex("^\\s*")))
-                    {
-                        continue; // skip empty line
-                    }
-                    else if(std::regex_match(line, std::regex("^;.*")))
-                    {
-                        continue; // skip comment line
-                    }
-                    else if(std::regex_match(line, result, std::regex("\\s*\\[\\s*(\\S.*?)\\s*]\\s*")))
-                    {
-                        next_section_name = result.str(1);
-                        std::cerr << "next section name is " << next_section_name << std::endl;
-                        break;
-                    }
-                    else
-                    {
-                        std::cerr << "in bonds table " << line << std::endl;
-                    }
-                }
-            }
-            else if(section_name == "angles")
-            {
-                while(std::getline(ifs, line))
-                {
-                    if(line.empty() || std::regex_match(line, std::regex("^\\s*")))
-                    {
-                        continue; // skip empty line
-                    }
-                    else if(std::regex_match(line, std::regex("^;.*")))
-                    {
-                        continue; // skip comment line
-                    }
-                    else if(std::regex_match(line, result, std::regex("\\s*\\[\\s*(\\S.*?)\\s*]\\s*")))
-                    {
-                        next_section_name = result.str(1);
-                        std::cerr << "next section name is " << next_section_name << std::endl;
-                        break;
-                    }
-                    else
-                    {
-                        std::cerr << "in angles table " << line << std::endl;
-                    }
-                }
-            }
-            else if(section_name == "dihedrals")
-            {
-                while(std::getline(ifs, line))
-                {
-                    if(line.empty() || std::regex_match(line, std::regex("^\\s*")))
-                    {
-                        continue; // skip empty line
-                    }
-                    else if(std::regex_match(line, std::regex("^;.*")))
-                    {
-                        continue; // skip comment line
-                    }
-                    else if(std::regex_match(line, result, std::regex("\\s*\\[\\s*(\\S.*?)\\s*]\\s*")))
-                    {
-                        next_section_name = result.str(1);
-                        std::cerr << "next section name is " << next_section_name << std::endl;
-                        break;
-                    }
-                    else
-                    {
-                        std::cerr << "in dihedrals table " << line << std::endl;
-                    }
-                }
-            }
-            else if(section_name == "pairs")
-            {
-                while(std::getline(ifs, line))
-                {
-                    if(line.empty() || std::regex_match(line, std::regex("^\\s*")))
-                    {
-                        continue; // skip empty line
-                    }
-                    else if(std::regex_match(line, std::regex("^;.*")))
-                    {
-                        continue; // skip comment line
-                    }
-                    else if(std::regex_match(line, result, std::regex("\\s*\\[\\s*(\\S.*?)\\s*]\\s*")))
-                    {
-                        next_section_name = result.str(1);
-                        std::cerr << "next section name is " << next_section_name << std::endl;
-                        break;
-                    }
-                    else
-                    {
-                        std::cerr << "in pairs table " << line << std::endl;
-                    }
-                }
-            }
-            else
-            {
-                throw std::runtime_error(
-                        "[error] Unknown name table " + section_name + " detected.");
-            }
-        }
-    }
-
-    // read input top file
-    // std::cerr << "parsing " << input_top << "..." << std::endl;
-
-    // read input gro file
-    // std::cerr << "parsing " << input_gro << "..." << std::endl;
-}
-
 Simulator read_input(int argc, char** argv)
 {
     // check command line argument
@@ -449,7 +257,7 @@ Simulator read_input(int argc, char** argv)
                     " Genesis mode needs `.gro`, `.top` and `.itp` file for input.");
         }
 
-        read_genesis_input(gro_file, itp_file, top_file);
+        return read_genesis_input(gro_file, itp_file, top_file);
 
         throw std::runtime_error(
                 "[error] Input files are " + std::string(argv[1]) + ", " +
