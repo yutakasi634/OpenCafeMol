@@ -2,7 +2,7 @@
 #define OPEN_AICG2_PLUS_READ_GENESIS_INPUT_HPP
 
 #include <regex>
-#include "src/forcefield/HarmonicBondForceFieldGenerator.hpp"
+#include "ReadGenesisForceFieldGenerator.hpp"
 
 std::map<std::string, std::map<std::string, std::string>> read_inp_file(const std::string& inp_file_name)
 {
@@ -201,24 +201,16 @@ Simulator make_simulator_from_genesis_inputs(
     std::cerr << "generating forcefields..." << std::endl;
     if(top_data.find("bonds") != top_data.end())
     {
-        std::vector<std::pair<std::size_t, std::size_t>> indices_vec;
-        std::vector<double>                              v0s;
-        std::vector<double>                              ks;
-
-        for(auto& bonds_line : top_data.at("bonds"))
-        {
-            const std::size_t idx_i = std::stoi(bonds_line.substr( 0, 10));
-            const std::size_t idx_j = std::stoi(bonds_line.substr(10, 10));
-            const double      v0    = std::stof(bonds_line.substr(25, 42));
-            const double      k     = std::stof(bonds_line.substr(43, 60)) * 0.5; // KJ/(mol nm^2)
-            indices_vec.push_back(std::make_pair(idx_i-1, idx_j-1));
-            v0s        .push_back(v0);
-            ks         .push_back(k);
-        }
-        const auto ff_gen = HarmonicBondForceFieldGenerator(indices_vec, v0s, ks);
-
-        std::cerr << "    BondLength    : Harmonic" << std::endl;
+        const auto ff_gen = read_genesis_harmonic_bond_ff_generator(top_data.at("bonds"));
         system_ptr->addForce(ff_gen.generate().release());
+    }
+    if(top_data.find("angles") != top_data.end())
+    {
+        const auto aicg_ff_gen = read_genesis_gaussian_bond_ff_generator(top_data.at("angles"));
+        if(aicg_ff_gen.num_of_interactions() != 0)
+        {
+            system_ptr->addForce(aicg_ff_gen.generate().release());
+        }
     }
 
     const std::vector<OpenMM::Vec3> initial_position_in_nm(

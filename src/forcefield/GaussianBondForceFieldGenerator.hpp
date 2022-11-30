@@ -57,6 +57,11 @@ class GaussianBondForceFieldGenerator final : public ForceFieldGeneratorBase
         }
     }
 
+    const std::size_t num_of_interactions() const noexcept
+    {
+        return indices_vec_.size();
+    }
+
   private:
     std::vector<indices_type> indices_vec_;
     std::vector<double>       ks_;
