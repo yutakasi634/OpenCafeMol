@@ -78,6 +78,8 @@ class FlexibleLocalAngleForceFieldGenerator final : public ForceFieldGeneratorBa
         }
     }
 
+    const std::vector<indices_type>& indices() const noexcept { return indices_vec_; }
+
   private:
     std::vector<indices_type> indices_vec_;
     std::vector<double>       ks_;

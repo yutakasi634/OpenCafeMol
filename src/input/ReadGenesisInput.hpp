@@ -206,10 +206,32 @@ Simulator make_simulator_from_genesis_inputs(
     }
     if(top_data.find("angles") != top_data.end())
     {
+        // make force field generator for AICG2+ angle
         const auto aicg_ff_gen = read_genesis_gaussian_bond_ff_generator(top_data.at("angles"));
-        if(aicg_ff_gen.num_of_interactions() != 0)
+        if(aicg_ff_gen.indices().size() != 0)
         {
             system_ptr->addForce(aicg_ff_gen.generate().release());
+        }
+        else
+        {
+            std::cerr << "        -> skip this forcefield generation." << std::endl;
+        }
+
+        // make force field generator for Flexible Local Angle
+        for(const auto& aa_type_table : Constant::fla_spline_table)
+        {
+            const auto fla_ff_gen =
+                read_genesis_flexible_local_angle_ff_generator(top_data.at("angles"),
+                                                               top_data.at("atoms"),
+                                                               aa_type_table.first);
+            if(fla_ff_gen.indices().size() != 0)
+            {
+                system_ptr->addForce(fla_ff_gen.generate().release());
+            }
+            else
+            {
+                std::cerr << "        -> skip this forcefield generation." << std::endl;
+            }
         }
     }
 

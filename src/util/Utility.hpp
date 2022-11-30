@@ -1,6 +1,17 @@
 #ifndef OPEN_AICG2_PLUS_UTILITY_HPP
 #define OPEN_AICG2_PLUS_UTILITY_HPP
 
+#include <string>
+#include <algorithm>
+
+std::string erase_space(std::string&& str)
+{
+    const auto new_end = std::remove_if(str.begin(), str.end(),
+                             [](const char x){ return std::isspace(x); });
+    str.erase(new_end, str.end());
+    return str;
+}
+
 const toml::value& find_either(
         const toml::value& v, const std::string& key1, const std::string& key2)
 {
