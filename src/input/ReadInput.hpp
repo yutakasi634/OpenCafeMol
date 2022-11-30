@@ -163,29 +163,29 @@ const std::string get_file_suffix(const std::string& filename)
     return filename.substr(file_suffix_from, file_suffix_len);
 }
 
-Simulator read_toml_input(const std::string& input_file_name)
+Simulator read_toml_input(const std::string& toml_file_name)
 {
-    std::size_t file_path_len   = input_file_name.rfind("/")+1;
+    std::size_t file_path_len   = toml_file_name.rfind("/")+1;
     if(file_path_len == std::string::npos)
     {
         file_path_len = 0;
     }
 
-    const std::string file_suffix = get_file_suffix(input_file_name);
+    const std::string file_suffix = get_file_suffix(toml_file_name);
     if(file_suffix != ".toml")
     {
             throw std::runtime_error(
                     "[error] File suffix is `" + file_suffix + "`."
-                    " Toml mode needs `.toml` file for input.");
+                    " Toml mode needs `.toml` file for toml.");
     }
-    const std::size_t file_prefix_from = input_file_name.rfind(".");
+    const std::size_t file_prefix_from = toml_file_name.rfind(".");
     const std::size_t file_prefix_len = file_prefix_from - file_path_len;
-    const std::string file_path       = input_file_name.substr(0, file_path_len);
-    const std::string file_prefix     = input_file_name.substr(file_path_len, file_prefix_len);
+    const std::string file_path       = toml_file_name.substr(0, file_path_len);
+    const std::string file_prefix     = toml_file_name.substr(file_path_len, file_prefix_len);
 
-    // read input toml file
-    std::cerr << "parsing " << input_file_name << "..." << std::endl;
-    auto data = toml::parse(input_file_name);
+    // read toml toml file
+    std::cerr << "parsing " << toml_file_name << "..." << std::endl;
+    auto data = toml::parse(toml_file_name);
 
     // read system table
     const auto&    systems     = toml::find(data, "systems");
@@ -213,62 +213,25 @@ Simulator read_toml_input(const std::string& input_file_name)
                initial_position_in_nm, total_step, save_step, Observer(file_prefix));
 }
 
+
 Simulator read_input(int argc, char** argv)
 {
     // check command line argument
     if(argc == 2)
     {
-        return read_toml_input(std::string(argv[1]));
+        const std::string file_suffix = get_file_suffix(std::string(argv[1]));
+        if(file_suffix == ".toml")
+        {
+            return read_toml_input(std::string(argv[1]));
+        }
+        else if(file_suffix == ".inp")
+        {
+            return read_inp_input(std::string(argv[1]));
+        }
     }
-    else if(argc == 4)
-    {
-        std::array<std::string, 3> filenames, file_suffixes;
-        for(std::size_t file_idx=0; file_idx<3; ++file_idx)
-        {
-            filenames[file_idx]     = std::string(argv[file_idx+1]);
-            file_suffixes[file_idx] = get_file_suffix(filenames[file_idx]);
-        }
 
-        std::string gro_file, top_file, itp_file;
-        // get each type file name
-        for(std::size_t file_idx=0; file_idx<3; ++file_idx)
-        {
-            if(file_suffixes[file_idx] == ".gro"){ gro_file = filenames[file_idx]; }
-            if(file_suffixes[file_idx] == ".itp"){ itp_file = filenames[file_idx]; }
-            if(file_suffixes[file_idx] == ".top"){ top_file = filenames[file_idx]; }
-        }
-
-        if(gro_file.empty())
-        {
-            throw std::runtime_error(
-                    "[error] There is no `.gro` file in input files."
-                    " Genesis mode needs `.gro`, `.top` and `.itp` file for input.");
-        }
-        if(itp_file.empty())
-        {
-            throw std::runtime_error(
-                    "[error] There is no `.itp` file in input files."
-                    " Genesis mode needs `.gro`, `.top` and `.itp` file for input.");
-        }
-        if(top_file.empty())
-        {
-            throw std::runtime_error(
-                    "[error] There is no `.top` file in input files."
-                    " Genesis mode needs `.gro`, `.top` and `.itp` file for input.");
-        }
-
-        return read_genesis_input(gro_file, itp_file, top_file);
-
-        throw std::runtime_error(
-                "[error] Input files are " + std::string(argv[1]) + ", " +
-                std::string(argv[2]) + " and " + argv[3] +
-                ". Genesis mode has not yet been implemented.");
-    }
-    else
-    {
-        throw std::runtime_error(
-                "Usage: " + std::string(argv[0]) + " <input.toml> or " +
-                 std::string(argv[0]) + " <input.gro> <input.itp> <input.top>");
-    }
+    throw std::runtime_error(
+            "Usage: " + std::string(argv[0]) + " <input.toml> or " +
+             std::string(argv[0]) + " <input.inp>");
 }
 #endif // OPEN_AICG2_PLUS_READ_INPUT_HPP
