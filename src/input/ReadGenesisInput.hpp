@@ -202,8 +202,16 @@ Simulator make_simulator_from_genesis_inputs(
     if(top_data.find("bonds") != top_data.end())
     {
         const auto ff_gen = read_genesis_harmonic_bond_ff_generator(top_data.at("bonds"));
-        system_ptr->addForce(ff_gen.generate().release());
+        if(ff_gen.indices().size() != 0)
+        {
+            system_ptr->addForce(ff_gen.generate().release());
+        }
+        else
+        {
+            std::cerr << "        -> skip this forcefield generation." << std::endl;
+        }
     }
+
     if(top_data.find("angles") != top_data.end())
     {
         // make force field generator for AICG2+ angle
@@ -232,6 +240,19 @@ Simulator make_simulator_from_genesis_inputs(
             {
                 std::cerr << "        -> skip this forcefield generation." << std::endl;
             }
+        }
+    }
+
+    if(top_data.find("pairs") != top_data.end())
+    {
+        const auto ff_gen = read_genesis_go_contact_ff_generator(top_data.at("pairs"));
+        if(ff_gen.indices().size() != 0)
+        {
+            system_ptr->addForce(ff_gen.generate().release());
+        }
+        else
+        {
+            std::cerr << "        -> skip this forcefield generation." << std::endl;
         }
     }
 

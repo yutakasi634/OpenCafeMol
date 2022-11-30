@@ -4,7 +4,9 @@
 #include <OpenMM.h>
 #include "src/forcefield/HarmonicBondForceFieldGenerator.hpp"
 #include "src/forcefield/GaussianBondForceFieldGenerator.hpp"
+#include "src/forcefield/GoContactForceFieldGenerator.hpp"
 #include "src/forcefield/FlexibleLocalAngleForceFieldGenerator.hpp"
+#include "src/forcefield/GaussianDihedralForceFieldGenerator.hpp"
 
 const HarmonicBondForceFieldGenerator
 read_genesis_harmonic_bond_ff_generator(const std::vector<std::string>& bonds_data)
@@ -58,6 +60,29 @@ read_genesis_gaussian_bond_ff_generator(const std::vector<std::string>& angles_d
     return GaussianBondForceFieldGenerator(indices_vec, ks, v0s, sigmas);
 }
 
+const GoContactForceFieldGenerator
+read_genesis_go_contact_ff_generator(const std::vector<std::string>& pairs_data)
+{
+    std::vector<std::pair<std::size_t, std::size_t>> indices_vec;
+    std::vector<double>                              ks;
+    std::vector<double>                              r0s;
+
+    for(auto& pairs_line : pairs_data)
+    {
+        const std::size_t idx_i = std::stoi(pairs_line.substr(0,  10)) - 1;
+        const std::size_t idx_k = std::stoi(pairs_line.substr(10, 10)) - 1;
+        const double      r0    = std::stof(pairs_line.substr(30, 15)); // nm
+        const double      k     = std::stof(pairs_line.substr(45, 15)); // KJ/mol
+
+        indices_vec.push_back(std::make_pair(idx_i, idx_k));
+        ks         .push_back(k);
+        r0s        .push_back(r0);
+    }
+
+    std::cerr << "    BondLength    : GoContact (" << indices_vec.size() << " found)" << std::endl;
+    return GoContactForceFieldGenerator(indices_vec, ks, r0s);
+}
+
 const FlexibleLocalAngleForceFieldGenerator
 read_genesis_flexible_local_angle_ff_generator(const std::vector<std::string>& angles_data,
         const std::vector<std::string>& atoms_data, const std::string& aa_type)
@@ -87,5 +112,6 @@ read_genesis_flexible_local_angle_ff_generator(const std::vector<std::string>& a
                indices_vec, std::vector<double>(indices_vec.size(), 1.0),
                Constant::fla_spline_table.at(aa_type), aa_type);
 }
+
 
 #endif // OPEN_AICG2_PLUS_READ_GENESIS_FORCE_FIELD_GENERATOR_HPP
