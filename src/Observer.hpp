@@ -10,8 +10,8 @@ class Observer
 {
   public:
     Observer(const std::string& file_prefix, bool output_progress = true)
-        : pos_filename_("output/"+file_prefix+".pdb"),
-          ene_filename_("output/"+file_prefix+".ene"),
+        : pos_filename_(file_prefix+".pdb"),
+          ene_filename_(file_prefix+".ene"),
           output_progress_(output_progress),
           progress_bar_(/* width of bar = */ 50)
     {

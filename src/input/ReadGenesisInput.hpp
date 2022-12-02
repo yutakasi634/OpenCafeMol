@@ -14,44 +14,38 @@ std::map<std::string, std::map<std::string, std::string>> read_inp_file(const st
     }
 
     std::map<std::string, std::map<std::string, std::string>> inp_data;
-    std::string line, section_name, next_section_name;
+    std::string line, section_name;
     while(std::getline(ifs, line))
     {
         std::smatch result;
-        if(!next_section_name.empty())
+        if(section_name.empty())
         {
-            section_name = next_section_name;
-            inp_data.insert(std::make_pair(section_name, std::map<std::string, std::string>()));
-            next_section_name.clear();
+            if(std::regex_match(line, result, std::regex("\\s*\\[\\s*(\\S.*?)\\s*]\\s*")))
+            {
+                section_name = result.str(1);
+                inp_data.insert(std::make_pair(section_name, std::map<std::string, std::string>()));
+            }
         }
-        else if(std::regex_match(line, result, std::regex("\\s*\\[\\s*(\\S.*?)\\s*]\\s*")))
-        {
-            section_name = result.str(1);
-            inp_data.insert(std::make_pair(section_name, std::map<std::string, std::string>()));
-        }
-
-        if(!section_name.empty())
+        else
         {
             std::map<std::string, std::string>& table_contents = inp_data.at(section_name);
-            while(std::getline(ifs, line))
+            if(std::regex_match(line, result, std::regex("\\s*\\[\\s*(\\S.*?)\\s*]\\s*")))
             {
-                if(std::regex_match(line, result, std::regex("\\s*\\[\\s*(\\S.*?)\\s*]\\s*")))
+                section_name = result.str(1);
+                inp_data.insert(std::make_pair(section_name, std::map<std::string, std::string>()));
+            }
+            else if(!std::regex_match(line, std::regex("^\\s*$"))) // non-comment line
+            {
+                std::cerr << "line contents " << line << std::endl;
+                std::size_t hash_position = line.find_first_of("#");
+                if(hash_position == std::string::npos)
                 {
-                    next_section_name = result.str(1);
-                    break;
+                    hash_position = line.length();
                 }
-                else if(!std::regex_match(line, std::regex("^\\s*$"))) // non-comment line
-                {
-                    std::size_t hash_position = line.find_first_of("#");
-                    if(hash_position == std::string::npos)
-                    {
-                        hash_position = line.length();
-                    }
-                    const std::string noncomment_part = line.substr(0, hash_position);
-                    std::regex_match(noncomment_part, result,
-                                     std::regex("\\s*(\\S+)\\s*=\\s*(\\S+)\\s*"));
-                    table_contents.insert(std::make_pair(result.str(1), result.str(2)));
-                }
+                const std::string noncomment_part = line.substr(0, hash_position);
+                std::regex_match(noncomment_part, result,
+                                 std::regex("\\s*(\\S+)\\s*=\\s*(\\S+)\\s*"));
+                table_contents.insert(std::make_pair(result.str(1), result.str(2)));
             }
         }
     }
@@ -181,8 +175,11 @@ std::vector<OpenMM::Vec3> read_genesis_initial_conf(
 }
 
 Simulator make_simulator_from_genesis_inputs(
-        const std::string& topfile_name, const std::string& grofile_name, const std::string& file_path)
+        const std::map<std::string, std::map<std::string, std::string>>& inpfile_data,
+        const std::string& topfile_name, const std::string& grofile_name,
+        const std::string& file_path)
 {
+    // read [INPUT] section
     auto system_ptr = std::make_unique<OpenMM::System>();
 
     const std::map<std::string, std::vector<std::string>>& top_data =
@@ -259,6 +256,32 @@ Simulator make_simulator_from_genesis_inputs(
     const std::vector<OpenMM::Vec3> initial_position_in_nm(
             read_genesis_initial_conf(grofile_name, file_path));
 
+    // read [OUTPUT] section
+    const std::map<std::string, std::string>& output_section = inpfile_data.at("OUTPUT");
+    for(auto& pair : output_section)
+    {
+        std::cerr << "[OUTPUT] section pair " << pair.first << " " << pair.second << std::endl;
+    }
+    const std::string& pdbfile_name = output_section.at("pdbfile");
+
+    std::size_t file_suffix_from = pdbfile_name.rfind(".");
+    if(file_suffix_from == std::string::npos)
+    {
+        file_suffix_from = pdbfile_name.size();
+    }
+    const std::string file_prefix = pdbfile_name.substr(0, file_suffix_from);
+    std::cerr << "hoge" << std::endl;
+    // read [DYNAMICS] section
+    const std::map<std::string, std::string> dynamics_section = inpfile_data.at("DYNAMICS");
+    const std::size_t nsteps        = std::stoi(dynamics_section.at("nsteps"));
+    const double      timestep      = std::stof(dynamics_section.at("timestep")); // ps
+    const std::size_t crdout_period = std::stoi(dynamics_section.at("crdout_period"));
+
+    // read [EMSEMBLE] section
+    const std::map<std::string, std::string> emsemble_section = inpfile_data.at("ENSEMBLE");
+    const double temperature = std::stof(emsemble_section.at("temperature"));
+    const double gamma_t     = std::stof(emsemble_section.at("gamma_t"));
+
     // setup OpenMM simulator
     // In OpenMM, we cannot use different friction coefficiet, gamma, for different molecules.
     // However, cafemol use different gamma depends on the mass of each particle, and the
@@ -267,10 +290,10 @@ Simulator make_simulator_from_genesis_inputs(
     // approximatry 0.01 in cafemol friction coefficient. We need to implement new
     // LangevinIntegrator which can use different gamma for different particles.
     return Simulator(std::move(system_ptr),
-                   OpenMM::LangevinIntegrator(300.0,
-                                              0.3/*friction coef ps^-1*/,
-                                              0.01/* delta t*/),
-                   initial_position_in_nm, 1000000, 1000, Observer("test_output"));
+                   OpenMM::LangevinIntegrator(temperature,
+                                              gamma_t/*friction coef ps^-1*/,
+                                              timestep/* delta t */),
+                   initial_position_in_nm, nsteps, crdout_period, Observer(file_prefix));
 }
 
 Simulator read_inp_input(const std::string& inp_file_name)
@@ -289,7 +312,7 @@ Simulator read_inp_input(const std::string& inp_file_name)
     const std::string& topfile_name = input_section.at("grotopfile");
     const std::string& grofile_name = input_section.at("grocrdfile");
 
-    return make_simulator_from_genesis_inputs(topfile_name, grofile_name, file_path);
+    return make_simulator_from_genesis_inputs(inp_data, topfile_name, grofile_name, file_path);
 }
 
 #endif // OPEN_AICG2_PLUS_READ_GENESIS_INPUT_HPP

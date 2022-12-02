@@ -178,14 +178,17 @@ Simulator read_toml_input(const std::string& toml_file_name)
                     "[error] File suffix is `" + file_suffix + "`."
                     " Toml mode needs `.toml` file for toml.");
     }
-    const std::size_t file_prefix_from = toml_file_name.rfind(".");
-    const std::size_t file_prefix_len = file_prefix_from - file_path_len;
-    const std::string file_path       = toml_file_name.substr(0, file_path_len);
-    const std::string file_prefix     = toml_file_name.substr(file_path_len, file_prefix_len);
+
 
     // read toml toml file
     std::cerr << "parsing " << toml_file_name << "..." << std::endl;
     auto data = toml::parse(toml_file_name);
+
+    // read files table
+    const auto&        files         = toml::find(data, "files");
+    const auto&        output        = toml::find(files, "output");
+    const std::string& output_prefix = toml::find<std::string>(output, "prefix");
+    const std::string& output_path   = toml::find<std::string>(output, "path");
 
     // read system table
     const auto&    systems     = toml::find(data, "systems");
@@ -210,7 +213,7 @@ Simulator read_toml_input(const std::string& toml_file_name)
                OpenMM::LangevinIntegrator(temperature,
                                           0.3/*friction coef ps^-1*/,
                                           delta_t*Constant::cafetime),
-               initial_position_in_nm, total_step, save_step, Observer(file_prefix));
+               initial_position_in_nm, total_step, save_step, Observer(output_path+output_prefix));
 }
 
 
