@@ -65,6 +65,8 @@ class FlexibleLocalDihedralForceFieldGenerator final : public ForceFieldGenerato
         // exclusion_pairs.push_back(std::make_pair(indices[0], indices[3]));
     }
 
+    const std::vector<indices_type>& indices() const noexcept { return indices_vec_; }
+
   private:
     std::vector<indices_type> indices_vec_;
     std::vector<double>       ks_;

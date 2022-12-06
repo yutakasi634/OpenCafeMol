@@ -36,7 +36,6 @@ std::map<std::string, std::map<std::string, std::string>> read_inp_file(const st
             }
             else if(!std::regex_match(line, std::regex("^\\s*$"))) // non-comment line
             {
-                std::cerr << "line contents " << line << std::endl;
                 std::size_t hash_position = line.find_first_of("#");
                 if(hash_position == std::string::npos)
                 {
@@ -196,9 +195,10 @@ Simulator make_simulator_from_genesis_inputs(
     }
 
     std::cerr << "generating forcefields..." << std::endl;
+    Topology topology(top_data.at("atoms").size());
     if(top_data.find("bonds") != top_data.end())
     {
-        const auto ff_gen = read_genesis_harmonic_bond_ff_generator(top_data.at("bonds"));
+        const auto ff_gen = read_genesis_harmonic_bond_ff_generator(top_data.at("bonds"), topology);
         if(ff_gen.indices().size() != 0)
         {
             system_ptr->addForce(ff_gen.generate().release());
@@ -240,9 +240,40 @@ Simulator make_simulator_from_genesis_inputs(
         }
     }
 
+    if(top_data.find("dihedrals") != top_data.end())
+    {
+        // make force field generator for AICG2+ dihedral
+        const auto aicg_ff_gen = read_genesis_gaussian_dihedral_ff_generator(top_data.at("dihedrals"));
+        if(aicg_ff_gen.indices().size() != 0)
+        {
+            system_ptr->addForce(aicg_ff_gen.generate().release());
+        }
+        else
+        {
+            std::cerr << "        -> skip this forcefield generation" << std::endl;
+        }
+
+        // make force field generator for Flexible Local dihedral
+        for(const auto& aa_type_pair_table : Constant::fld_fourier_table)
+        {
+             const auto fld_ff_gen =
+                 read_genesis_flexible_local_dihedral_ff_generator(top_data.at("dihedrals"),
+                                                                   top_data.at("atoms"),
+                                                                   aa_type_pair_table.first);
+             if(fld_ff_gen.indices().size() != 0)
+             {
+                 system_ptr->addForce(fld_ff_gen.generate().release());
+             }
+             else
+             {
+                 std::cerr << "        -> skip this forcefield generation." << std::endl;
+             }
+        }
+    }
+
     if(top_data.find("pairs") != top_data.end())
     {
-        const auto ff_gen = read_genesis_go_contact_ff_generator(top_data.at("pairs"));
+        const auto ff_gen = read_genesis_go_contact_ff_generator(top_data.at("pairs"), topology);
         if(ff_gen.indices().size() != 0)
         {
             system_ptr->addForce(ff_gen.generate().release());
@@ -258,10 +289,6 @@ Simulator make_simulator_from_genesis_inputs(
 
     // read [OUTPUT] section
     const std::map<std::string, std::string>& output_section = inpfile_data.at("OUTPUT");
-    for(auto& pair : output_section)
-    {
-        std::cerr << "[OUTPUT] section pair " << pair.first << " " << pair.second << std::endl;
-    }
     const std::string& pdbfile_name = output_section.at("pdbfile");
 
     std::size_t file_suffix_from = pdbfile_name.rfind(".");
@@ -270,7 +297,6 @@ Simulator make_simulator_from_genesis_inputs(
         file_suffix_from = pdbfile_name.size();
     }
     const std::string file_prefix = pdbfile_name.substr(0, file_suffix_from);
-    std::cerr << "hoge" << std::endl;
     // read [DYNAMICS] section
     const std::map<std::string, std::string> dynamics_section = inpfile_data.at("DYNAMICS");
     const std::size_t nsteps        = std::stoi(dynamics_section.at("nsteps"));
