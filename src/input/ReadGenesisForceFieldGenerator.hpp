@@ -50,7 +50,7 @@ read_genesis_gaussian_bond_ff_generator(const std::vector<std::string>& angles_d
             const std::size_t idx_i = std::stoi(angles_line.substr(0,  10)) - 1;
             const std::size_t idx_k = std::stoi(angles_line.substr(20, 10)) - 1;
             const double      v0    = std::stof(angles_line.substr(35, 15)); // nm
-            const double      k     = std::stof(angles_line.substr(50, 15)); // KJ/mol
+            const double      k     = -std::stof(angles_line.substr(50, 15)); // KJ/mol
             const double      sigma = std::stof(angles_line.substr(65, 15)); // nm
 
             indices_vec.push_back(std::make_pair(idx_i, idx_k));
