@@ -21,7 +21,7 @@ class FlexibleLocalDihedralForceFieldGenerator final : public ForceFieldGenerato
         {
             std::ostringstream oss;
             oss << "[error] FlexibleLocalDihedralForceFieldGenerator : "
-                   "parameter number of"
+                   "parameter number of "
                    "indices_vec (" << indices_vec.size() << ") and "
                    "k ("           << ks.size()          << ") is not matched."
                    "The number of these parameters must be same.";
