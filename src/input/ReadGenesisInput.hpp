@@ -205,7 +205,7 @@ Simulator make_simulator_from_genesis_inputs(
         }
         else
         {
-            std::cerr << "        -> skip this forcefield generation." << std::endl;
+            std::cerr << "        -> skip this forcefield generation" << std::endl;
         }
     }
 
@@ -219,10 +219,10 @@ Simulator make_simulator_from_genesis_inputs(
         }
         else
         {
-            std::cerr << "        -> skip this forcefield generation." << std::endl;
+            std::cerr << "        -> skip this forcefield generation" << std::endl;
         }
 
-        // make force field generator for Flexible Local Angle
+        // make force field generator for Flexible Local angle
         for(const auto& aa_type_table : Constant::fla_spline_table)
         {
             const auto fla_ff_gen =
@@ -235,7 +235,7 @@ Simulator make_simulator_from_genesis_inputs(
             }
             else
             {
-                std::cerr << "        -> skip this forcefield generation." << std::endl;
+                std::cerr << "        -> skip this forcefield generation" << std::endl;
             }
         }
     }
@@ -280,8 +280,33 @@ Simulator make_simulator_from_genesis_inputs(
         }
         else
         {
-            std::cerr << "        -> skip this forcefield generation." << std::endl;
+            std::cerr << "        -> skip this forcefield generation" << std::endl;
         }
+    }
+
+    if(top_data.find("atomtypes") != top_data.end())
+    {
+        if(top_data.find("moleculetype") == top_data.end())
+        {
+            throw std::runtime_error("[error] There is no `[ moleculetype ]` section. Genesis input mode needs this section.");
+        }
+        const std::vector<std::string>& moleculetype_data = top_data.at("moleculetype");
+        if(moleculetype_data.size() != 1)
+        {
+            throw std::runtime_error("[error] `[moleculetype]` section have " +
+                   std::to_string(moleculetype_data.size()) +
+                   " lines. Genesis input mode intends this section have only 1 line." );
+        }
+
+        const std::size_t ignore_particle_within_bond =
+            std::stoi(moleculetype_data[0].substr(17, 6));
+        const auto ff_gen = read_genesis_exv_ff_generator(top_data.at("atomtypes"),
+                top_data.at("atoms"), topology, ignore_particle_within_bond);
+        system_ptr->addForce(ff_gen.generate().release());
+    }
+    else
+    {
+        throw std::runtime_error("[error] There is no `[ atomtypes ]` section. Genesis input mode needs this section.");
     }
 
     const std::vector<OpenMM::Vec3> initial_position_in_nm(
