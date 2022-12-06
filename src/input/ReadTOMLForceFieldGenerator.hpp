@@ -1,5 +1,5 @@
-#ifndef OPEN_AICG2_PLUS_READ_FORCE_FIELD_GENERATOR_HPP
-#define OPEN_AICG2_PLUS_READ_FORCE_FIELD_GENERATOR_HPP
+#ifndef OPEN_AICG2_PLUS_READ_TOML_FORCE_FIELD_GENERATOR_HPP
+#define OPEN_AICG2_PLUS_READ_TOML_FORCE_FIELD_GENERATOR_HPP
 
 #include <OpenMM.h>
 #include "src/forcefield/HarmonicBondForceFieldGenerator.hpp"
@@ -12,7 +12,7 @@
 #include "src/forcefield/DebyeHuckelForceFieldGenerator.hpp"
 
 const HarmonicBondForceFieldGenerator
-read_harmonic_bond_ff_generator(
+read_toml_harmonic_bond_ff_generator(
         const toml::value& local_ff_data, Topology& topology)
 {
     const auto& params = toml::find<toml::array>(local_ff_data, "parameters");
@@ -42,7 +42,7 @@ read_harmonic_bond_ff_generator(
 }
 
 const GaussianBondForceFieldGenerator
-read_gaussian_bond_ff_generator(const toml::value& local_ff_data)
+read_toml_gaussian_bond_ff_generator(const toml::value& local_ff_data)
 {
     const auto& params = toml::find<toml::array>(local_ff_data, "parameters");
 
@@ -74,7 +74,7 @@ read_gaussian_bond_ff_generator(const toml::value& local_ff_data)
 }
 
 const GoContactForceFieldGenerator
-read_go_contact_ff_generator(const toml::value& local_ff_data, Topology& topology)
+read_toml_go_contact_ff_generator(const toml::value& local_ff_data, Topology& topology)
 {
     // TODO: enable to optimization based on cutoff
     const auto& params = toml::find<toml::array>(local_ff_data, "parameters");
@@ -103,7 +103,7 @@ read_go_contact_ff_generator(const toml::value& local_ff_data, Topology& topolog
 }
 
 const FlexibleLocalAngleForceFieldGenerator
-read_flexible_local_angle_ff_generator(const toml::value& local_ff_data,
+read_toml_flexible_local_angle_ff_generator(const toml::value& local_ff_data,
         const std::string& aa_type, const std::array<double, 10> spline_table)
 {
     const auto& params = toml::find<toml::array>(local_ff_data, "parameters");
@@ -134,7 +134,7 @@ read_flexible_local_angle_ff_generator(const toml::value& local_ff_data,
 }
 
 const GaussianDihedralForceFieldGenerator
-read_gaussian_dihedral_ff_generator(const toml::value& local_ff_data)
+read_toml_gaussian_dihedral_ff_generator(const toml::value& local_ff_data)
 {
 
     const auto& params = toml::find<toml::array>(local_ff_data, "parameters");
@@ -165,7 +165,7 @@ read_gaussian_dihedral_ff_generator(const toml::value& local_ff_data)
 }
 
 const FlexibleLocalDihedralForceFieldGenerator
-read_flexible_local_dihedral_ff_generator(const toml::value& local_ff_data,
+read_toml_flexible_local_dihedral_ff_generator(const toml::value& local_ff_data,
         const std::pair<std::string, std::string> aa_pair_type,
         const std::array<double, 7> fourier_table)
 {
@@ -261,7 +261,7 @@ read_flexible_local_dihedral_ff_generator(const toml::value& local_ff_data,
 }
 
 const ExcludedVolumeForceFieldGenerator
-read_excluded_volume_ff_generator(
+read_toml_excluded_volume_ff_generator(
     const toml::value& global_ff_data, const std::size_t system_size, const Topology& topology)
 {
     std::cerr << "    Global        : ExcludedVolume" << std::endl;
@@ -295,7 +295,7 @@ read_excluded_volume_ff_generator(
 }
 
 const DebyeHuckelForceFieldGenerator
-read_debye_huckel_ff_generator(
+read_toml_debye_huckel_ff_generator(
     const toml::value& global_ff_data, const std::size_t system_size,
     const double ionic_strength, const double temperature, const Topology& topology)
 {
@@ -379,4 +379,4 @@ read_debye_huckel_ff_generator(
             ionic_strength, temperature, cutoff, charge_vec, ignore_list);
 }
 
-#endif // OPEN_AICG2_PLUS_READ_FORCE_FIELD_GENERATOR_HPP
+#endif // OPEN_AICG2_PLUS_READ_TOML_FORCE_FIELD_GENERATOR_HPP

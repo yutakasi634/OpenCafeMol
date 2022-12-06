@@ -2,6 +2,9 @@
 #define OPEN_AICG2_PLUS_READ_GENESIS_INPUT_HPP
 
 #include <regex>
+#include <OpenMM.h>
+#include "src/Simulator.hpp"
+#include "src/Topology.hpp"
 #include "ReadGenesisForceFieldGenerator.hpp"
 
 std::map<std::string, std::map<std::string, std::string>> read_inp_file(const std::string& inp_file_name)
@@ -347,7 +350,7 @@ Simulator make_simulator_from_genesis_inputs(
                    initial_position_in_nm, nsteps, crdout_period, Observer(file_prefix));
 }
 
-Simulator read_inp_input(const std::string& inp_file_name)
+Simulator read_genesis_input(const std::string& inp_file_name)
 {
     std::size_t file_path_len = inp_file_name.rfind("/")+1;
     if(file_path_len == std::string::npos)

@@ -9,9 +9,31 @@
 #include "toml11/toml.hpp"
 #include "src/util/Utility.hpp"
 #include "src/util/Macro.hpp"
-#include "src/input/ReadInput.hpp"
+#include "src/input/ReadTOMLInput.hpp"
+#include "src/input/ReadGenesisInput.hpp"
 #include "Simulator.hpp"
 #include "Observer.hpp"
+
+Simulator read_input(int argc, char** argv)
+{
+    // check command line argument
+    if(argc == 2)
+    {
+        const std::string file_suffix = get_file_suffix(std::string(argv[1]));
+        if(file_suffix == ".toml")
+        {
+            return read_toml_input(std::string(argv[1]));
+        }
+        else if(file_suffix == ".inp")
+        {
+            return read_genesis_input(std::string(argv[1]));
+        }
+    }
+
+    throw std::runtime_error(
+            "Usage: " + std::string(argv[0]) + " <input.toml> or " +
+             std::string(argv[0]) + " <input.inp>");
+}
 
 void simulate(Simulator& simulator)
 {

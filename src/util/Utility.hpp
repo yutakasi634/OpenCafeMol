@@ -4,6 +4,19 @@
 #include <string>
 #include <algorithm>
 
+const std::string get_file_suffix(const std::string& filename)
+{
+    const std::size_t file_suffix_from = filename.rfind(".");
+    if(file_suffix_from == std::string::npos)
+    {
+        throw std::runtime_error(
+                "[error] There is no file extension in " + filename + "."
+                " The file type can not be specified.");
+    }
+    const std::size_t file_suffix_len  = filename.length() - file_suffix_from;
+    return filename.substr(file_suffix_from, file_suffix_len);
+}
+
 std::string erase_space(std::string&& str)
 {
     const auto new_end = std::remove_if(str.begin(), str.end(),

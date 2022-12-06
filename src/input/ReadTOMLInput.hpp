@@ -1,14 +1,13 @@
-#ifndef OPEN_AICG2_PLUS_READ_INPUT_HPP
-#define OPEN_AICG2_PLUS_READ_INPUT_HPP
+#ifndef OPEN_AICG2_PLUS_READ_TOML_INPUT_HPP
+#define OPEN_AICG2_PLUS_READ_TOML_INPUT_HPP
 
 #include <memory>
 #include <OpenMM.h>
 #include "src/Simulator.hpp"
 #include "src/Topology.hpp"
-#include "ReadGenesisInput.hpp"
-#include "ReadForceFieldGenerator.hpp"
+#include "ReadTOMLForceFieldGenerator.hpp"
 
-std::unique_ptr<OpenMM::System> read_system(const toml::value& data)
+std::unique_ptr<OpenMM::System> read_toml_system(const toml::value& data)
 {
     auto system_ptr = std::make_unique<OpenMM::System>();
 
@@ -44,19 +43,19 @@ std::unique_ptr<OpenMM::System> read_system(const toml::value& data)
             if(interaction == "BondLength" && potential == "Harmonic")
             {
                 const auto ff_gen =
-                    read_harmonic_bond_ff_generator(local_ff, topology);
+                    read_toml_harmonic_bond_ff_generator(local_ff, topology);
                 system_ptr->addForce(ff_gen.generate().release());
             }
             else if(interaction == "BondLength" && potential == "Gaussian")
             {
                 const auto ff_gen =
-                    read_gaussian_bond_ff_generator(local_ff);
+                    read_toml_gaussian_bond_ff_generator(local_ff);
                 system_ptr->addForce(ff_gen.generate().release());
             }
             else if(interaction == "BondLength" && potential == "GoContact")
             {
                 const auto ff_gen =
-                    read_go_contact_ff_generator(local_ff, topology);
+                    read_toml_go_contact_ff_generator(local_ff, topology);
                 system_ptr->addForce(ff_gen.generate().release());
             }
             else if(interaction == "BondAngle" && potential == "FlexibleLocalAngle")
@@ -64,7 +63,7 @@ std::unique_ptr<OpenMM::System> read_system(const toml::value& data)
                 for(const auto& [aa_type, spline_table] : Constant::fla_spline_table)
                 {
                     const auto ff_gen =
-                        read_flexible_local_angle_ff_generator(
+                        read_toml_flexible_local_angle_ff_generator(
                                 local_ff, aa_type, spline_table);
                     system_ptr->addForce(ff_gen.generate().release());
                 }
@@ -72,7 +71,7 @@ std::unique_ptr<OpenMM::System> read_system(const toml::value& data)
             else if(interaction == "DihedralAngle" && potential == "Gaussian")
             {
                 const auto ff_gen =
-                    read_gaussian_dihedral_ff_generator(local_ff);
+                    read_toml_gaussian_dihedral_ff_generator(local_ff);
                 system_ptr->addForce(ff_gen.generate().release());
             }
             else if(interaction == "DihedralAngle" && potential == "FlexibleLocalDihedral")
@@ -80,7 +79,7 @@ std::unique_ptr<OpenMM::System> read_system(const toml::value& data)
                 for(const auto& [aa_pair_type, fourier_table] : Constant::fld_fourier_table)
                 {
                     const auto ff_gen =
-                        read_flexible_local_dihedral_ff_generator(
+                        read_toml_flexible_local_dihedral_ff_generator(
                             local_ff, aa_pair_type, fourier_table);
                     system_ptr->addForce(ff_gen.generate().release());
                 }
@@ -99,7 +98,7 @@ std::unique_ptr<OpenMM::System> read_system(const toml::value& data)
             if(potential == "ExcludedVolume")
             {
                 const auto ff_gen =
-                    read_excluded_volume_ff_generator(global_ff, system_size, topology);
+                    read_toml_excluded_volume_ff_generator(global_ff, system_size, topology);
                 system_ptr->addForce(ff_gen.generate().release());
             }
             if(potential == "DebyeHuckel")
@@ -119,7 +118,7 @@ std::unique_ptr<OpenMM::System> read_system(const toml::value& data)
                 }
 
                 const auto ff_gen =
-                    read_debye_huckel_ff_generator(global_ff, system_size,
+                    read_toml_debye_huckel_ff_generator(global_ff, system_size,
                         ionic_strength.unwrap(), temperature.unwrap(), topology);
                 system_ptr->addForce(ff_gen.generate().release());
             }
@@ -129,7 +128,7 @@ std::unique_ptr<OpenMM::System> read_system(const toml::value& data)
     return system_ptr;
 }
 
-std::vector<OpenMM::Vec3> read_initial_conf(const toml::value& data)
+std::vector<OpenMM::Vec3> read_toml_initial_conf(const toml::value& data)
 {
     const auto& systems     = toml::find(data, "systems");
     const auto& particles   = toml::find<toml::array>(systems[0], "particles");
@@ -150,19 +149,6 @@ std::vector<OpenMM::Vec3> read_initial_conf(const toml::value& data)
     return initPosInNm;
 }
 
-const std::string get_file_suffix(const std::string& filename)
-{
-    const std::size_t file_suffix_from = filename.rfind(".");
-    if(file_suffix_from == std::string::npos)
-    {
-        throw std::runtime_error(
-                "[error] There is no file extension in " + filename + "."
-                " The file type can not be specified.");
-    }
-    const std::size_t file_suffix_len  = filename.length() - file_suffix_from;
-    return filename.substr(file_suffix_from, file_suffix_len);
-}
-
 Simulator read_toml_input(const std::string& toml_file_name)
 {
     std::size_t file_path_len   = toml_file_name.rfind("/")+1;
@@ -179,7 +165,6 @@ Simulator read_toml_input(const std::string& toml_file_name)
                     " Toml mode needs `.toml` file for toml.");
     }
 
-
     // read toml toml file
     std::cerr << "parsing " << toml_file_name << "..." << std::endl;
     auto data = toml::parse(toml_file_name);
@@ -194,7 +179,7 @@ Simulator read_toml_input(const std::string& toml_file_name)
     const auto&    systems     = toml::find(data, "systems");
     const auto&    attr        = toml::find(systems[0], "attributes");
     const auto&    temperature = toml::find<double>(attr, "temperature");
-    const std::vector<OpenMM::Vec3> initial_position_in_nm(read_initial_conf(data));
+    const std::vector<OpenMM::Vec3> initial_position_in_nm(read_toml_initial_conf(data));
 
     // read simulator table
     const auto&       simulator_table = toml::find(data, "simulator");
@@ -209,32 +194,11 @@ Simulator read_toml_input(const std::string& toml_file_name)
     // So in this implementation, we fix the gamma to 0.2 ps^-1 temporary, correspond to
     // approximatry 0.01 in cafemol friction coefficient. We need to implement new
     // LangevinIntegrator which can use different gamma for different particles.
-    return Simulator(std::move(read_system(data)),
+    return Simulator(std::move(read_toml_system(data)),
                OpenMM::LangevinIntegrator(temperature,
                                           0.3/*friction coef ps^-1*/,
                                           delta_t*Constant::cafetime),
                initial_position_in_nm, total_step, save_step, Observer(output_path+output_prefix));
 }
 
-
-Simulator read_input(int argc, char** argv)
-{
-    // check command line argument
-    if(argc == 2)
-    {
-        const std::string file_suffix = get_file_suffix(std::string(argv[1]));
-        if(file_suffix == ".toml")
-        {
-            return read_toml_input(std::string(argv[1]));
-        }
-        else if(file_suffix == ".inp")
-        {
-            return read_inp_input(std::string(argv[1]));
-        }
-    }
-
-    throw std::runtime_error(
-            "Usage: " + std::string(argv[0]) + " <input.toml> or " +
-             std::string(argv[0]) + " <input.inp>");
-}
-#endif // OPEN_AICG2_PLUS_READ_INPUT_HPP
+#endif // OPEN_AICG2_PLUS_READ_TOML_INPUT_HPP
