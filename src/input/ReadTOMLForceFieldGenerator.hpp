@@ -61,7 +61,7 @@ read_toml_gaussian_bond_ff_generator(const toml::value& local_ff_data)
             toml::find<double>(param, "v0") * OpenMM::NmPerAngstrom; // nm
         const double sigma =
             toml::get<double>(
-                    find_either(param, "sigma", "σ")) * OpenMM::NmPerAngstrom; // nm
+                    Utility::find_either(param, "sigma", "σ")) * OpenMM::NmPerAngstrom; // nm
 
         indices_vec.push_back(indices);
         ks         .push_back(k);
@@ -152,7 +152,7 @@ read_toml_gaussian_dihedral_ff_generator(const toml::value& local_ff_data)
             toml::find<double>(param, "k") * OpenMM::KJPerKcal; // KJ/mol
         const double theta0 = toml::find<double>(param, "v0"); // radiuns
         const double sigma =
-            toml::get<double>(find_either(param, "sigma", "σ")); // radiuns
+            toml::get<double>(Utility::find_either(param, "sigma", "σ")); // radiuns
 
         indices_vec.push_back(indices);
         ks         .push_back(k);

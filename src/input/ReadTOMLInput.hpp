@@ -21,7 +21,7 @@ std::unique_ptr<OpenMM::System> read_toml_system(const toml::value& data)
     {
         // set mass
         const auto& p = particles.at(i);
-        system_ptr->addParticle(toml::get<double>(find_either(p, "m", "mass"))); // amu
+        system_ptr->addParticle(toml::get<double>(Utility::find_either(p, "m", "mass"))); // amu
     }
 
     // for exclusion list of Excluded Volume
@@ -140,7 +140,7 @@ std::vector<OpenMM::Vec3> read_toml_initial_conf(const toml::value& data)
         // set position
         const auto& p = particles.at(i);
         std::array<double, 3> vec = {0.0, 0.0, 0.0};
-        vec = toml::get<std::array<double, 3>>(find_either(p, "pos", "position"));
+        vec = toml::get<std::array<double, 3>>(Utility::find_either(p, "pos", "position"));
         initPosInNm[i] = OpenMM::Vec3(vec[0]*OpenMM::NmPerAngstrom,
                                       vec[1]*OpenMM::NmPerAngstrom,
                                       vec[2]*OpenMM::NmPerAngstrom); // location, nm
@@ -157,7 +157,7 @@ Simulator read_toml_input(const std::string& toml_file_name)
         file_path_len = 0;
     }
 
-    const std::string file_suffix = get_file_suffix(toml_file_name);
+    const std::string file_suffix = Utility::get_file_suffix(toml_file_name);
     if(file_suffix != ".toml")
     {
             throw std::runtime_error(

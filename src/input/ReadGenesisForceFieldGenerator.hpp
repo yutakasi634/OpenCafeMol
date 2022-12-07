@@ -96,7 +96,7 @@ read_genesis_flexible_local_angle_ff_generator(const std::vector<std::string>& a
     std::vector<std::string> aa_type_vec;
     for(const auto& atoms_line : atoms_data)
     {
-        const std::string atom_type = erase_space(atoms_line.substr(10, 5));
+        const std::string atom_type = Utility::erase_space(atoms_line.substr(10, 5));
         aa_type_vec.push_back(atom_type);
     }
 
@@ -163,7 +163,7 @@ read_genesis_flexible_local_dihedral_ff_generator(
     std::vector<std::string> aa_type_vec;
     for(const auto& atoms_line : atoms_data)
     {
-        aa_type_vec.push_back(erase_space(atoms_line.substr(10, 5)));
+        aa_type_vec.push_back(Utility::erase_space(atoms_line.substr(10, 5)));
     }
 
     std::vector<std::array<std::size_t, 4>> indices_vec;
@@ -237,7 +237,7 @@ read_genesis_exv_ff_generator(const std::vector<std::string>& atomtypes_data,
     std::string                   eps_str;
     for(auto& atomtypes_line : atomtypes_data)
     {
-        const std::string name = erase_space(atomtypes_line.substr(0, 5));
+        const std::string name = Utility::erase_space(atomtypes_line.substr(0, 5));
         if(name_rmin_map.find(name) == name_rmin_map.end())
         {
             const double rmin = std::stof(atomtypes_line.substr(30, 10)) * 0.5;
@@ -251,9 +251,9 @@ read_genesis_exv_ff_generator(const std::vector<std::string>& atomtypes_data,
 
         if(eps_str.empty())
         {
-            eps_str = erase_space(atomtypes_line.substr(41, 9));
+            eps_str = Utility::erase_space(atomtypes_line.substr(41, 9));
         }
-        else if(eps_str != erase_space(atomtypes_line.substr(41, 9)))
+        else if(eps_str != Utility::erase_space(atomtypes_line.substr(41, 9)))
         {
             throw std::runtime_error("[error] ExcludedVolumeForceField only support uniform eps for all particle case. Some different value were defined in `[ atomtypes ]` table.");
         }
@@ -263,7 +263,7 @@ read_genesis_exv_ff_generator(const std::vector<std::string>& atomtypes_data,
     std::vector<std::optional<double>> radius_vec;
     for(auto& atoms_line : atoms_data)
     {
-        const std::string aa_type = erase_space(atoms_line.substr(10, 5));
+        const std::string aa_type = Utility::erase_space(atoms_line.substr(10, 5));
         radius_vec.push_back(name_rmin_map.at(aa_type));
     }
 

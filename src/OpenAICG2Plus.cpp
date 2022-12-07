@@ -19,7 +19,7 @@ Simulator read_input(int argc, char** argv)
     // check command line argument
     if(argc == 2)
     {
-        const std::string file_suffix = get_file_suffix(std::string(argv[1]));
+        const std::string file_suffix = Utility::get_file_suffix(std::string(argv[1]));
         if(file_suffix == ".toml")
         {
             return read_toml_input(std::string(argv[1]));

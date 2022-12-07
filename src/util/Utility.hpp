@@ -4,6 +4,9 @@
 #include <string>
 #include <algorithm>
 
+namespace Utility
+{
+
 const std::string get_file_suffix(const std::string& filename)
 {
     const std::size_t file_suffix_from = filename.rfind(".");
@@ -36,8 +39,8 @@ const toml::value& find_either(
                                         "this conflicts with the above value definition")
                  << std::endl;
     }
-    if (v.contains(key1)) { return v.at(key1); }
-    if(v.contains(key2))  { return v.at(key2); }
+    if(v.contains(key1)) { return v.at(key1); }
+    if(v.contains(key2)) { return v.at(key2); }
 
     throw std::runtime_error(toml::format_error("both keys, \"" + key1 + "\" and \"" + key2 +
                              "\", are not found.", v, "in this table"));
@@ -88,5 +91,7 @@ T find_parameter(const toml::value& params, const toml::value& env,
     }
     return toml::get<T>(p);
 }
+
+} // namespace Utility
 
 #endif // OPEN_AICG2_PLUS_UTILITY_HPP
