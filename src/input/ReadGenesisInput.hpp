@@ -317,14 +317,16 @@ Simulator make_simulator_from_genesis_inputs(
 
     // read [OUTPUT] section
     const std::map<std::string, std::string>& output_section = inpfile_data.at("OUTPUT");
+    const std::string& dcdfile_name = output_section.at("dcdfile");
     const std::string& pdbfile_name = output_section.at("pdbfile");
-
-    std::size_t file_suffix_from = pdbfile_name.rfind(".");
+    std::size_t file_suffix_from = dcdfile_name.rfind(".");
     if(file_suffix_from == std::string::npos)
     {
-        file_suffix_from = pdbfile_name.size();
+        file_suffix_from = dcdfile_name.size();
     }
-    const std::string file_prefix = pdbfile_name.substr(0, file_suffix_from);
+    const std::string file_prefix  = dcdfile_name.substr(0, file_suffix_from);
+    const std::string enefile_name = file_prefix + ".ene";
+
     // read [DYNAMICS] section
     const std::map<std::string, std::string> dynamics_section = inpfile_data.at("DYNAMICS");
     const std::size_t nsteps        = std::stoi(dynamics_section.at("nsteps"));
@@ -335,6 +337,30 @@ Simulator make_simulator_from_genesis_inputs(
     const std::map<std::string, std::string> emsemble_section = inpfile_data.at("ENSEMBLE");
     const double temperature = std::stof(emsemble_section.at("temperature"));
     const double gamma_t     = std::stof(emsemble_section.at("gamma_t"));
+
+    // construct observers
+    std::vector<std::unique_ptr<ObserverBase>> observers;
+    observers.push_back(std::make_unique<DCDObserver>(
+                file_prefix, nsteps, crdout_period, timestep));
+    observers.push_back(std::make_unique<EnergyObserver>(file_prefix));
+
+    // dump initial configuration to pdb file
+    std::cerr << "    output initial state file : " << pdbfile_name << std::endl;
+    Utility::clear_file(pdbfile_name);
+    std::ofstream ofs(pdbfile_name, std::ios::app);
+    ofs << "MODEL     0" << std::endl;
+    for(std::size_t idx=0; idx<initial_position_in_nm.size(); ++idx)
+    {
+        ofs << std::setprecision(3);
+        ofs << "ATOM  " << std::setw(5) << idx+1 << "  AR   AR     1    "; // atom number
+        ofs << std::setw(8) << std::fixed
+            << std::setw(8) << std::fixed << initial_position_in_nm[idx][0]*OpenMM::AngstromsPerNm
+            << std::setw(8) << std::fixed << initial_position_in_nm[idx][1]*OpenMM::AngstromsPerNm
+            << std::setw(8) << std::fixed << initial_position_in_nm[idx][2]*OpenMM::AngstromsPerNm
+            << "  1.00  0.00" << std::endl;
+    }
+    ofs << "ENDMDL" << std::endl; // end of frame
+    ofs.close();
 
     // setup OpenMM simulator
     // In OpenMM, we cannot use different friction coefficiet, gamma, for different molecules.
@@ -347,7 +373,7 @@ Simulator make_simulator_from_genesis_inputs(
                    OpenMM::LangevinIntegrator(temperature,
                                               gamma_t/*friction coef ps^-1*/,
                                               timestep/* delta t */),
-                   initial_position_in_nm, nsteps, crdout_period, Observer(file_prefix));
+                   initial_position_in_nm, nsteps, crdout_period, observers);
 }
 
 Simulator read_genesis_input(const std::string& inp_file_name)

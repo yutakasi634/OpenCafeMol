@@ -151,7 +151,7 @@ std::vector<OpenMM::Vec3> read_toml_initial_conf(const toml::value& data)
 
 Simulator read_toml_input(const std::string& toml_file_name)
 {
-    std::size_t file_path_len   = toml_file_name.rfind("/")+1;
+    std::size_t file_path_len  = toml_file_name.rfind("/")+1;
     if(file_path_len == std::string::npos)
     {
         file_path_len = 0;
@@ -174,11 +174,12 @@ Simulator read_toml_input(const std::string& toml_file_name)
     const auto&        output        = toml::find(files, "output");
     const std::string& output_prefix = toml::find<std::string>(output, "prefix");
     const std::string& output_path   = toml::find<std::string>(output, "path");
+    const std::string& output_format = toml::find<std::string>(output, "format");
 
     // read system table
-    const auto&    systems     = toml::find(data, "systems");
-    const auto&    attr        = toml::find(systems[0], "attributes");
-    const auto&    temperature = toml::find<double>(attr, "temperature");
+    const auto& systems     = toml::find(data, "systems");
+    const auto& attr        = toml::find(systems[0], "attributes");
+    const auto& temperature = toml::find<double>(attr, "temperature");
     const std::vector<OpenMM::Vec3> initial_position_in_nm(read_toml_initial_conf(data));
 
     // read simulator table
@@ -186,6 +187,27 @@ Simulator read_toml_input(const std::string& toml_file_name)
     const std::size_t total_step      = toml::find<std::size_t>(simulator_table, "total_step");
     const std::size_t save_step       = toml::find<std::size_t>(simulator_table, "save_step");
     const double      delta_t         = toml::find<double>(simulator_table, "delta_t");
+
+    // construct observers
+    std::vector<std::unique_ptr<ObserverBase>> observers;
+    if(output_format == "pdb")
+    {
+        observers.push_back(
+                std::make_unique<PDBObserver>(
+                    output_path+output_prefix+".pdb", total_step));
+    }
+    else if(output_format == "dcd")
+    {
+        observers.push_back(
+                std::make_unique<DCDObserver>(
+                    output_path+output_prefix+".dcd", total_step, save_step, delta_t));
+    }
+    else
+    {
+        throw std::runtime_error(
+                "[error] output file format `" + output_format + "` is not supported.");
+    }
+    observers.push_back(std::make_unique<EnergyObserver>(output_prefix));
 
     // setup OpenMM simulator
     // In OpenMM, we cannot use different friction coefficiet, gamma, for different molecules.
@@ -198,7 +220,7 @@ Simulator read_toml_input(const std::string& toml_file_name)
                OpenMM::LangevinIntegrator(temperature,
                                           0.3/*friction coef ps^-1*/,
                                           delta_t*Constant::cafetime),
-               initial_position_in_nm, total_step, save_step, Observer(output_path+output_prefix));
+               initial_position_in_nm, total_step, save_step, observers);
 }
 
 #endif // OPEN_AICG2_PLUS_READ_TOML_INPUT_HPP

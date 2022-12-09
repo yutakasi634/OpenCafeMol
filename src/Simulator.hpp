@@ -12,9 +12,9 @@ class Simulator
         std::unique_ptr<OpenMM::System>&& system_ptr, OpenMM::LangevinIntegrator&& integrator,
         const std::vector<OpenMM::Vec3>& initial_position,
         const std::size_t total_step, const std::size_t save_step,
-        const Observer&& observer)
+        std::vector<std::unique_ptr<ObserverBase>>& observers, bool output_progress = true)
         : Simulator(std::move(system_ptr), std::move(integrator),
-                    total_step, save_step, std::move(observer))
+                    total_step, save_step, observers, output_progress)
     {
         this->initialize(initial_position);
     }
@@ -22,12 +22,11 @@ class Simulator
     Simulator(
         std::unique_ptr<OpenMM::System>&& system_ptr, OpenMM::LangevinIntegrator&& integrator,
         const std::size_t total_step, const std::size_t save_step,
-        const Observer&& observer)
+        std::vector<std::unique_ptr<ObserverBase>>& observers, bool output_progress = true)
         : system_ptr_(std::move(system_ptr)), integrator_(std::move(integrator)),
-          context_(*system_ptr_, integrator_,
-                    OpenMM::Platform::getPlatformByName("CUDA")),
-          total_step_(total_step), save_step_(save_step),
-          observer_(std::move(observer))
+          context_(*system_ptr_, integrator_, OpenMM::Platform::getPlatformByName("CUDA")),
+          total_step_(total_step), save_step_(save_step), output_progress_(output_progress),
+          progress_bar_(/* width of bar = */ 50)
     {
         std::cerr << "initializing simulator..." << std::endl;
         std::cerr << "    total step : " << total_step_ << " step" << std::endl;
@@ -41,7 +40,12 @@ class Simulator
             << integrator_.getStepSize() / Constant::cafetime << " cafetime"
             << std::endl;
 
-        observer_.initialize(total_step);
+        std::cerr << "initializing observers..." << std::endl;
+        for(auto& observer : observers)
+        {
+            observers_.push_back(std::move(observer));
+            observers_.back()->initialize(system_ptr_);
+        }
     }
 
     void initialize(const std::vector<OpenMM::Vec3>& initial_position)
@@ -55,24 +59,42 @@ class Simulator
         const std::size_t total_frame = std::floor(total_step_/save_step_);
         for(std::size_t frame_num=0; frame_num<total_frame; ++frame_num)
         {
-            observer_.output(frame_num*save_step_, context_);
+            const std::size_t step = frame_num*save_step_;
+            for(const auto& observer : observers_)
+            {
+                observer->output(frame_num*save_step_, context_);
+            }
 
             integrator_.step(save_step_);
+
+            if(output_progress_)
+            {
+                progress_bar_.format(step, total_step_, std::cerr);
+            }
         }
 
-        observer_.finalize();
+        for(const auto& observer : observers_)
+        {
+            observer->finalize();
+            if(output_progress_)
+            {
+                progress_bar_.finalize(std::cerr);
+            }
+        }
     }
 
     const std::size_t total_step() const noexcept { return total_step_; }
     const std::size_t save_step()  const noexcept { return save_step_; }
 
   private:
-    std::unique_ptr<OpenMM::System> system_ptr_;
-    OpenMM::LangevinIntegrator      integrator_;
-    OpenMM::Context                 context_;
-    std::size_t                     total_step_;
-    std::size_t                     save_step_;
-    Observer                        observer_;
+    std::unique_ptr<OpenMM::System>            system_ptr_;
+    OpenMM::LangevinIntegrator                 integrator_;
+    OpenMM::Context                            context_;
+    std::size_t                                total_step_;
+    std::size_t                                save_step_;
+    std::vector<std::unique_ptr<ObserverBase>> observers_;
+    bool                                       output_progress_;
+    ProgressBar                                progress_bar_;
 };
 
 #endif // OPEN_AICG2_PLUS_SIMULATOR_HPP

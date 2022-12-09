@@ -7,6 +7,17 @@
 namespace Utility
 {
 
+// ----------------------------------------------------------------------------
+// file io
+
+template<typename T>
+void write_as_bytes(std::ostream& os, const T& v) noexcept
+{
+    using Type = typename std::remove_reference<T>::type;
+    os.write(reinterpret_cast<const char*>(std::addressof(v)), sizeof(Type));
+    return;
+}
+
 const std::string get_file_suffix(const std::string& filename)
 {
     const std::size_t file_suffix_from = filename.rfind(".");
@@ -27,6 +38,22 @@ std::string erase_space(std::string&& str)
     str.erase(new_end, str.end());
     return str;
 }
+
+void clear_file(const std::string& filename)
+{
+    std::ofstream ofs(filename);
+    if(not ofs.good())
+    {
+        throw std::runtime_error("file open error : " + filename);
+    }
+    ofs.close();
+    return;
+}
+
+
+
+// ----------------------------------------------------------------------------
+// parse toml file
 
 const toml::value& find_either(
         const toml::value& v, const std::string& key1, const std::string& key2)
