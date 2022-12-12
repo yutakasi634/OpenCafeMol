@@ -50,8 +50,6 @@ void clear_file(const std::string& filename)
     return;
 }
 
-
-
 // ----------------------------------------------------------------------------
 // parse toml file
 
@@ -100,6 +98,53 @@ T find_parameter(const toml::value& params, const toml::value& env,
             " does not exists", params, "in this table"));
     }
     const toml::value& p = params.at(name);
+    if(p.is_string())
+    {
+        // search inside of `env`
+        const std::string& var = p.as_string();
+        if(env.is_uninitialized())
+        {
+            throw std::out_of_range(toml::format_error("[error] named variable \"" +
+                var + "\" used but no env is defined", params, "used here"));
+        }
+        if(!env.is_table() || !env.contains(var))
+        {
+            throw std::out_of_range(toml::format_error("[error] named variable \"" +
+                var + "\" does not exists", env, "in this table"));
+        }
+        return toml::find<T>(env, var);
+    }
+    return toml::get<T>(p);
+}
+
+template<typename T>
+T find_parameter_either(const toml::value& params, const toml::value& env,
+                        const std::string& name1,  const std::string& name2)
+{
+    static_assert(!std::is_same<T, std::string>::value,
+                  "string value cannot be aliased");
+
+    if(!params.is_table() || (!params.contains(name1) && !params.contains(name2)))
+    {
+        throw std::out_of_range(toml::format_error("[error] value " + name1 + " and " + name2 +
+            " does not exists", params, "in this table"));
+    }
+    else if(params.contains(name1) && params.contains(name2))
+    {
+        std::cerr << toml::format_error("[error] key duplicates.",
+                                        params.at(name1), "here", params.at(name2),
+                                        "this conflicts with the above value definition")
+                 << std::endl;
+    }
+    toml::value p;
+    if     (params.contains(name1)) { p = params.at(name1); }
+    else if(params.contains(name2)) { p = params.at(name2); }
+    else
+    {
+        throw std::runtime_error(toml::format_error("both keys, \"" + name1 + "\" and \"" + name2 +
+                             "\", are not found.", params, "in this table"));
+    }
+
     if(p.is_string())
     {
         // search inside of `env`
