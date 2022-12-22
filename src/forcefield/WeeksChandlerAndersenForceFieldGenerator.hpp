@@ -1,34 +1,34 @@
-#ifndef OPEN_AICG2_PLUS_EXCLUDED_VOLUME_FORCE_FIELD_GENERATOR_HPP
-#define OPEN_AICG2_PLUS_EXCLUDED_VOLUME_FORCE_FIELD_GENERATOR_HPP
+#ifndef OPEN_AICG2_PLUS_WEEKS_CHANDLER_ANDERSEN_FORCE_FIELD_GENERATOR_HPP
+#define OPEN_AICG2_PLUS_WEEKS_CHANDLER_ANDERSEN_FORCE_FIELD_GENERATOR_HPP
 
-#include <memory>
-#include <limits>
-#include <set>
-#include <optional>
 #include <OpenMM.h>
 
-class ExcludedVolumeForceFieldGenerator final: public ForceFieldGeneratorBase
+class WeeksChandlerAndersenForceFieldGenerator final : public ForceFieldGeneratorBase
 {
   public:
     using index_pairs_type       = std::vector<std::pair<std::size_t, std::size_t>>;
     using interaction_group_type = std::pair<std::set<int>, std::set<int>>;
 
   public:
-    ExcludedVolumeForceFieldGenerator(const double eps, const double cutoff,
-        const std::vector<std::optional<double>>& radiuses,
+    WeeksChandlerAndersenForceFieldGenerator(
+        const std::vector<std::optional<double>> sigmas,
+        const std::vector<std::optional<double>> epsilons,
         const index_pairs_type& ignore_list,
         const std::vector<std::pair<std::string, std::string>> ignore_group_pairs = {},
         const std::vector<std::optional<std::string>> group_vec = {})
-        : eps_(eps), cutoff_(cutoff), radiuses_(radiuses), ignore_list_(ignore_list)
+        : sigmas_(sigmas), epsilons_(epsilons), ignore_list_(ignore_list)
     {
+        assert(this->sigmas_.size() == this->epsilons_.size());
+
         // make interaction group
         if(ignore_group_pairs.size() == 0)
         {
             std::set<int> participants;
-            for(std::size_t idx=0; idx<radiuses_.size(); ++idx)
+            for(std::size_t idx=0; idx<sigmas_.size(); ++idx)
             {
-                if(radiuses_[idx])
+                if(sigmas_[idx])
                 {
+                    assert(epsilons_[idx]);
                     participants.insert(idx);
                 }
             }
@@ -50,10 +50,12 @@ class ExcludedVolumeForceFieldGenerator final: public ForceFieldGeneratorBase
             }
 
             std::set<int> others;
-            for(std::size_t idx=0; idx<radiuses_.size(); ++idx)
+            for(std::size_t idx=0; idx<sigmas.size(); ++idx)
             {
-                if(radiuses_[idx])
+                if(sigmas_[idx])
                 {
+                    assert(epsilons[idx]);
+
                     if(group_vec[idx])
                     {
                         const std::string group_name = group_vec[idx].value();
@@ -92,90 +94,74 @@ class ExcludedVolumeForceFieldGenerator final: public ForceFieldGeneratorBase
         }
     }
 
-    std::unique_ptr<OpenMM::Force> generate() const noexcept override
+    std::unique_ptr<OpenMM::Force> generate() const override
     {
         const std::string potential_formula =
-            "epsilon*(sigma1+sigma2)^12*((1/r)^12-cutoff_correction)";
-        auto exv_ff = std::make_unique<OpenMM::CustomNonbondedForce>(potential_formula);
+            "step(sigma*2^(1/6)-r) * (4*eps * ((sigma_r)^12 - (sigma_r)^6) + eps);"
+            "sigma_r = sigma/r;"
+            "eps     = sqrt(eps1*eps2);"
+            "sigma   = (sigma1+sigma2)*0.5";
+        auto wca_ff = std::make_unique<OpenMM::CustomNonbondedForce>(potential_formula);
 
-        exv_ff->addPerParticleParameter("sigma");
-        exv_ff->addGlobalParameter("epsilon", eps_);
+        wca_ff->addPerParticleParameter("sigma");
+        wca_ff->addPerParticleParameter("eps");
 
-        double max_radius        = std::numeric_limits<double>::min();
-        double second_max_radius = std::numeric_limits<double>::min();
-        std::set<int> participants;
-        for(std::size_t idx=0; idx<radiuses_.size(); ++idx)
+        double max_sigma        = std::numeric_limits<double>::min();
+        double second_max_sigma = std::numeric_limits<double>::min();
+        for(std::size_t idx=0; idx<sigmas_.size(); ++idx)
         {
-            const std::optional<double>& radius = radiuses_[idx];
-            if(radius)
+            const std::optional<double>& sigma   = sigmas_[idx];
+            const std::optional<double>& epsilon = epsilons_[idx];
+            if(sigma && epsilon)
             {
-                exv_ff->addParticle({radius.value()});
-                participants.insert(idx);
+                double sigma_val = sigma.value();
+                wca_ff->addParticle({sigma_val, epsilon.value()});
 
-                if(max_radius < radius.value())
+                if(max_sigma <= sigma_val)
                 {
-                    max_radius        = radius.value();
-                    second_max_radius = max_radius;
+                    max_sigma        = sigma_val;
+                    second_max_sigma = max_sigma;
                 }
+            }
+            else if(!sigma && !epsilon)
+            {
+                wca_ff->addParticle({std::numeric_limits<double>::quiet_NaN(),
+                                     std::numeric_limits<double>::quiet_NaN()});
             }
             else
             {
-                exv_ff->addParticle({std::numeric_limits<double>::quiet_NaN()});
+                throw std::runtime_error(
+                    "[error] WeeksChandlerAndersenForceFieldGenerator : "
+                    "The parameter set is sigma and epsilon. incomplete parameter set "
+                    "was given for particle idx " + std::to_string(idx) + ".");
             }
         }
 
         for(const auto& group_pair : interaction_groups_)
         {
-            exv_ff->addInteractionGroup(group_pair.first, group_pair.second);
+            wca_ff->addInteractionGroup(group_pair.first, group_pair.second);
         }
 
         // set cutoff
-        exv_ff->setNonbondedMethod(OpenMM::CustomNonbondedForce::CutoffNonPeriodic);
-        const double cutoff_distance   = (max_radius + second_max_radius)*cutoff_;
-        const double cutoff_correction = std::pow(1.0 / cutoff_distance, 12);
-        exv_ff->setCutoffDistance(cutoff_distance);
-        exv_ff->addGlobalParameter("cutoff_correction", cutoff_correction);
+        wca_ff->setNonbondedMethod(OpenMM::CustomNonbondedForce::CutoffNonPeriodic);
+        const double cutoff_distance =
+            (max_sigma + second_max_sigma) * 0.5 * std::pow(2.0, 1.0/6.0);
+        wca_ff->setCutoffDistance(cutoff_distance);
 
         // set exclusion list
         for(const auto& pair : ignore_list_)
         {
-            exv_ff->addExclusion(pair.first, pair.second);
+            wca_ff->addExclusion(pair.first, pair.second);
         }
 
-        return exv_ff;
-    }
-
-    void add_exclusion(index_pairs_type exclusion_pairs) noexcept
-    {
-
-        for(auto& pair : exclusion_pairs)
-        {
-            if(pair.first > pair.second)
-            {
-                const std::size_t first  = pair.first;
-                const std::size_t second = pair.second;
-                pair.first = second;
-                pair.second = first;
-            }
-        }
-
-        for(const auto& pair : exclusion_pairs)
-        {
-            const auto result =
-                std::find(ignore_list_.begin(), ignore_list_.end(), pair);
-            if(result == ignore_list_.end())
-            {
-                ignore_list_.push_back(std::make_pair(pair.first, pair.second));
-            }
-        }
+        return wca_ff;
     }
 
   private:
-    double                              eps_;
-    double                              cutoff_;
-    std::vector<std::optional<double>>  radiuses_;
-    index_pairs_type                    ignore_list_;
-    std::vector<interaction_group_type> interaction_groups_;
+    const std::vector<std::optional<double>> sigmas_;
+    const std::vector<std::optional<double>> epsilons_;
+    index_pairs_type                         ignore_list_;
+    std::vector<interaction_group_type>      interaction_groups_;
 };
 
-#endif // OPEN_AICG2_PLUS_EXCLUDED_VOLUME_FORCE_FIELD_GENERATOR_HPP
+#endif // OPEN_AICG2_PLUS_WEEKS_CHANDLER_ANDERSEN_FORCE_FIELD_GENERATOR_HPP

@@ -7,13 +7,16 @@
 class DebyeHuckelForceFieldGenerator final : public ForceFieldGeneratorBase
 {
   public:
-    using index_pairs_type = std::vector<std::pair<std::size_t, std::size_t>>;
+    using index_pairs_type       = std::vector<std::pair<std::size_t, std::size_t>>;
+    using interaction_group_type = std::pair<std::set<int>, std::set<int>>;
 
   public:
     DebyeHuckelForceFieldGenerator(const double ionic_strength,
         const double temperature, const double cutoff_ratio,
         const std::vector<std::optional<double>>& charges,
-        const index_pairs_type& ignore_list)
+        const index_pairs_type& ignore_list,
+        const std::vector<std::pair<std::string, std::string>> ignore_group_pairs = {},
+        const std::vector<std::optional<std::string>> group_vec = {})
         : ionic_strength_(ionic_strength), temperature_(temperature),
           cutoff_ratio_(cutoff_ratio), charges_(charges), ignore_list_(ignore_list)
     {
@@ -29,6 +32,73 @@ class DebyeHuckelForceFieldGenerator final : public ForceFieldGeneratorBase
                                  (2. * Constant::Na * I)) * 10e9; // [nm]
         abs_cutoff_   = debye_length_ * cutoff_ratio_;
         cutoff_correction_ = std::exp(cutoff_ratio_) / abs_cutoff_;
+
+        // make interaction group
+        if(ignore_group_pairs.size() == 0)
+        {
+            std::set<int> participants;
+            for(std::size_t idx=0; idx<charges_.size(); ++idx)
+            {
+                if(charges_[idx]) { participants.insert(idx); }
+            }
+            interaction_groups_.push_back({ participants, participants });
+        }
+        else // group based ignoration specified case
+        {
+            std::set<std::string> related_group_names;
+            for(const auto& name_group_pair : ignore_group_pairs)
+            {
+                related_group_names.insert(name_group_pair.first);
+                related_group_names.insert(name_group_pair.second);
+            }
+
+            std::map<std::string, std::set<int>> related_group_map;
+            for(const auto& name : related_group_names)
+            {
+                related_group_map.insert(std::make_pair(name, std::set<int>()));
+            }
+
+            std::set<int> others;
+            for(std::size_t idx=0; idx<charges_.size(); ++idx)
+            {
+                if(charges_[idx])
+                {
+                    if(group_vec[idx])
+                    {
+                        const std::string group_name = group_vec[idx].value();
+                        if(related_group_names.count(group_name) != 0)
+                        {
+                            related_group_map.at(group_name).insert(idx);
+                        }
+                        else
+                        {
+                            others.insert(idx);
+                        }
+                    }
+                    else
+                    {
+                        others.insert(idx);
+                    }
+                }
+            }
+
+            interaction_groups_.push_back({ others, others });
+            for(const auto& name_group_pair : related_group_map)
+            {
+                const std::string&   first_name  = name_group_pair.first;
+                const std::set<int>& first_group = name_group_pair.second;
+                interaction_groups_.push_back({ first_group, others });
+                for(const auto& name_group_pair : related_group_map)
+                {
+                    const std::string&   second_name  = name_group_pair.first;
+                    if(!Utility::contains(ignore_group_pairs, { first_name, second_name }))
+                    {
+                        const std::set<int>& second_group = name_group_pair.second;
+                        interaction_groups_.push_back({ first_group, second_group });
+                    }
+                }
+            }
+        }
     }
 
     std::unique_ptr<OpenMM::Force> generate() const noexcept override
@@ -43,32 +113,24 @@ class DebyeHuckelForceFieldGenerator final : public ForceFieldGeneratorBase
         dh_ff->addGlobalParameter("debye_length",       debye_length_);
         dh_ff->addGlobalParameter("cutoff_correction",  cutoff_correction_);
 
-        const auto& itr = std::find(charges_.begin(), charges_.end(), std::nullopt);
-        if(itr != charges_.end())
+        std::set<int> participants;
+        for(std::size_t idx=0; idx<charges_.size(); ++idx)
         {
-            std::set<int> participants;
-            for(std::size_t idx=0; idx<charges_.size(); ++idx)
-            {
-                const std::optional<double>& charge = charges_[idx];
-                if(charge)
-                {
-                    dh_ff->addParticle({charge.value()});
-                    participants.insert(idx);
-                }
-                else
-                {
-                    dh_ff->addParticle({std::numeric_limits<double>::quiet_NaN()});
-                }
-            }
-            dh_ff->addInteractionGroup(participants, participants);
-        }
-        else
-        {
-            // all system particles are participants case
-            for(const auto& charge : charges_)
+            const std::optional<double>& charge = charges_[idx];
+            if(charge)
             {
                 dh_ff->addParticle({charge.value()});
+                participants.insert(idx);
             }
+            else
+            {
+                dh_ff->addParticle({std::numeric_limits<double>::quiet_NaN()});
+            }
+        }
+
+        for(const auto& group_pair : interaction_groups_)
+        {
+            dh_ff->addInteractionGroup(group_pair.first, group_pair.second);
         }
 
         // set cutoff
@@ -97,6 +159,7 @@ class DebyeHuckelForceFieldGenerator final : public ForceFieldGeneratorBase
     const double                             cutoff_ratio_;   // relative to the debye length
     const std::vector<std::optional<double>> charges_;
     index_pairs_type                         ignore_list_;
+    std::vector<interaction_group_type>      interaction_groups_;
 
     double debye_length_;
     double inv_4_pi_eps0_epsk_;

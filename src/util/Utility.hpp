@@ -164,6 +164,26 @@ T find_parameter_either(const toml::value& params, const toml::value& env,
     return toml::get<T>(p);
 }
 
+// ----------------------------------------------------------------------------
+// handling container
+
+template<typename T>
+bool contains(std::vector<std::pair<T, T>> pair_list, std::pair<T, T> query)
+{
+    for(const auto& pair : pair_list)
+    {
+        if(pair.first == query.first && pair.second == query.second)
+        {
+            return true;
+        }
+        if(pair.second == query.first && pair.first == query.second)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 } // namespace Utility
 
 #endif // OPEN_AICG2_PLUS_UTILITY_HPP

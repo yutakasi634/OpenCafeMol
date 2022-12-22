@@ -100,7 +100,7 @@ read_genesis_flexible_local_angle_ff_generator(const std::vector<std::string>& a
         aa_type_vec.push_back(atom_type);
     }
 
-    std::vector<std::vector<std::size_t>> indices_vec;
+    std::vector<std::array<std::size_t, 3>> indices_vec;
     for(const auto& angles_line : angles_data)
     {
         if(std::stoi(angles_line.substr(30, 5)) == 22) // 22 means FLP-type angle function

@@ -16,12 +16,20 @@ std::unique_ptr<OpenMM::System> read_toml_system(const toml::value& data)
     const auto& particles = toml::find<toml::array>(systems[0], "particles");
 
     std::size_t system_size = particles.size();
+    Topology topology(system_size);
+    std::vector<std::optional<std::string>> group_vec(system_size, std::nullopt);
+    std::map<std::string, std::vector<std::size_t>> group_map;
     std::cerr << "generating system with size " << system_size << "..." << std::endl;
-    for(std::size_t i=0; i<system_size; ++i)
+    for(std::size_t idx=0; idx<system_size; ++idx)
     {
         // set mass
-        const auto& p = particles.at(i);
+        const auto& p = particles.at(idx);
         system_ptr->addParticle(toml::get<double>(Utility::find_either(p, "m", "mass"))); // amu
+        if(p.contains("group"))
+        {
+            const std::string group_name = toml::find<std::string>(p, "group");
+            group_vec[idx] = group_name;
+        }
     }
 
     // for exclusion list of Excluded Volume
@@ -31,7 +39,6 @@ std::unique_ptr<OpenMM::System> read_toml_system(const toml::value& data)
     std::cerr << "generating forcefields..." << std::endl;
     // read forcefields info
     const auto ff = toml::find(data, "forcefields").at(0);
-    Topology topology(system_size);
     if(ff.contains("local"))
     {
         const auto& locals = toml::find(ff, "local").as_array();
@@ -49,7 +56,7 @@ std::unique_ptr<OpenMM::System> read_toml_system(const toml::value& data)
             else if(interaction == "BondLength" && potential == "Gaussian")
             {
                 const auto ff_gen =
-                    read_toml_gaussian_bond_ff_generator(local_ff);
+                    read_toml_gaussian_bond_ff_generator(local_ff, topology);
                 system_ptr->addForce(ff_gen.generate().release());
             }
             else if(interaction == "BondLength" && potential == "GoContact")
@@ -64,14 +71,14 @@ std::unique_ptr<OpenMM::System> read_toml_system(const toml::value& data)
                 {
                     const auto ff_gen =
                         read_toml_flexible_local_angle_ff_generator(
-                                local_ff, aa_type, spline_table);
+                                local_ff, aa_type, spline_table, topology);
                     system_ptr->addForce(ff_gen.generate().release());
                 }
             }
             else if(interaction == "DihedralAngle" && potential == "Gaussian")
             {
                 const auto ff_gen =
-                    read_toml_gaussian_dihedral_ff_generator(local_ff);
+                    read_toml_gaussian_dihedral_ff_generator(local_ff, topology);
                 system_ptr->addForce(ff_gen.generate().release());
             }
             else if(interaction == "DihedralAngle" && potential == "FlexibleLocalDihedral")
@@ -80,7 +87,7 @@ std::unique_ptr<OpenMM::System> read_toml_system(const toml::value& data)
                 {
                     const auto ff_gen =
                         read_toml_flexible_local_dihedral_ff_generator(
-                            local_ff, aa_pair_type, fourier_table);
+                            local_ff, aa_pair_type, fourier_table, topology);
                     system_ptr->addForce(ff_gen.generate().release());
                 }
             }
@@ -98,7 +105,15 @@ std::unique_ptr<OpenMM::System> read_toml_system(const toml::value& data)
             if(potential == "ExcludedVolume")
             {
                 const auto ff_gen =
-                    read_toml_excluded_volume_ff_generator(global_ff, system_size, topology);
+                    read_toml_excluded_volume_ff_generator(
+                            global_ff, system_size, topology, group_vec);
+                system_ptr->addForce(ff_gen.generate().release());
+            }
+            if(potential == "WCA")
+            {
+                const auto ff_gen =
+                    read_toml_weeks_chandler_andersen_ff_generator(
+                            global_ff, system_size, topology, group_vec);
                 system_ptr->addForce(ff_gen.generate().release());
             }
             if(potential == "DebyeHuckel")
@@ -119,7 +134,14 @@ std::unique_ptr<OpenMM::System> read_toml_system(const toml::value& data)
 
                 const auto ff_gen =
                     read_toml_debye_huckel_ff_generator(global_ff, system_size,
-                        ionic_strength.unwrap(), temperature.unwrap(), topology);
+                        ionic_strength.unwrap(), temperature.unwrap(), topology, group_vec);
+                system_ptr->addForce(ff_gen.generate().release());
+            }
+            if(potential == "iSoLFAttractive")
+            {
+                const auto ff_gen =
+                    read_toml_isolf_attractive_ff_generator(
+                            global_ff, system_size, topology, group_vec);
                 system_ptr->addForce(ff_gen.generate().release());
             }
         }
@@ -194,20 +216,20 @@ Simulator read_toml_input(const std::string& toml_file_name)
     {
         observers.push_back(
                 std::make_unique<PDBObserver>(
-                    output_path+output_prefix+".pdb", total_step));
+                    output_path+output_prefix, total_step));
     }
     else if(output_format == "dcd")
     {
         observers.push_back(
                 std::make_unique<DCDObserver>(
-                    output_path+output_prefix+".dcd", total_step, save_step, delta_t));
+                    output_path+output_prefix, total_step, save_step, delta_t));
     }
     else
     {
         throw std::runtime_error(
                 "[error] output file format `" + output_format + "` is not supported.");
     }
-    observers.push_back(std::make_unique<EnergyObserver>(output_prefix));
+    observers.push_back(std::make_unique<EnergyObserver>(output_path+output_prefix));
 
     // setup OpenMM simulator
     // In OpenMM, we cannot use different friction coefficiet, gamma, for different molecules.

@@ -33,6 +33,26 @@ class Topology
         molecule_updated_ = false;
     }
 
+    template<long unsigned int elemNum>
+    void add_edges(const std::vector<std::array<std::size_t, elemNum>>& index_set_vec,
+                   const std::string& edge_type)
+    {
+        for(const auto& indices : index_set_vec)
+        {
+            for(std::size_t idx_i=0; idx_i<indices.size()-1; ++idx_i)
+            {
+                for(std::size_t idx_j=idx_i+1; idx_j<indices.size(); ++idx_j)
+                {
+                    const std::size_t first  = indices[idx_i];
+                    const std::size_t second = indices[idx_j];
+
+                    nodes_[first] .push_back(std::make_pair(second, edge_type));
+                    nodes_[second].push_back(std::make_pair(first,  edge_type));
+                }
+            }
+        }
+    }
+
     void make_molecule(const std::string& edge_type)
     {
         molecules_.clear();
