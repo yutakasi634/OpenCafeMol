@@ -575,9 +575,12 @@ read_toml_isolf_attractive_ff_generator(
     for(const auto& param : params)
     {
         const std::size_t index = Utility::find_parameter<std::size_t>(param, env, "index");
-        const double      sigma = Utility::find_parameter<double>(param, env, "sigma");
-        const double      eps   = Utility::find_parameter<double>(param, env, "epsilon");
-        const double      omega = Utility::find_parameter<double>(param, env, "omega");
+        const double      sigma =
+            Utility::find_parameter<double>(param, env, "sigma") * OpenMM::NmPerAngstrom; // nm
+        const double      eps   =
+            Utility::find_parameter<double>(param, env, "epsilon") * OpenMM::KJPerKcal; // KJPermol
+        const double      omega =
+            Utility::find_parameter<double>(param, env, "omega") * OpenMM::NmPerAngstrom; // nm
 
         sigma_vec[index] = sigma;
         eps_vec  [index] = eps;
