@@ -73,7 +73,8 @@ class DCDObserver final : public ObserverBase
   public:
     DCDObserver(const std::string& file_prefix, const std::size_t total_step,
         const std::size_t save_interval, const float delta_t)
-        : dcd_filename_(file_prefix+".dcd"), total_step_(total_step), delta_t_(delta_t)
+        : dcd_filename_(file_prefix+".dcd"), total_step_(total_step), delta_t_(delta_t),
+          save_interval_(save_interval)
     {
         Utility::clear_file(dcd_filename_);
         std::cerr << "    output trajectory file    : " << dcd_filename_ << std::endl;
