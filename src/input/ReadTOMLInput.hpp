@@ -18,7 +18,6 @@ std::unique_ptr<OpenMM::System> read_toml_system(const toml::value& data)
     std::size_t system_size = particles.size();
     Topology topology(system_size);
     std::vector<std::optional<std::string>> group_vec(system_size, std::nullopt);
-    std::map<std::string, std::vector<std::size_t>> group_map;
     std::cerr << "generating system with size " << system_size << "..." << std::endl;
     for(std::size_t idx=0; idx<system_size; ++idx)
     {
@@ -31,10 +30,6 @@ std::unique_ptr<OpenMM::System> read_toml_system(const toml::value& data)
             group_vec[idx] = group_name;
         }
     }
-
-    // for exclusion list of Excluded Volume
-    std::vector<std::pair<std::size_t, std::size_t>> bonded_pairs;
-    std::vector<std::pair<std::size_t, std::size_t>> contacted_pairs;
 
     std::cerr << "generating forcefields..." << std::endl;
     // read forcefields info
