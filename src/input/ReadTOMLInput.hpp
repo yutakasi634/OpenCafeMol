@@ -235,7 +235,7 @@ Simulator read_toml_input(const std::string& toml_file_name)
     // LangevinIntegrator which can use different gamma for different particles.
     return Simulator(std::move(read_toml_system(data)),
                OpenMM::LangevinIntegrator(temperature,
-                                          0.3/*friction coef ps^-1*/,
+                                          0.2/*friction coef ps^-1*/,
                                           delta_t*Constant::cafetime),
                initial_position_in_nm, total_step, save_step, observers);
 }
