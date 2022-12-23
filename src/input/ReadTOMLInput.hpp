@@ -60,6 +60,12 @@ std::unique_ptr<OpenMM::System> read_toml_system(const toml::value& data)
                     read_toml_go_contact_ff_generator(local_ff, topology);
                 system_ptr->addForce(ff_gen.generate().release());
             }
+            else if(interaction == "BondAngle" && potential == "Harmonic")
+            {
+                const auto ff_gen =
+                    read_toml_harmonic_angle_ff_generator(local_ff, topology);
+                system_ptr->addForce(ff_gen.generate().release());
+            }
             else if(interaction == "BondAngle" && potential == "FlexibleLocalAngle")
             {
                 for(const auto& [aa_type, spline_table] : Constant::fla_spline_table)

@@ -5,6 +5,7 @@
 #include "src/forcefield/HarmonicBondForceFieldGenerator.hpp"
 #include "src/forcefield/GaussianBondForceFieldGenerator.hpp"
 #include "src/forcefield/GoContactForceFieldGenerator.hpp"
+#include "src/forcefield/HarmonicAngleForceFieldGenerator.hpp"
 #include "src/forcefield/FlexibleLocalAngleForceFieldGenerator.hpp"
 #include "src/forcefield/GaussianDihedralForceFieldGenerator.hpp"
 #include "src/forcefield/FlexibleLocalDihedralForceFieldGenerator.hpp"
@@ -121,6 +122,50 @@ read_toml_go_contact_ff_generator(const toml::value& local_ff_data, Topology& to
 
     std::cerr << "    BondLength    : GoContact (" << indices_vec.size() << " found)" << std::endl;
     return GoContactForceFieldGenerator(indices_vec, ks, r0s);
+}
+
+const HarmonicAngleForceFieldGenerator
+read_toml_harmonic_angle_ff_generator(
+        const toml::value& local_ff_data, Topology& topology)
+{
+    const auto& params = toml::find<toml::array>(local_ff_data, "parameters");
+    const auto& env = local_ff_data.contains("env") ? local_ff_data.at("env") : toml::value{};
+
+    std::vector<std::array<std::size_t, 3>> indices_vec;
+    std::vector<double>                     v0s;
+    std::vector<double>                     ks;
+
+    for(const auto& param : params)
+    {
+        const auto&  indices =
+            Utility::find_parameter<std::array<std::size_t, 3>>(param, env, "indices");
+        double v0 =
+            Utility::find_parameter<double>(param, env, "v0"); // radian
+        if(v0 < 0 || Constant::pi*2 < v0)
+        {
+            throw std::runtime_error("[error] read_toml_harmonic_angle_ff_generator: "
+                "v0 must be between 0 and 2pi");
+        }
+        else if(Constant::pi < v0)
+        {
+            v0 = 2.0 * Constant::pi - v0;
+        }
+        const double k =
+            Utility::find_parameter<double>(param, env, "k") * OpenMM::KJPerKcal; // KJ/mol
+
+        indices_vec.push_back(indices);
+        v0s        .push_back(v0);
+        ks         .push_back(k);
+    }
+
+    if(local_ff_data.contains("topology"))
+    {
+        topology.add_edges(indices_vec, toml::find<std::string>(local_ff_data, "topology"));
+    }
+
+    std::cerr << "    BondAngle     : Harmonic (" << indices_vec.size() << " found)" << std::endl;
+    return HarmonicAngleForceFieldGenerator(indices_vec, v0s, ks);
+
 }
 
 const FlexibleLocalAngleForceFieldGenerator
