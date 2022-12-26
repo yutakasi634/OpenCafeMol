@@ -114,8 +114,8 @@ class ExcludedVolumeForceFieldGenerator final: public ForceFieldGeneratorBase
 
                 if(max_radius < radius.value())
                 {
-                    max_radius        = radius.value();
                     second_max_radius = max_radius;
+                    max_radius        = radius.value();
                 }
             }
             else

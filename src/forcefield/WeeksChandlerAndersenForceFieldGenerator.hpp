@@ -97,7 +97,9 @@ class WeeksChandlerAndersenForceFieldGenerator final : public ForceFieldGenerato
     std::unique_ptr<OpenMM::Force> generate() const override
     {
         const std::string potential_formula =
-            "step(sigma*2^(1/6)-r) * (4*eps * ((sigma_r)^12 - (sigma_r)^6) + eps);"
+            "step(sigma*2^(1/6)-r) * (4*eps * (sigma_r_12 - sigma_r_6) + eps);"
+            "sigma_r_12 = sigma_r_6^2;"
+            "sigma_r_6 = sigma_r^6;"
             "sigma_r = sigma/r;"
             "eps     = sqrt(eps1*eps2);"
             "sigma   = (sigma1+sigma2)*0.5";
@@ -119,8 +121,8 @@ class WeeksChandlerAndersenForceFieldGenerator final : public ForceFieldGenerato
 
                 if(max_sigma <= sigma_val)
                 {
-                    max_sigma        = sigma_val;
                     second_max_sigma = max_sigma;
+                    max_sigma        = sigma_val;
                 }
             }
             else if(!sigma && !epsilon)
