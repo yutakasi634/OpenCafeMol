@@ -10,8 +10,10 @@ class GaussianDihedralForceFieldGenerator final : public ForceFieldGeneratorBase
   public:
     GaussianDihedralForceFieldGenerator(
         const std::vector<indices_type>& indices_vec, const std::vector<double>& ks,
-        const std::vector<double>&       theta0s,     const std::vector<double>& sigmas)
-        : indices_vec_(indices_vec), ks_(ks), theta0s_(theta0s), sigmas_(sigmas)
+        const std::vector<double>&       theta0s,     const std::vector<double>& sigmas,
+        const bool use_periodic)
+        : indices_vec_(indices_vec), ks_(ks), theta0s_(theta0s), sigmas_(sigmas),
+          use_periodic_(use_periodic)
     {
         const std::size_t system_size = indices_vec.size();
         if(!(system_size == ks.size() && system_size == theta0s.size() &&
@@ -33,6 +35,7 @@ class GaussianDihedralForceFieldGenerator final : public ForceFieldGeneratorBase
     {
         const std::string potential_formula = "k*exp(-(theta-theta0)^2/(2*sigma^2))";
         auto torsion_ff = std::make_unique<OpenMM::CustomTorsionForce>(potential_formula);
+        torsion_ff->setUsesPeriodicBoundaryConditions(use_periodic_);
         torsion_ff->addPerTorsionParameter("k");
         torsion_ff->addPerTorsionParameter("theta0");
         torsion_ff->addPerTorsionParameter("sigma");
@@ -63,6 +66,7 @@ class GaussianDihedralForceFieldGenerator final : public ForceFieldGeneratorBase
     std::vector<double>       ks_;
     std::vector<double>       theta0s_;
     std::vector<double>       sigmas_;
+    const bool                use_periodic_;
 };
 
 #endif // OPEN_AICG2_PLUS_GAUSSIAN_DIHEDRAL_FORCE_FIELD_GENERATOR_HPP

@@ -15,8 +15,9 @@ class HarmonicBondForceFieldGenerator final : public ForceFieldGeneratorBase
   public:
     HarmonicBondForceFieldGenerator(
         const std::vector<indices_type>& indices_vec,
-        const std::vector<double>& v0s, const std::vector<double>& ks)
-        : indices_vec_(indices_vec), v0s_(v0s), ks_(ks)
+        const std::vector<double>& v0s, const std::vector<double>& ks,
+        const bool use_periodic)
+        : indices_vec_(indices_vec), v0s_(v0s), ks_(ks), use_periodic_(use_periodic)
     {
         if(!(indices_vec.size() == v0s.size() && v0s.size() == ks.size()))
         {
@@ -34,6 +35,7 @@ class HarmonicBondForceFieldGenerator final : public ForceFieldGeneratorBase
     std::unique_ptr<OpenMM::Force> generate() const noexcept override
     {
         auto bond_ff = std::make_unique<OpenMM::HarmonicBondForce>();
+        bond_ff->setUsesPeriodicBoundaryConditions(use_periodic_);
         for(std::size_t idx=0; idx<indices_vec_.size(); ++idx)
         {
             const indices_type& idx_pair = indices_vec_[idx];
@@ -49,6 +51,7 @@ class HarmonicBondForceFieldGenerator final : public ForceFieldGeneratorBase
     std::vector<indices_type> indices_vec_;
     std::vector<double>       v0s_;
     std::vector<double>       ks_;
+    const bool                use_periodic_;
 };
 
 #endif // OPEN_AICG2_PLUS_HARMONIC_BOND_FORCE_FIELD_GENERATOR_HPP

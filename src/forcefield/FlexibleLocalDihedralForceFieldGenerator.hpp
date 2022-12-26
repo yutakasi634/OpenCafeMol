@@ -13,9 +13,10 @@ class FlexibleLocalDihedralForceFieldGenerator final : public ForceFieldGenerato
   public:
     FlexibleLocalDihedralForceFieldGenerator(
         const std::vector<indices_type>& indices_vec, const std::vector<double>& ks,
-        const std::array<double, 7>& fourier_table, const std::string& aa_pair_name)
+        const std::array<double, 7>& fourier_table, const std::string& aa_pair_name,
+        const bool use_periodic)
         : indices_vec_(indices_vec), ks_(ks),
-          fourier_table_(fourier_table), aa_pair_name_(aa_pair_name)
+          fourier_table_(fourier_table), aa_pair_name_(aa_pair_name), use_periodic_(use_periodic)
     {
         if(!(indices_vec.size() == ks.size()))
         {
@@ -36,6 +37,7 @@ class FlexibleLocalDihedralForceFieldGenerator final : public ForceFieldGenerato
             "  + ksin2*sin(2*theta) + kcos2*cos(2*theta)"
             "  + ksin3*sin(3*theta) + kcos3*cos(3*theta)";
         auto torsion_ff = std::make_unique<OpenMM::CustomTorsionForce>(fld_expression);
+        torsion_ff->setUsesPeriodicBoundaryConditions(use_periodic_);
         torsion_ff->addPerTorsionParameter("c");
         torsion_ff->addPerTorsionParameter("ksin1");
         torsion_ff->addPerTorsionParameter("kcos1");
@@ -72,6 +74,7 @@ class FlexibleLocalDihedralForceFieldGenerator final : public ForceFieldGenerato
     std::vector<double>       ks_;
     std::array<double, 7>     fourier_table_;
     std::string               aa_pair_name_;
+    const bool                use_periodic_;
 };
 
 #endif // OPEN_AICG2_PLUS_FLEXIBLE_LOCAL_DIHEDRAL_FORCE_FIELD_GENERATOR_HPP

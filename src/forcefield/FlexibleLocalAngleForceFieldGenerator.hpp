@@ -16,10 +16,12 @@ class FlexibleLocalAngleForceFieldGenerator final : public ForceFieldGeneratorBa
     FlexibleLocalAngleForceFieldGenerator(
         const std::vector<indices_type>& indices_vec, const std::vector<double>& ks,
         const std::array<double, 10>& spline_table, const std::string& aa_name,
+        const bool use_periodic,
         const double min_theta = Constant::fla_spline_min_theta,
         const double max_theta = Constant::fla_spline_max_theta)
         : indices_vec_(indices_vec), ks_(ks), aa_name_(aa_name),
-          min_theta_(min_theta), max_theta_(max_theta), spline_table_(spline_table)
+          min_theta_(min_theta), max_theta_(max_theta), spline_table_(spline_table),
+          use_periodic_(use_periodic)
     {
         if(!(indices_vec.size() == ks.size()))
         {
@@ -49,6 +51,7 @@ class FlexibleLocalAngleForceFieldGenerator final : public ForceFieldGeneratorBa
             ");"
             "theta = angle(p1,p2,p3)";
         auto angle_ff = std::make_unique<OpenMM::CustomCompoundBondForce>(3, potential_formula);
+        angle_ff->setUsesPeriodicBoundaryConditions(use_periodic_);
         angle_ff->addTabulatedFunction("spline", spline_func.release());
         angle_ff->addPerBondParameter("k");
         angle_ff->addPerBondParameter("min_theta");
@@ -89,6 +92,7 @@ class FlexibleLocalAngleForceFieldGenerator final : public ForceFieldGeneratorBa
     double                    min_theta_;
     double                    max_theta_;
     std::array<double, 10>    spline_table_;
+    const bool                use_periodic_;
 };
 
 #endif // OPEN_AICG2_PLUS_FLEXIBLE_LOCAL_ANGLE_FORCE_FIELD_GENERATOR_HPP

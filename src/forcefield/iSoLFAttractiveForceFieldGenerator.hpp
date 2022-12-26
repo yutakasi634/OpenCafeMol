@@ -12,10 +12,11 @@ class iSoLFAttractiveForceFieldGenerator final : public ForceFieldGeneratorBase
         const std::vector<std::optional<double>> sigmas,
         const std::vector<std::optional<double>> epsilons,
         const std::vector<std::optional<double>> omegas,
-        const index_pairs_type& ignore_list,
+        const index_pairs_type& ignore_list, const bool use_periodic,
         const std::vector<std::pair<std::string, std::string>> ignore_group_pairs = {},
         const std::vector<std::optional<std::string>> group_vec = {})
-        : sigmas_(sigmas), epsilons_(epsilons), omegas_(omegas), ignore_list_(ignore_list)
+        : sigmas_(sigmas), epsilons_(epsilons), omegas_(omegas), ignore_list_(ignore_list),
+          use_periodic_(use_periodic)
     {
         assert(this->sigmas_.size() == this->epsilons_.size());
         assert(this->sigmas_.size() == this->omegas_.size());
@@ -171,6 +172,16 @@ class iSoLFAttractiveForceFieldGenerator final : public ForceFieldGeneratorBase
             isa_ff->addInteractionGroup(group_pair.first, group_pair.second);
         }
 
+        // set pbc condition
+        if(use_periodic_)
+        {
+            isa_ff->setNonbondedMethod(OpenMM::CustomNonbondedForce::CutoffPeriodic);
+        }
+        else
+        {
+            isa_ff->setNonbondedMethod(OpenMM::CustomNonbondedForce::CutoffNonPeriodic);
+        }
+
         // set cutoff
         isa_ff->setNonbondedMethod(OpenMM::CustomNonbondedForce::CutoffNonPeriodic);
         const double cutoff_distance =
@@ -193,6 +204,7 @@ class iSoLFAttractiveForceFieldGenerator final : public ForceFieldGeneratorBase
     const std::vector<std::optional<double>> omegas_;
     index_pairs_type                         ignore_list_;
     std::vector<interaction_group_type>      interaction_groups_;
+    const bool                               use_periodic_;
 };
 
 #endif // OPEN_AICG2_PLUS_ISOLF_ATTRACTIVE_FORCE_FIELD_GENERATOR_HPP

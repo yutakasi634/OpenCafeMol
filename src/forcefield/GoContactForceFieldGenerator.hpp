@@ -15,8 +15,8 @@ class GoContactForceFieldGenerator final : public ForceFieldGeneratorBase
   public:
     GoContactForceFieldGenerator(
         const std::vector<indices_type>& indices_vec,
-        const std::vector<double>& ks, const std::vector<double>& r0s)
-        : indices_vec_(indices_vec), ks_(ks), r0s_(r0s)
+        const std::vector<double>& ks, const std::vector<double>& r0s, const bool use_periodic)
+        : indices_vec_(indices_vec), ks_(ks), r0s_(r0s), use_periodic_(use_periodic)
     {
         if(!(indices_vec.size() == ks.size() && ks.size() == r0s.size()))
         {
@@ -35,6 +35,7 @@ class GoContactForceFieldGenerator final : public ForceFieldGeneratorBase
     {
         const std::string potential_formula = "k*(5*(r0/r)^12-6*(r0/r)^10)";
         auto contact_ff = std::make_unique<OpenMM::CustomBondForce>(potential_formula);
+        contact_ff->setUsesPeriodicBoundaryConditions(use_periodic_);
         contact_ff->addPerBondParameter("k");
         contact_ff->addPerBondParameter("r0");
 
@@ -53,6 +54,7 @@ class GoContactForceFieldGenerator final : public ForceFieldGeneratorBase
     std::vector<indices_type> indices_vec_;
     std::vector<double>       ks_;
     std::vector<double>       r0s_;
+    const bool                use_periodic_;
 };
 
 #endif // OPEN_AICG2_PLUS_GOCONTACT_FORCE_FIELD_GENERATOR_HPP

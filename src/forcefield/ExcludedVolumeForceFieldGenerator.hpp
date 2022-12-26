@@ -16,10 +16,11 @@ class ExcludedVolumeForceFieldGenerator final: public ForceFieldGeneratorBase
   public:
     ExcludedVolumeForceFieldGenerator(const double eps, const double cutoff,
         const std::vector<std::optional<double>>& radiuses,
-        const index_pairs_type& ignore_list,
+        const index_pairs_type& ignore_list, const bool use_periodic,
         const std::vector<std::pair<std::string, std::string>> ignore_group_pairs = {},
         const std::vector<std::optional<std::string>> group_vec = {})
-        : eps_(eps), cutoff_(cutoff), radiuses_(radiuses), ignore_list_(ignore_list)
+        : eps_(eps), cutoff_(cutoff), radiuses_(radiuses), ignore_list_(ignore_list),
+          use_periodic_(use_periodic)
     {
         // make interaction group
         if(ignore_group_pairs.size() == 0)
@@ -137,8 +138,18 @@ class ExcludedVolumeForceFieldGenerator final: public ForceFieldGeneratorBase
             exv_ff->addInteractionGroup(group_pair.first, group_pair.second);
         }
 
+        // set pbc condition
+        if(use_periodic_)
+        {
+            exv_ff->setNonbondedMethod(OpenMM::CustomNonbondedForce::CutoffPeriodic);
+        }
+        else
+        {
+            exv_ff->setNonbondedMethod(OpenMM::CustomNonbondedForce::CutoffNonPeriodic);
+        }
+
         // set cutoff
-        exv_ff->setNonbondedMethod(OpenMM::CustomNonbondedForce::CutoffNonPeriodic);
+        std::cerr << "pbc " << exv_ff->usesPeriodicBoundaryConditions() << std::endl;
         const double cutoff_distance   = (max_radius + second_max_radius)*cutoff_;
         const double cutoff_correction = std::pow(1.0 / cutoff_distance, 12);
         exv_ff->setCutoffDistance(cutoff_distance);
@@ -184,6 +195,7 @@ class ExcludedVolumeForceFieldGenerator final: public ForceFieldGeneratorBase
     std::vector<std::optional<double>>  radiuses_;
     index_pairs_type                    ignore_list_;
     std::vector<interaction_group_type> interaction_groups_;
+    const bool                          use_periodic_;
 };
 
 #endif // OPEN_AICG2_PLUS_EXCLUDED_VOLUME_FORCE_FIELD_GENERATOR_HPP

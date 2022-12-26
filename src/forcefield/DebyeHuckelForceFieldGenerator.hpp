@@ -14,11 +14,12 @@ class DebyeHuckelForceFieldGenerator final : public ForceFieldGeneratorBase
     DebyeHuckelForceFieldGenerator(const double ionic_strength,
         const double temperature, const double cutoff_ratio,
         const std::vector<std::optional<double>>& charges,
-        const index_pairs_type& ignore_list,
+        const index_pairs_type& ignore_list, const bool use_periodic,
         const std::vector<std::pair<std::string, std::string>> ignore_group_pairs = {},
         const std::vector<std::optional<std::string>> group_vec = {})
         : ionic_strength_(ionic_strength), temperature_(temperature),
-          cutoff_ratio_(cutoff_ratio), charges_(charges), ignore_list_(ignore_list)
+          cutoff_ratio_(cutoff_ratio), charges_(charges), ignore_list_(ignore_list),
+          use_periodic_(use_periodic)
     {
         const double epsk    = calc_dielectric_water(temperature_, ionic_strength_);
         const double eps0_ee = Constant::eps0 / Constant::elementary_charge
@@ -168,6 +169,7 @@ class DebyeHuckelForceFieldGenerator final : public ForceFieldGeneratorBase
     const std::vector<std::optional<double>> charges_;
     index_pairs_type                         ignore_list_;
     std::vector<interaction_group_type>      interaction_groups_;
+    const bool                               use_periodic_;
 
     double debye_length_;
     double inv_4_pi_eps0_epsk_;

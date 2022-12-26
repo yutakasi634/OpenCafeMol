@@ -13,10 +13,11 @@ class WeeksChandlerAndersenForceFieldGenerator final : public ForceFieldGenerato
     WeeksChandlerAndersenForceFieldGenerator(
         const std::vector<std::optional<double>> sigmas,
         const std::vector<std::optional<double>> epsilons,
-        const index_pairs_type& ignore_list,
+        const index_pairs_type& ignore_list, const bool use_periodic,
         const std::vector<std::pair<std::string, std::string>> ignore_group_pairs = {},
         const std::vector<std::optional<std::string>> group_vec = {})
-        : sigmas_(sigmas), epsilons_(epsilons), ignore_list_(ignore_list)
+        : sigmas_(sigmas), epsilons_(epsilons), ignore_list_(ignore_list),
+          use_periodic_(use_periodic)
     {
         assert(this->sigmas_.size() == this->epsilons_.size());
 
@@ -153,7 +154,15 @@ class WeeksChandlerAndersenForceFieldGenerator final : public ForceFieldGenerato
         }
 
         // set cutoff
-        wca_ff->setNonbondedMethod(OpenMM::CustomNonbondedForce::CutoffNonPeriodic);
+        if(use_periodic_)
+        {
+            wca_ff->setNonbondedMethod(OpenMM::CustomNonbondedForce::CutoffPeriodic);
+        }
+        else
+        {
+            wca_ff->setNonbondedMethod(OpenMM::CustomNonbondedForce::CutoffNonPeriodic);
+        }
+
         const double cutoff_distance =
             (max_sigma + second_max_sigma) * 0.5 * std::pow(2.0, 1.0/6.0);
         wca_ff->setCutoffDistance(cutoff_distance);
@@ -172,6 +181,7 @@ class WeeksChandlerAndersenForceFieldGenerator final : public ForceFieldGenerato
     const std::vector<std::optional<double>> epsilons_;
     index_pairs_type                         ignore_list_;
     std::vector<interaction_group_type>      interaction_groups_;
+    const bool                               use_periodic_;
 };
 
 #endif // OPEN_AICG2_PLUS_WEEKS_CHANDLER_ANDERSEN_FORCE_FIELD_GENERATOR_HPP
