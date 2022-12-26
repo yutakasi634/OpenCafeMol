@@ -73,18 +73,26 @@ class ExcludedVolumeForceFieldGenerator final: public ForceFieldGeneratorBase
                 }
             }
 
-            interaction_groups_.push_back({ others, others });
+            std::vector<std::pair<std::string, std::set<int>>> related_group_vec;
             for(const auto& name_group_pair : related_group_map)
             {
-                const std::string&   first_name  = name_group_pair.first;
-                const std::set<int>& first_group = name_group_pair.second;
+                related_group_vec.push_back(name_group_pair);
+            }
+
+            interaction_groups_.push_back({ others, others });
+            for(std::size_t idx_i=0 ; idx_i<related_group_vec.size(); ++idx_i)
+            {
+                const auto& name_group_pair_i = related_group_vec[idx_i];
+                const std::string&   first_name  = name_group_pair_i.first;
+                const std::set<int>& first_group = name_group_pair_i.second;
                 interaction_groups_.push_back({ first_group, others });
-                for(const auto& name_group_pair : related_group_map)
+                for(std::size_t idx_j=idx_i; idx_j<related_group_vec.size(); ++idx_j)
                 {
-                    const std::string&   second_name  = name_group_pair.first;
+                    const auto& name_group_pair_j = related_group_vec[idx_j];
+                    const std::string&   second_name  = name_group_pair_j.first;
                     if(!Utility::contains(ignore_group_pairs, { first_name, second_name }))
                     {
-                        const std::set<int>& second_group = name_group_pair.second;
+                        const std::set<int>& second_group = name_group_pair_j.second;
                         interaction_groups_.push_back({ first_group, second_group });
                     }
                 }
