@@ -44,7 +44,8 @@ class PDBObserver final : public ObserverBase
     {
         // output position
         std::ofstream ofs(pos_filename_, std::ios::app);
-        OpenMM::State pos = context.getState(OpenMM::State::Positions);
+        OpenMM::State pos = context.getState(OpenMM::State::Positions,
+                                             /*enforcePeriodicBox*/ true);
         write_pdb_frame(ofs, step, pos);
         ofs.close();
     }
@@ -116,7 +117,8 @@ class DCDObserver final : public ObserverBase
     {
         // output position
         std::ofstream ofs(dcd_filename_, std::ios::binary | std::ios::app);
-        OpenMM::State pos = context.getState(OpenMM::State::Positions);
+        OpenMM::State pos = context.getState(OpenMM::State::Positions,
+                                             /*enforcePeriodicBox*/ true);
         write_dcd_frame(ofs, pos);
         ofs.close();
         return;
