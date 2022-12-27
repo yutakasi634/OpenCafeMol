@@ -22,17 +22,34 @@ std::unique_ptr<OpenMM::System> read_toml_system(const toml::value& data)
         use_periodic = true;
         const auto& boundary_shape = toml::find(systems[0], "boundary_shape");
         const auto lower_bound = toml::find<std::array<double, 3>>(boundary_shape, "lower");
+        const auto upper_bound = toml::find<std::array<double, 3>>(boundary_shape, "upper");
+        std::cerr << "    boundary type is periodic cuboid" << std::endl;
+        std::cerr  << std::fixed << std::setprecision(2)
+                  << "        lower bound is ("
+                  << std::setw(7) << lower_bound[0] << ", "
+                  << std::setw(7) << lower_bound[1] << ", "
+                  << std::setw(7) << lower_bound[2] << ")" << std::endl;
+        std::cerr << std::fixed << std::setprecision(2)
+                  << "        upper bound is ("
+                  << std::setw(7) << upper_bound[0] << ", "
+                  << std::setw(7) << upper_bound[1] << ", "
+                  << std::setw(7) << upper_bound[2] << ")" << std::endl;
         if(lower_bound[0] != 0.0 || lower_bound[1] != 0.0 || lower_bound[2] != 0.0)
         {
             std::cerr << "[warning] Lower bound of periodic boundary box is not (0.0, 0.0, 0.0). "
                          "OpenAICG2+ only support the case lower bound is origin, "
-                         "so the simulation box will be moved to satisfy this condition." << std::endl;
+                         "so the simulation box will be moved to satisfy this condition."
+                      << std::endl;
         }
-        const auto upper_bound = toml::find<std::array<double, 3>>(boundary_shape, "upper");
+
         system_ptr->setDefaultPeriodicBoxVectors(
                 OpenMM::Vec3((upper_bound[0] - lower_bound[0]) * OpenMM::NmPerAngstrom, 0.0, 0.0),
                 OpenMM::Vec3(0.0, (upper_bound[1] - lower_bound[1]) * OpenMM::NmPerAngstrom, 0.0),
                 OpenMM::Vec3(0.0, 0.0, (upper_bound[2] - lower_bound[2]) * OpenMM::NmPerAngstrom));
+    }
+    else
+    {
+        std::cerr << "    boundary type is unlimited" << std::endl;
     }
 
     // read particles info
