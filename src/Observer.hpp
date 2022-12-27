@@ -19,11 +19,23 @@ class ObserverBase
 class PDBObserver final : public ObserverBase
 {
   public:
-    PDBObserver(const std::string& file_prefix, const std::size_t total_step)
+    PDBObserver(const std::string& file_prefix, const std::size_t total_step,
+                const std::vector<std::optional<std::string>> name_vec)
         : pos_filename_(file_prefix+".pdb"), total_step_(total_step)
     {
         Utility::clear_file(pos_filename_);
         std::cerr << "    output trajectory file    : " << pos_filename_ << std::endl;
+
+        const std::size_t system_size = name_vec.size();
+        name_vec_.resize(system_size, "UNK");
+        for(std::size_t idx=0; idx<name_vec.size(); ++idx)
+        {
+            const auto& name = name_vec[idx];
+            if(name)
+            {
+                name_vec_[idx] = name.value();
+            }
+        }
     }
 
     void initialize(const std::unique_ptr<OpenMM::System>&) override { return; }
@@ -41,8 +53,9 @@ class PDBObserver final : public ObserverBase
     const std::string name() const { return "PDBObserver"; }
 
   private:
-    std::string pos_filename_;
-    std::size_t total_step_;
+    std::string              pos_filename_;
+    std::size_t              total_step_;
+    std::vector<std::string> name_vec_;
 
   private:
     // Handy homebrew PDB writer for quick-and-dirty trajectory output.
@@ -53,14 +66,19 @@ class PDBObserver final : public ObserverBase
 
         // Use PDB MODEL cards to number trajectory frames
         fp << "MODEL     " << frame_num << std::endl; // start of frame
-        for (int a = 0; a < (int)pos_in_nm.size(); ++a)
+        for (std::size_t idx=0; idx<pos_in_nm.size(); ++idx)
         {
+            const std::string& name = name_vec_[idx];
             fp << std::setprecision(3);
-            fp << "ATOM  " << std::setw(5) << a+1 << "  AR   AR     1    "; // atom number
+            fp << "ATOM  "                         //                          1-6
+               << std::setw(5) << idx+1 << " "     // atom serial number       7-12
+               << "  CA "                          // atom name               13-17
+               << std::setw(3) << name << "  "     // residue name            18-22
+               << "   1    " ;                     // residue sequence number 23-30
             fp << std::setw(8) << std::fixed
-               << std::setw(8) << std::fixed << pos_in_nm[a][0]*OpenMM::AngstromsPerNm
-               << std::setw(8) << std::fixed << pos_in_nm[a][1]*OpenMM::AngstromsPerNm
-               << std::setw(8) << std::fixed << pos_in_nm[a][2]*OpenMM::AngstromsPerNm << "  1.00  0.00" << std::endl;
+               << std::setw(8) << std::fixed << pos_in_nm[idx][0]*OpenMM::AngstromsPerNm
+               << std::setw(8) << std::fixed << pos_in_nm[idx][1]*OpenMM::AngstromsPerNm
+               << std::setw(8) << std::fixed << pos_in_nm[idx][2]*OpenMM::AngstromsPerNm << "  1.00  0.00" << std::endl;
         }
         fp << "ENDMDL" << std::endl; // end of frame
     }

@@ -252,14 +252,26 @@ Simulator read_toml_input(const std::string& toml_file_name)
     const auto  temperature   = toml::find<double>(attr, "temperature");
     const std::vector<OpenMM::Vec3> initial_position_in_nm(read_toml_initial_conf(data));
 
-
     // construct observers
     std::vector<std::unique_ptr<ObserverBase>> observers;
     if(output_format == "pdb")
     {
+        // read name infomation
+        const std::size_t system_size = initial_position_in_nm.size();
+        const auto& particles = toml::find<toml::array>(systems[0], "particles");
+        std::vector<std::optional<std::string>> name_vec(system_size, std::nullopt);
+        for(std::size_t idx=0; idx<system_size; ++idx)
+        {
+            const auto& p = particles.at(idx);
+            if(p.contains("name"))
+            {
+                name_vec[idx] = toml::find<std::string>(p, "name");
+            }
+        }
+
         observers.push_back(
                 std::make_unique<PDBObserver>(
-                    output_path+output_prefix, total_step));
+                    output_path+output_prefix, total_step, name_vec));
     }
     else if(output_format == "dcd")
     {

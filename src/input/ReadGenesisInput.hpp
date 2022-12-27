@@ -192,9 +192,12 @@ Simulator make_simulator_from_genesis_inputs(
         throw std::runtime_error(
                 "[error] There is no atoms section. Top file must contain one atoms section.");
     }
+    std::vector<std::string> res_name_vec, atom_name_vec;
     for(auto& atoms_line : top_data.at("atoms"))
     {
         system_ptr->addParticle(std::stof(atoms_line.substr(49, 9))); // amu
+        res_name_vec .push_back(atoms_line.substr(27, 3));
+        atom_name_vec.push_back(atoms_line.substr(31, 4));
     }
 
     std::cerr << "generating forcefields..." << std::endl;
@@ -352,7 +355,11 @@ Simulator make_simulator_from_genesis_inputs(
     for(std::size_t idx=0; idx<initial_position_in_nm.size(); ++idx)
     {
         ofs << std::setprecision(3);
-        ofs << "ATOM  " << std::setw(5) << idx+1 << "  AR   AR     1    "; // atom number
+        ofs << "ATOM  "                     //                          1-6
+            << std::setw(5) << idx+1 << " " // atom serial number       7-12
+            << atom_name_vec[idx] << " "    // atom name               13-17
+            << res_name_vec [idx] << "  "   // residue name            18-22
+            << "   1    ";                  // residue sequence number 23-30
         ofs << std::setw(8) << std::fixed
             << std::setw(8) << std::fixed << initial_position_in_nm[idx][0]*OpenMM::AngstromsPerNm
             << std::setw(8) << std::fixed << initial_position_in_nm[idx][1]*OpenMM::AngstromsPerNm
