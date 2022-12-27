@@ -153,7 +153,7 @@ class WeeksChandlerAndersenForceFieldGenerator final : public ForceFieldGenerato
             wca_ff->addInteractionGroup(group_pair.first, group_pair.second);
         }
 
-        // set cutoff
+        // set pbc condition
         if(use_periodic_)
         {
             wca_ff->setNonbondedMethod(OpenMM::CustomNonbondedForce::CutoffPeriodic);
@@ -163,6 +163,7 @@ class WeeksChandlerAndersenForceFieldGenerator final : public ForceFieldGenerato
             wca_ff->setNonbondedMethod(OpenMM::CustomNonbondedForce::CutoffNonPeriodic);
         }
 
+        // set cutoff
         const double cutoff_distance =
             (max_sigma + second_max_sigma) * 0.5 * std::pow(2.0, 1.0/6.0);
         wca_ff->setCutoffDistance(cutoff_distance);

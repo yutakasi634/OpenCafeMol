@@ -183,7 +183,6 @@ class iSoLFAttractiveForceFieldGenerator final : public ForceFieldGeneratorBase
         }
 
         // set cutoff
-        isa_ff->setNonbondedMethod(OpenMM::CustomNonbondedForce::CutoffNonPeriodic);
         const double cutoff_distance =
             (max_sigma + second_max_sigma) * 0.5 * std::pow(2.0, 1.0/6.0) +
             (max_omega + second_max_omega) * 0.5;

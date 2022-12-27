@@ -142,8 +142,17 @@ class DebyeHuckelForceFieldGenerator final : public ForceFieldGeneratorBase
             dh_ff->addInteractionGroup(group_pair.first, group_pair.second);
         }
 
+        // set pbc condition
+        if(use_periodic_)
+        {
+            dh_ff->setNonbondedMethod(OpenMM::CustomNonbondedForce::CutoffPeriodic);
+        }
+        else
+        {
+            dh_ff->setNonbondedMethod(OpenMM::CustomNonbondedForce::CutoffNonPeriodic);
+        }
+
         // set cutoff
-        dh_ff->setNonbondedMethod(OpenMM::CustomNonbondedForce::CutoffNonPeriodic);
         dh_ff->setCutoffDistance(abs_cutoff_);
 
         // set exclusion list

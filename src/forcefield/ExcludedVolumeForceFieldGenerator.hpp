@@ -149,7 +149,6 @@ class ExcludedVolumeForceFieldGenerator final: public ForceFieldGeneratorBase
         }
 
         // set cutoff
-        std::cerr << "pbc " << exv_ff->usesPeriodicBoundaryConditions() << std::endl;
         const double cutoff_distance   = (max_radius + second_max_radius)*cutoff_;
         const double cutoff_correction = std::pow(1.0 / cutoff_distance, 12);
         exv_ff->setCutoffDistance(cutoff_distance);
