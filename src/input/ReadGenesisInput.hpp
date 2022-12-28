@@ -200,11 +200,21 @@ Simulator make_simulator_from_genesis_inputs(
         atom_name_vec.push_back(atoms_line.substr(31, 4));
     }
 
+    // read [BOUNDARY] section
+    const std::map<std::string, std::string> boundary_section = inpfile_data.at("BOUNDARY");
+    const std::string type                   = boundary_section.at("type");
+    const bool        use_periodic           = (type == "PBC");
+    if(use_periodic)
+    {
+        std::cerr << "    boundary type is periodic boundary condition" << std::endl;
+    }
+
     std::cerr << "generating forcefields..." << std::endl;
     Topology topology(top_data.at("atoms").size());
     if(top_data.find("bonds") != top_data.end())
     {
-        const auto ff_gen = read_genesis_harmonic_bond_ff_generator(top_data.at("bonds"), topology);
+        const auto ff_gen =
+            read_genesis_harmonic_bond_ff_generator(top_data.at("bonds"), topology, use_periodic);
         if(ff_gen.indices().size() != 0)
         {
             system_ptr->addForce(ff_gen.generate().release());
@@ -218,7 +228,8 @@ Simulator make_simulator_from_genesis_inputs(
     if(top_data.find("angles") != top_data.end())
     {
         // make force field generator for AICG2+ angle
-        const auto aicg_ff_gen = read_genesis_gaussian_bond_ff_generator(top_data.at("angles"));
+        const auto aicg_ff_gen =
+            read_genesis_gaussian_bond_ff_generator(top_data.at("angles"), use_periodic);
         if(aicg_ff_gen.indices().size() != 0)
         {
             system_ptr->addForce(aicg_ff_gen.generate().release());
@@ -234,7 +245,8 @@ Simulator make_simulator_from_genesis_inputs(
             const auto fla_ff_gen =
                 read_genesis_flexible_local_angle_ff_generator(top_data.at("angles"),
                                                                top_data.at("atoms"),
-                                                               aa_type_table.first);
+                                                               aa_type_table.first,
+                                                               use_periodic);
             if(fla_ff_gen.indices().size() != 0)
             {
                 system_ptr->addForce(fla_ff_gen.generate().release());
@@ -249,7 +261,8 @@ Simulator make_simulator_from_genesis_inputs(
     if(top_data.find("dihedrals") != top_data.end())
     {
         // make force field generator for AICG2+ dihedral
-        const auto aicg_ff_gen = read_genesis_gaussian_dihedral_ff_generator(top_data.at("dihedrals"));
+        const auto aicg_ff_gen =
+            read_genesis_gaussian_dihedral_ff_generator(top_data.at("dihedrals"), use_periodic);
         if(aicg_ff_gen.indices().size() != 0)
         {
             system_ptr->addForce(aicg_ff_gen.generate().release());
@@ -265,7 +278,8 @@ Simulator make_simulator_from_genesis_inputs(
              const auto fld_ff_gen =
                  read_genesis_flexible_local_dihedral_ff_generator(top_data.at("dihedrals"),
                                                                    top_data.at("atoms"),
-                                                                   aa_type_pair_table.first);
+                                                                   aa_type_pair_table.first,
+                                                                   use_periodic);
              if(fld_ff_gen.indices().size() != 0)
              {
                  system_ptr->addForce(fld_ff_gen.generate().release());
@@ -279,7 +293,8 @@ Simulator make_simulator_from_genesis_inputs(
 
     if(top_data.find("pairs") != top_data.end())
     {
-        const auto ff_gen = read_genesis_go_contact_ff_generator(top_data.at("pairs"), topology);
+        const auto ff_gen =
+            read_genesis_go_contact_ff_generator(top_data.at("pairs"), topology, use_periodic);
         if(ff_gen.indices().size() != 0)
         {
             system_ptr->addForce(ff_gen.generate().release());
@@ -307,7 +322,7 @@ Simulator make_simulator_from_genesis_inputs(
         const std::size_t ignore_particle_within_bond =
             std::stoi(moleculetype_data[0].substr(17, 6));
         const auto ff_gen = read_genesis_exv_ff_generator(top_data.at("atomtypes"),
-                top_data.at("atoms"), topology, ignore_particle_within_bond);
+                top_data.at("atoms"), topology, use_periodic, ignore_particle_within_bond);
         system_ptr->addForce(ff_gen.generate().release());
     }
     else
@@ -340,6 +355,7 @@ Simulator make_simulator_from_genesis_inputs(
     const std::map<std::string, std::string> emsemble_section = inpfile_data.at("ENSEMBLE");
     const double temperature = std::stof(emsemble_section.at("temperature"));
     const double gamma_t     = std::stof(emsemble_section.at("gamma_t"));
+
 
     // construct observers
     std::vector<std::unique_ptr<ObserverBase>> observers;
