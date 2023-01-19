@@ -15,6 +15,7 @@
 #include "src/forcefield/DebyeHuckelForceFieldGenerator.hpp"
 #include "src/forcefield/iSoLFAttractiveForceFieldGenerator.hpp"
 #include "src/forcefield/UniformLennardJonesAttractiveForceFieldGenerator.hpp"
+#include "src/forcefield/UniformWeeksChandlerAndersenForceFieldGenerator.hpp"
 
 // -----------------------------------------------------------------------------
 // read local force field
