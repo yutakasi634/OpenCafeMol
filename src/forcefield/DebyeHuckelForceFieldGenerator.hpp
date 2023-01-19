@@ -122,14 +122,12 @@ class DebyeHuckelForceFieldGenerator final : public ForceFieldGeneratorBase
         dh_ff->addGlobalParameter("debye_length",       debye_length_);
         dh_ff->addGlobalParameter("cutoff_correction",  cutoff_correction_);
 
-        std::set<int> participants;
         for(std::size_t idx=0; idx<charges_.size(); ++idx)
         {
             const std::optional<double>& charge = charges_[idx];
             if(charge)
             {
                 dh_ff->addParticle({charge.value()});
-                participants.insert(idx);
             }
             else
             {
