@@ -2,6 +2,7 @@
 #define OPEN_AICG2_PLUS_READ_TOML_FORCE_FIELD_GENERATOR_HPP
 
 #include <OpenMM.h>
+#include "src/util/Utility.hpp"
 #include "src/forcefield/HarmonicBondForceFieldGenerator.hpp"
 #include "src/forcefield/GaussianBondForceFieldGenerator.hpp"
 #include "src/forcefield/GoContactForceFieldGenerator.hpp"
@@ -30,8 +31,12 @@ read_toml_harmonic_bond_ff_generator(
 
     for(const auto& param : params)
     {
-        const auto&  indices =
+        auto indices =
             Utility::find_parameter<std::pair<std::size_t, std::size_t>>(param, env, "indices");
+        const auto offset = Utility::find_parameter_or<std::size_t>(param, env, "offset", 0);
+        indices.first  += offset;
+        indices.second += offset;
+
         const double v0 =
             Utility::find_parameter<double>(param, env, "v0") * OpenMM::NmPerAngstrom; // nm
         const double k =
@@ -66,8 +71,12 @@ read_toml_gaussian_bond_ff_generator(
 
     for(const auto& param : params)
     {
-        const auto& indices =
+        auto indices =
             Utility::find_parameter<std::pair<std::size_t, std::size_t>>(param, env, "indices");
+        const auto offset = Utility::find_parameter_or<std::size_t>(param, env, "offset", 0);
+        indices.first  += offset;
+        indices.second += offset;
+
         const double k  =
             Utility::find_parameter<double>(param, env, "k") * OpenMM::KJPerKcal; // KJ/mol
         const double v0 =
@@ -105,8 +114,12 @@ read_toml_go_contact_ff_generator(
 
     for(const auto& param : params)
     {
-        const auto& indices =
+        auto indices =
             Utility::find_parameter<std::pair<std::size_t, std::size_t>>(param, env, "indices");
+        const auto offset = Utility::find_parameter_or<std::size_t>(param, env, "offset", 0);
+        indices.first  += offset;
+        indices.second += offset;
+
         const double k =
             Utility::find_parameter<double>(param, env, "k") * OpenMM::KJPerKcal; // KJ/mol
         const double r0 =
@@ -139,8 +152,11 @@ read_toml_harmonic_angle_ff_generator(
 
     for(const auto& param : params)
     {
-        const auto&  indices =
+        auto indices =
             Utility::find_parameter<std::array<std::size_t, 3>>(param, env, "indices");
+        const auto offset = Utility::find_parameter_or<std::size_t>(param, env, "offset", 0);
+        for(auto& idx : indices) { idx += offset; }
+
         double v0 =
             Utility::find_parameter<double>(param, env, "v0"); // radian
         if(v0 < 0 || Constant::pi*2 < v0)
@@ -179,15 +195,18 @@ read_toml_flexible_local_angle_ff_generator(
     const auto& env = local_ff_data.contains("env") ? local_ff_data.at("env") : toml::value{};
 
     std::vector<std::array<std::size_t, 3>> indices_vec;
-    std::vector<double>                   ks;
+    std::vector<double>                     ks;
 
     for(const auto& param : params)
     {
         const std::string y = toml::find<std::string>(param, "y");
         if(y.substr(3, 3) == aa_type) // y is like "y1_PHE"
         {
-            const auto& indices =
+            auto indices =
                 Utility::find_parameter<std::array<std::size_t, 3>>(param, env, "indices");
+            const auto offset = Utility::find_parameter_or<std::size_t>(param, env, "offset", 0);
+            for(auto& idx : indices) { idx += offset; }
+
             const double k =
                 Utility::find_parameter<double>(param, env, "k") * OpenMM::KJPerKcal; // KJ/mol
 
@@ -223,8 +242,11 @@ read_toml_gaussian_dihedral_ff_generator(
 
     for(const auto& param : params)
     {
-        const auto& indices =
+        auto indices =
             Utility::find_parameter<std::array<std::size_t, 4>>(param, env, "indices");
+        const auto offset = Utility::find_parameter_or<std::size_t>(param, env, "offset", 0);
+        for(auto& idx : indices) { idx += offset; }
+
         const double k  =
             Utility::find_parameter<double>(param, env, "k") * OpenMM::KJPerKcal; // KJ/mol
         const double theta0 =
@@ -263,9 +285,11 @@ read_toml_flexible_local_dihedral_ff_generator(
     {
         for(const auto& param : params)
         {
+            auto indices = toml::find<std::array<std::size_t, 4>>(param, "indices");
+            const auto offset = Utility::find_parameter_or<std::size_t>(param, env, "offset", 0);
+            for(auto& idx : indices) { idx += offset; }
+
             const std::string coef    = toml::find<std::string>(param, "coef");
-            const auto&       indices =
-                toml::find<std::array<std::size_t, 4>>(param, "indices");
             const double      k       = Utility::find_parameter<double>(param, env, "k");
 
             if(coef.substr(4, 3) == "GLY")
@@ -282,9 +306,12 @@ read_toml_flexible_local_dihedral_ff_generator(
         {
             for(const auto& param : params)
             {
-                const std::string coef    = toml::find<std::string>(param, "coef");
-                const auto&       indices =
+                auto indices =
                     Utility::find_parameter<std::array<std::size_t, 4>>(param, env, "indices");
+                const auto offset = Utility::find_parameter_or<std::size_t>(param, env, "offset", 0);
+                for(auto& idx : indices) { idx += offset; }
+
+                const std::string coef    = toml::find<std::string>(param, "coef");
                 const double      k       =
                     Utility::find_parameter<double>(param, env, "k");
 
@@ -300,9 +327,12 @@ read_toml_flexible_local_dihedral_ff_generator(
         {
             for(const auto& param : params)
             {
-                const std::string coef    = toml::find<std::string>(param, "coef");
-                const auto&       indices =
+                auto indices =
                     Utility::find_parameter<std::array<std::size_t, 4>>(param, env, "indices");
+                const auto offset = Utility::find_parameter_or<std::size_t>(param, env, "offset", 0);
+                for(auto& idx : indices) { idx += offset; }
+
+                const std::string coef    = toml::find<std::string>(param, "coef");
                 const double      k       =
                     Utility::find_parameter<double>(param, env, "k");
 
@@ -319,9 +349,12 @@ read_toml_flexible_local_dihedral_ff_generator(
     {
         for(const auto& param : params)
         {
-            const std::string coef    = toml::find<std::string>(param, "coef");
-            const auto&       indices =
+            auto indices =
                 Utility::find_parameter<std::array<std::size_t, 4>>(param, env, "indices");
+            const auto offset = Utility::find_parameter_or<std::size_t>(param, env, "offset", 0);
+            for(auto& idx : indices) { idx += offset; }
+
+            const std::string coef    = toml::find<std::string>(param, "coef");
             const double      k       =
                 Utility::find_parameter<double>(param, env, "k");
 
@@ -458,7 +491,8 @@ read_toml_excluded_volume_ff_generator(
     std::vector<std::optional<double>> radius_vec(system_size, std::nullopt);
     for(const auto& param : params)
     {
-        const std::size_t index  = Utility::find_parameter<std::size_t>(param, env, "index");
+        const std::size_t index  = Utility::find_parameter<std::size_t>(param, env, "index") +
+                                   Utility::find_parameter_or<std::size_t>(param, env, "offset", 0);
         const double      radius =
             Utility::find_parameter<double>(param, env, "radius") * OpenMM::NmPerAngstrom; // nm
         radius_vec[index] = radius;
@@ -496,7 +530,8 @@ read_toml_weeks_chandler_andersen_ff_generator(
     for(const auto& param : params)
     {
         const std::size_t index =
-            Utility::find_parameter<std::size_t>(param, env, "index");
+            Utility::find_parameter<std::size_t>(param, env, "index") +
+            Utility::find_parameter_or<std::size_t>(param, env, "offset", 0);
         const double      sigma =
             Utility::find_parameter_either<double>(param, env, "sigma", "σ") *
             OpenMM::NmPerAngstrom; // nm
@@ -540,7 +575,8 @@ read_toml_debye_huckel_ff_generator(
     std::vector<std::optional<double>> charge_vec(system_size, std::nullopt);
     for(const auto& param : params)
     {
-        const std::size_t index  = Utility::find_parameter<std::size_t>(param, env, "index");
+        const std::size_t index  = Utility::find_parameter<std::size_t>(param, env, "index") +
+                                   Utility::find_parameter_or<std::size_t>(param, env, "offset", 0);
         const double      charge = Utility::find_parameter<double>(param, env, "charge");
         charge_vec[index] = charge;
     }
@@ -578,7 +614,8 @@ read_toml_isolf_attractive_ff_generator(
     std::vector<std::optional<double>> omega_vec(system_size, std::nullopt);
     for(const auto& param : params)
     {
-        const std::size_t index = Utility::find_parameter<std::size_t>(param, env, "index");
+        const std::size_t index = Utility::find_parameter<std::size_t>(param, env, "index") +
+                                  Utility::find_parameter_or<std::size_t>(param, env, "offset", 0);
         const double      sigma =
             Utility::find_parameter<double>(param, env, "sigma") * OpenMM::NmPerAngstrom; // nm
         const double      eps   =

@@ -164,6 +164,26 @@ T find_parameter_either(const toml::value& params, const toml::value& env,
     return toml::get<T>(p);
 }
 
+// find_parameter with an optional value, opt.
+template<typename T>
+T find_parameter_or(const toml::value& params, const toml::value& env,
+                    const std::string& name, const T& opt) noexcept
+{
+    static_assert(!std::is_same<T, std::string>::value,
+                  "string value cannot be aliased");
+
+    if(!params.is_table() || !params.contains(name))
+    {
+        return opt;
+    }
+    const toml::value& p = params.at(name);
+    if(p.is_string())
+    {
+        return toml::find_or(env, p.as_string(), opt);
+    }
+    return toml::get_or(p, opt);
+}
+
 // ----------------------------------------------------------------------------
 // handling container
 
