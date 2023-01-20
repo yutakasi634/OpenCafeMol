@@ -179,12 +179,17 @@ class UniformWeeksChandlerAndersenForceFieldGenerator final : public ForceFieldG
         return uwca_ff;
     }
 
+    const std::size_t former_group_size() const noexcept { return former_group_size_; }
+    const std::size_t latter_group_size() const noexcept { return latter_group_size_; }
+
   private:
     const std::size_t      system_size_;
     const double           eps_;
     const double           sigma_;
     const index_pairs_type ignore_list_;
     const bool             use_periodic_;
+    const std::size_t      former_group_size_;
+    const std::size_t      latter_group_size_;
 
     std::vector<interaction_group_type> interaction_groups_;
 };

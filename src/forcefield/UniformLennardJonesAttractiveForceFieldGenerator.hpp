@@ -177,8 +177,17 @@ class UniformLennardJonesAttractiveForceFieldGenerator final : public ForceField
         std::cerr << "        cutoff disntace is " << abs_cutoff_ << " nm" << std::endl;
         uljattr_ff->setCutoffDistance(abs_cutoff_);
 
+        // set excludion list
+        for(const auto& pair : ignore_list_)
+        {
+            uljattr_ff->addExclusion(pair.first, pair.second);
+        }
+
         return uljattr_ff;
     }
+
+    const std::size_t former_group_size() const noexcept { return former_group_size_; }
+    const std::size_t latter_group_size() const noexcept { return latter_group_size_; }
 
   private:
     const std::size_t      system_size_;
@@ -186,6 +195,8 @@ class UniformLennardJonesAttractiveForceFieldGenerator final : public ForceField
     const double           sigma_;
     const index_pairs_type ignore_list_;
     const bool             use_periodic_;
+    const std::size_t      former_group_size_;
+    const std::size_t      latter_group_size_;
 
     std::vector<interaction_group_type> interaction_groups_;
     double                              cutoff_correction_;

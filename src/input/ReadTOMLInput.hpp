@@ -212,14 +212,24 @@ std::unique_ptr<OpenMM::System> read_toml_system(const toml::value& data)
                             {
                                 const double sigma   =
                                     toml::get<double>(
-                                            Utility::find_either(second_table, "sigma", "σ"));
+                                            Utility::find_either(second_table, "sigma", "σ")) *
+                                    OpenMM::NmPerAngstrom; // nm
                                 const double epsilon =
                                     toml::get<double>(
-                                            Utility::find_either(second_table, "epsilon", "ε"));
+                                            Utility::find_either(second_table, "epsilon", "ε")) *
+                                    OpenMM::KJPerKcal; // KJPermol
                                 const auto ff_gen =
                                     read_toml_uniform_weeks_chandler_andersen_ff_generator(
-                                        global_ff, sigma, epsilon, name_pair, topology,
+                                        global_ff, system_size, sigma, epsilon, name_pair, topology,
                                         group_vec, use_periodic);
+                                if(ff_gen.former_group_size() == 0 || ff_gen.latter_group_size() == 0)
+                                {
+                                    std::cerr << "        "
+                                        << "[warning] this force field generation will be skipped"
+                                        << std::endl;
+                                    continue;
+                                }
+                                system_ptr->addForce(ff_gen.generate().release());
                                 treated_pair.push_back(name_pair);
                             }
                         }
