@@ -9,13 +9,16 @@ class UniformLennardJonesAttractiveForceFieldGenerator final : public ForceField
 
   public:
     UniformLennardJonesAttractiveForceFieldGenerator(
-        const double eps, const double sigma, const double cutoff_ratio,
+        const std::size_t system_size, const double eps,
+        const double sigma, const double cutoff_ratio,
         const std::vector<std::size_t> former_group_vec,
         const std::vector<std::size_t> latter_group_vec,
         const index_pairs_type& ignore_list, const bool use_periodic,
         const std::vector<std::pair<std::string, std::string>> ignore_group_pairs = {},
         const std::vector<std::optional<std::string>> group_vec = {})
-        :eps_(eps), sigma_(sigma), ignore_list_(ignore_list), use_periodic_(use_periodic)
+        : system_size_(system_size), eps_(eps), sigma_(sigma),
+          ignore_list_(ignore_list), use_periodic_(use_periodic),
+          former_group_size_(former_group_vec.size()), latter_group_size_(latter_group_vec.size())
     {
         cutoff_correction_ =
             4.0*(std::pow(1.0 / cutoff_ratio, 12) - std::pow(1.0 / cutoff_ratio, 6));
@@ -140,6 +143,11 @@ class UniformLennardJonesAttractiveForceFieldGenerator final : public ForceField
         uljattr_ff->addGlobalParameter("sigma", sigma_);
         uljattr_ff->addGlobalParameter("cutoff_correction", cutoff_correction_);
 
+        for(std::size_t idx=0; idx<system_size_; ++idx)
+        {
+            uljattr_ff->addParticle();
+        }
+
         for(const auto& group_pair : interaction_groups_)
         {
             uljattr_ff->addInteractionGroup(group_pair.first, group_pair.second);
@@ -163,6 +171,7 @@ class UniformLennardJonesAttractiveForceFieldGenerator final : public ForceField
     }
 
   private:
+    const std::size_t      system_size_;
     const double           eps_;
     const double           sigma_;
     const index_pairs_type ignore_list_;
