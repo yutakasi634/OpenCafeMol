@@ -93,10 +93,20 @@ class UniformWeeksChandlerAndersenForceFieldGenerator final : public ForceFieldG
                 }
             }
 
-            if(!former_others.empty() && !latter_others.empty())
+            if(!former_others.empty())
             {
-                interaction_groups_.push_back({ former_others, latter_others });
+                for(const auto& latter_name_set : latter_related_group_map)
+                {
+                    const std::set<int>& second_group = latter_name_set.second;
+                    interaction_groups_.push_back({ former_others, second_group });
+                }
+
+                if(!latter_others.empty())
+                {
+                    interaction_groups_.push_back({ former_others, latter_others });
+                }
             }
+
             for(const auto& former_name_set : former_related_group_map)
             {
                 const std::set<int>& first_group = former_name_set.second;
