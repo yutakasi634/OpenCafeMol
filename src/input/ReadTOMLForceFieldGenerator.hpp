@@ -561,6 +561,53 @@ read_toml_weeks_chandler_andersen_ff_generator(
                                                     ignore_group_pairs, group_vec);
 }
 
+const UniformWeeksChandlerAndersenForceFieldGenerator
+read_toml_uniform_weeks_chandler_andersen_ff_generator(
+        const toml::value& global_ff_data, const double sigma, const double epsilon,
+        const std::pair<std::string, std::string>& name_pair, const Topology& topology,
+        const std::vector<std::optional<std::string>>& group_vec, const bool use_periodic)
+{
+    const auto& params = toml::find<toml::array>(global_ff_data, "parameters");
+    const auto& env = global_ff_data.contains("env") ? global_ff_data.at("env") : toml::value{};
+
+    std::vector<std::size_t> former_participants;
+    std::vector<std::size_t> latter_participants;
+
+    for(const auto& param : params)
+    {
+        const std::string& particle_name = toml::find<std::string>(param, "name");
+        const std::size_t  index = Utility::find_parameter<std::size_t>(param, env, "index") +
+                                   Utility::find_parameter_or<std::size_t>(param, env, "offset", 0);
+        if(particle_name == name_pair.first)
+        {
+            former_participants.push_back(index);
+        }
+        if(particle_name == name_pair.second)
+        {
+            latter_participants.push_back(index);
+        }
+    }
+
+    // ignore list generation
+    using index_pairs_type = UniformWeeksChandlerAndersenForceFieldGenerator::index_pairs_type;
+    index_pairs_type ignore_list;
+    std::vector<std::pair<std::string, std::string>> ignore_group_pairs;
+    if(global_ff_data.contains("ignore"))
+    {
+        const auto& ignore = toml::find(global_ff_data, "ignore");
+        ignore_list        = read_ignore_molecule_and_particles_within(ignore, topology);
+        ignore_group_pairs = read_ignore_group(ignore);
+    }
+
+    std::cerr << "    Global        : UniformWeeksChandlerAndersen - " << name_pair.first
+              << "-" << name_pair.second
+              <<  " (" << former_participants.size() << "-" << latter_participants.size()
+              << " found)" << std::endl;
+    return UniformWeeksChandlerAndersenForceFieldGenerator(
+            epsilon, sigma, former_participants, latter_participants, ignore_list, use_periodic,
+            ignore_group_pairs, group_vec);
+}
+
 const DebyeHuckelForceFieldGenerator
 read_toml_debye_huckel_ff_generator(
     const toml::value& global_ff_data, const std::size_t system_size,

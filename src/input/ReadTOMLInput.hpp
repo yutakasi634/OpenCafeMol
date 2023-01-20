@@ -193,10 +193,45 @@ std::unique_ptr<OpenMM::System> read_toml_system(const toml::value& data)
             }
             if(potential == "WCA")
             {
-                const auto ff_gen =
-                    read_toml_weeks_chandler_andersen_ff_generator(
-                            global_ff, system_size, topology, group_vec, use_periodic);
-                system_ptr->addForce(ff_gen.generate().release());
+                if(global_ff.contains("table"))
+                {
+                    std::vector<std::pair<std::string, std::string>> treated_pair;
+                    const auto& table = toml::find(global_ff, "table");
+                    for(const auto& [first_key, first_table] : table.as_table())
+                    {
+                        for(const auto& [second_key, second_table] : first_table.as_table())
+                        {
+                            const auto name_pair = std::make_pair(first_key, second_key);
+                            if(Utility::contains(treated_pair, name_pair))
+                            {
+                                throw std::runtime_error(
+                                    "[error] parameter table for " + name_pair.first + "-" +
+                                    name_pair.second + " is difined in dupulicate.");
+                            }
+                            else
+                            {
+                                const double sigma   =
+                                    toml::get<double>(
+                                            Utility::find_either(second_table, "sigma", "σ"));
+                                const double epsilon =
+                                    toml::get<double>(
+                                            Utility::find_either(second_table, "epsilon", "ε"));
+                                const auto ff_gen =
+                                    read_toml_uniform_weeks_chandler_andersen_ff_generator(
+                                        global_ff, sigma, epsilon, name_pair, topology,
+                                        group_vec, use_periodic);
+                                treated_pair.push_back(name_pair);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    const auto ff_gen =
+                        read_toml_weeks_chandler_andersen_ff_generator(
+                                global_ff, system_size, topology, group_vec, use_periodic);
+                    system_ptr->addForce(ff_gen.generate().release());
+                }
             }
             if(potential == "DebyeHuckel")
             {
