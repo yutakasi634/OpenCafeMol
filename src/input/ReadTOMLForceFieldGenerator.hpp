@@ -589,6 +589,11 @@ read_toml_uniform_weeks_chandler_andersen_ff_generator(
         }
     }
 
+    std::cerr << "    Global        : UniformWeeksChandlerAndersen - "
+              << name_pair.first << "-" << name_pair.second
+              <<  " (" << former_participants.size() << "-" << latter_participants.size()
+              << " found)" << std::endl;
+
     // ignore list generation
     using index_pairs_type = UniformWeeksChandlerAndersenForceFieldGenerator::index_pairs_type;
     index_pairs_type ignore_list;
