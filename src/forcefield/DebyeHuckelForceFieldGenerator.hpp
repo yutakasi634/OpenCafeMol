@@ -21,16 +21,17 @@ class DebyeHuckelForceFieldGenerator final : public ForceFieldGeneratorBase
           cutoff_ratio_(cutoff_ratio), charges_(charges), ignore_list_(ignore_list),
           use_periodic_(use_periodic)
     {
-        const double epsk    = calc_dielectric_water(temperature_, ionic_strength_);
-        const double eps0_ee = Constant::eps0 / Constant::elementary_charge
-                                              / Constant::elementary_charge;
-        inv_4_pi_eps0_epsk_ = 1.0 / (4 * Constant::pi * eps0_ee * epsk);
+        const double epsk = calc_dielectric_water(temperature_, ionic_strength_);
+        const double eps0 = Constant::eps0 / Constant::elementary_charge
+                                           / Constant::elementary_charge;
+
+        inv_4_pi_eps0_epsk_ = 1.0 / (4 * Constant::pi * eps0 * epsk);
 
         // convert [M] (mol/L) to [mol/m^3]
-        const double I = ionic_strength_ * 1.0e-3; // [M/m^3]
+        const double I = ionic_strength_ * 1.0e3; // [M/m^3]
 
-        debye_length_ = std::sqrt((eps0_ee * epsk * Constant::kB * temperature_) /
-                                 (2. * Constant::Na * I)) * 10e9; // [nm]
+        debye_length_ = std::sqrt((eps0 * epsk * Constant::kB * temperature_) /
+                                 (2. * Constant::Na * I)) * 1.0e9; // [nm]
         abs_cutoff_   = debye_length_ * cutoff_ratio_;
         cutoff_correction_ = std::exp(cutoff_ratio_) / abs_cutoff_;
 
@@ -165,6 +166,7 @@ class DebyeHuckelForceFieldGenerator final : public ForceFieldGeneratorBase
   private:
     double calc_dielectric_water(const double T, const double C) const noexcept
     {
+        // TODO: check this formula
         return (249.4 - 0.778 * T + 7.2e-4 * T * T) *
             (1. - 2.551e-1 * C + 5.151e-2 * C * C - 6.889e-3 * C * C * C);
     }
