@@ -563,7 +563,8 @@ read_toml_weeks_chandler_andersen_ff_generator(
 
 const UniformWeeksChandlerAndersenForceFieldGenerator
 read_toml_uniform_weeks_chandler_andersen_ff_generator(
-        const toml::value& global_ff_data, const double sigma, const double epsilon,
+        const toml::value& global_ff_data, const std::size_t system_size,
+        const double sigma, const double epsilon,
         const std::pair<std::string, std::string>& name_pair, const Topology& topology,
         const std::vector<std::optional<std::string>>& group_vec, const bool use_periodic)
 {
@@ -599,13 +600,9 @@ read_toml_uniform_weeks_chandler_andersen_ff_generator(
         ignore_group_pairs = read_ignore_group(ignore);
     }
 
-    std::cerr << "    Global        : UniformWeeksChandlerAndersen - " << name_pair.first
-              << "-" << name_pair.second
-              <<  " (" << former_participants.size() << "-" << latter_participants.size()
-              << " found)" << std::endl;
     return UniformWeeksChandlerAndersenForceFieldGenerator(
-            epsilon, sigma, former_participants, latter_participants, ignore_list, use_periodic,
-            ignore_group_pairs, group_vec);
+            system_size, epsilon, sigma, former_participants, latter_participants,
+            ignore_list, use_periodic, ignore_group_pairs, group_vec);
 }
 
 const DebyeHuckelForceFieldGenerator

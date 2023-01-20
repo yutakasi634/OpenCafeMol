@@ -9,13 +9,15 @@ class UniformWeeksChandlerAndersenForceFieldGenerator final : public ForceFieldG
 
   public:
     UniformWeeksChandlerAndersenForceFieldGenerator(
-        const double eps, const double sigma,
+        const std::size_t system_size, const double eps, const double sigma,
         const std::vector<std::size_t> former_group_vec,
         const std::vector<std::size_t> latter_group_vec,
         const index_pairs_type& ignore_list, const bool use_periodic,
         const std::vector<std::pair<std::string, std::string>> ignore_group_pairs = {},
         const std::vector<std::optional<std::string>> group_vec = {})
-        : eps_(eps), sigma_(sigma), ignore_list_(ignore_list), use_periodic_(use_periodic)
+        : system_size_(system_size), eps_(eps), sigma_(sigma),
+          ignore_list_(ignore_list), use_periodic_(use_periodic),
+          former_group_size_(former_group_vec.size()), latter_group_size_(latter_group_vec.size())
     {
         // make interaction group
         if(ignore_group_pairs.size() == 0)
@@ -125,13 +127,18 @@ class UniformWeeksChandlerAndersenForceFieldGenerator final : public ForceFieldG
     {
         const std::string potential_formula = 
             "4*eps * (sigma_r_12 - sigma_r_6 + 1);"
-            "sigma_r_12 = sigma_r_6^2"
-            "sigma_r_6  = sigma_r^6"
+            "sigma_r_12 = sigma_r_6^2;"
+            "sigma_r_6  = sigma_r^6;"
             "sigma_r    = sigma/r";
         auto uwca_ff = std::make_unique<OpenMM::CustomNonbondedForce>(potential_formula);
 
         uwca_ff->addGlobalParameter("sigma", sigma_);
         uwca_ff->addGlobalParameter("eps", eps_);
+
+        for(std::size_t idx=0; idx<system_size_; ++idx)
+        {
+            uwca_ff->addParticle();
+        }
 
         for(const auto& group_pair : interaction_groups_)
         {
@@ -163,6 +170,7 @@ class UniformWeeksChandlerAndersenForceFieldGenerator final : public ForceFieldG
     }
 
   private:
+    const std::size_t      system_size_;
     const double           eps_;
     const double           sigma_;
     const index_pairs_type ignore_list_;
