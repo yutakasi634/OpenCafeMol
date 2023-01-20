@@ -156,6 +156,7 @@ class UniformLennardJonesAttractiveForceFieldGenerator final : public ForceField
         }
 
         // set cutoff
+        std::cerr << "        cutoff disntace is " << abs_cutoff_ << " nm" << std::endl;
         uljattr_ff->setCutoffDistance(abs_cutoff_);
 
         return uljattr_ff;

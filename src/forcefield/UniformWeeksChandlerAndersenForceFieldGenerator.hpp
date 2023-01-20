@@ -147,7 +147,11 @@ class UniformWeeksChandlerAndersenForceFieldGenerator final : public ForceFieldG
         {
             uwca_ff->setNonbondedMethod(OpenMM::CustomNonbondedForce::CutoffNonPeriodic);
         }
-        uwca_ff->setCutoffDistance(sigma_ * std::pow(2.0, 1.0/6.0));
+
+        // set cutoff
+        const double cutoff_distance = sigma_ * std::pow(2.0, 1.0/6.0);
+        std::cerr << "        cutoff disntace is " << cutoff_distance << " nm" << std::endl;
+        uwca_ff->setCutoffDistance(cutoff_distance);
 
         // set excludion list
         for(const auto& pair : ignore_list_)
