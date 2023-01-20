@@ -691,4 +691,55 @@ read_toml_isolf_attractive_ff_generator(
             use_periodic, ignore_group_pairs, group_vec);
 }
 
+const UniformLennardJonesAttractiveForceFieldGenerator
+read_toml_uniform_lennard_jones_attractive_ff_generator(
+        const toml::value& global_ff_data, const std::size_t system_size,
+        const double sigma, const double epsilon,
+        const std::pair<std::string, std::string>& name_pair, const Topology& topology,
+        const std::vector<std::optional<std::string>>& group_vec, const bool use_periodic)
+{
+    const auto& params = toml::find<toml::array>(global_ff_data, "parameters");
+    const auto& env = global_ff_data.contains("env") ? global_ff_data.at("env") : toml::value{};
+
+    const double cutoff = Utility::find_parameter_or<double>(global_ff_data, env, "cutoff", 2.5);
+
+    std::vector<std::size_t> former_participants;
+    std::vector<std::size_t> latter_participants;
+
+    for(const auto& param : params)
+    {
+        const std::string& particle_name = toml::find<std::string>(param, "name");
+        const std::size_t  index = Utility::find_parameter<std::size_t>(param, env, "index") +
+                                   Utility::find_parameter_or<std::size_t>(param, env, "offset", 0);
+        if(particle_name == name_pair.first)
+        {
+            former_participants.push_back(index);
+        }
+        if(particle_name == name_pair.second)
+        {
+            latter_participants.push_back(index);
+        }
+    }
+
+    std::cerr << "    Global        : UniformLennardJonesAttractive - "
+              << name_pair.first << "-" << name_pair.second
+              << " (" << former_participants.size() << "-" << latter_participants.size()
+              << " found)" << std::endl;
+
+    // ignore list generation
+    using index_pairs_type = UniformLennardJonesAttractiveForceFieldGenerator::index_pairs_type;
+    index_pairs_type ignore_list;
+    std::vector<std::pair<std::string, std::string>> ignore_group_pairs;
+    if(global_ff_data.contains("ignore"))
+    {
+        const auto& ignore = toml::find(global_ff_data, "ignore");
+        ignore_list        = read_ignore_molecule_and_particles_within(ignore, topology);
+        ignore_group_pairs = read_ignore_group(ignore);
+    }
+
+    return UniformLennardJonesAttractiveForceFieldGenerator(
+        system_size, epsilon, sigma, cutoff, former_participants, latter_participants,
+        ignore_list, use_periodic, ignore_group_pairs, group_vec);
+}
+
 #endif // OPEN_AICG2_PLUS_READ_TOML_FORCE_FIELD_GENERATOR_HPP
