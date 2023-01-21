@@ -20,8 +20,8 @@ class PDBObserver final : public ObserverBase
 {
   public:
     PDBObserver(const std::string& file_prefix, const std::size_t total_step,
-                const std::vector<std::optional<std::string>> name_vec)
-        : pos_filename_(file_prefix+".pdb"), total_step_(total_step)
+                const std::vector<std::optional<std::string>> name_vec, const bool use_periodic)
+        : pos_filename_(file_prefix+".pdb"), total_step_(total_step), use_periodic_(use_periodic)
     {
         Utility::clear_file(pos_filename_);
         std::cerr << "    output trajectory file    : " << pos_filename_ << std::endl;
@@ -45,7 +45,7 @@ class PDBObserver final : public ObserverBase
         // output position
         std::ofstream ofs(pos_filename_, std::ios::app);
         OpenMM::State pos = context.getState(OpenMM::State::Positions,
-                                             /*enforcePeriodicBox*/ true);
+                                             use_periodic_);
         write_pdb_frame(ofs, step, pos);
         ofs.close();
     }
@@ -54,8 +54,9 @@ class PDBObserver final : public ObserverBase
     const std::string name() const { return "PDBObserver"; }
 
   private:
-    std::string              pos_filename_;
-    std::size_t              total_step_;
+    const std::string        pos_filename_;
+    const std::size_t        total_step_;
+    const bool               use_periodic_;
     std::vector<std::string> name_vec_;
 
   private:
@@ -91,9 +92,9 @@ class DCDObserver final : public ObserverBase
 {
   public:
     DCDObserver(const std::string& file_prefix, const std::size_t total_step,
-        const std::size_t save_interval, const float delta_t)
+        const std::size_t save_interval, const float delta_t, const bool use_periodic)
         : dcd_filename_(file_prefix+".dcd"), total_step_(total_step), delta_t_(delta_t),
-          save_interval_(save_interval)
+          save_interval_(save_interval), use_periodic_(use_periodic)
     {
         Utility::clear_file(dcd_filename_);
         std::cerr << "    output trajectory file    : " << dcd_filename_ << std::endl;
@@ -118,7 +119,7 @@ class DCDObserver final : public ObserverBase
         // output position
         std::ofstream ofs(dcd_filename_, std::ios::binary | std::ios::app);
         OpenMM::State pos = context.getState(OpenMM::State::Positions,
-                                             /*enforcePeriodicBox*/ true);
+                                             use_periodic_);
         write_dcd_frame(ofs, pos);
         ofs.close();
         return;
@@ -128,10 +129,11 @@ class DCDObserver final : public ObserverBase
     const std::string name() const { return "DCDObserver"; }
 
   private:
-    std::string        dcd_filename_;
-    std::size_t        total_step_;
-    float              delta_t_;
-    std::size_t        save_interval_;
+    const std::string  dcd_filename_;
+    const std::size_t  total_step_;
+    const float        delta_t_;
+    const std::size_t  save_interval_;
+    const bool         use_periodic_;
     std::vector<float> buffer_x_;
     std::vector<float> buffer_y_;
     std::vector<float> buffer_z_;

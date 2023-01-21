@@ -360,7 +360,7 @@ Simulator make_simulator_from_genesis_inputs(
     // construct observers
     std::vector<std::unique_ptr<ObserverBase>> observers;
     observers.push_back(std::make_unique<DCDObserver>(
-                file_prefix, nsteps, crdout_period, timestep));
+                file_prefix, nsteps, crdout_period, timestep, use_periodic));
     observers.push_back(std::make_unique<EnergyObserver>(file_prefix));
 
     // dump initial configuration to pdb file

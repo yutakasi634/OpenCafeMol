@@ -377,10 +377,11 @@ Simulator read_toml_input(const std::string& toml_file_name)
     const std::string& output_format = toml::find<std::string>(output, "format");
 
     // read simulator table
-    const auto&       simulator_table = toml::find(data, "simulator");
-    const std::size_t total_step      = toml::find<std::size_t>(simulator_table, "total_step");
-    const std::size_t save_step       = toml::find<std::size_t>(simulator_table, "save_step");
-    const double      delta_t         = toml::find<double>(simulator_table, "delta_t");
+    const auto&        simulator_table = toml::find(data, "simulator");
+    const std::string& boundary_type   = toml::find<std::string>(simulator_table, "boundary_type");
+    const std::size_t  total_step      = toml::find<std::size_t>(simulator_table, "total_step");
+    const std::size_t  save_step       = toml::find<std::size_t>(simulator_table, "save_step");
+    const double       delta_t         = toml::find<double>(simulator_table, "delta_t");
 
     // read system table
     const auto& systems       = toml::find(data, "systems");
@@ -389,6 +390,8 @@ Simulator read_toml_input(const std::string& toml_file_name)
     const std::vector<OpenMM::Vec3> initial_position_in_nm(read_toml_initial_conf(data));
 
     // construct observers
+    const bool use_periodic =
+        (boundary_type == "Periodic" || boundary_type == "PeriodicCuboid");
     std::vector<std::unique_ptr<ObserverBase>> observers;
     if(output_format == "pdb")
     {
@@ -407,13 +410,13 @@ Simulator read_toml_input(const std::string& toml_file_name)
 
         observers.push_back(
                 std::make_unique<PDBObserver>(
-                    output_path+output_prefix, total_step, name_vec));
+                    output_path+output_prefix, total_step, name_vec, use_periodic));
     }
     else if(output_format == "dcd")
     {
         observers.push_back(
                 std::make_unique<DCDObserver>(
-                    output_path+output_prefix, total_step, save_step, delta_t));
+                    output_path+output_prefix, total_step, save_step, delta_t, use_periodic));
     }
     else
     {
