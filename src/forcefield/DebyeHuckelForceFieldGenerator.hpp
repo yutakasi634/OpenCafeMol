@@ -35,17 +35,30 @@ class DebyeHuckelForceFieldGenerator final : public ForceFieldGeneratorBase
         abs_cutoff_   = debye_length_ * cutoff_ratio_;
         cutoff_correction_ = std::exp(cutoff_ratio_) / abs_cutoff_;
 
-        // make interaction group
         if(ignore_group_pairs.size() == 0)
         {
-            std::set<int> participants;
-            for(std::size_t idx=0; idx<charges_.size(); ++idx)
+            // without interaction group force calculation is faster than
+            // with that. So if all particle have the parameter for this
+            // calculation, force don't use interaction group
+            if(std::any_of(charges_.begin(), charges_.end(),
+                          [](const std::optional<double>& val) { return !val; }))
             {
-                if(charges_[idx]) { participants.insert(idx); }
+                std::set<int> participants;
+                for(std::size_t idx=0; idx<charges_.size(); ++idx)
+                {
+                    if(charges_[idx])
+                    {
+                        participants.insert(idx);
+                    }
+                }
+                interaction_groups_.push_back({ participants, participants });
             }
-            interaction_groups_.push_back({ participants, participants });
+            else
+            {
+                std::cerr << "        all particles are participants in this interaction" << std::endl;
+            }
         }
-        else // group based ignoration specified case
+        else // make interaction group when group based ignoration specified
         {
             std::set<std::string> related_group_names;
             for(const auto& name_group_pair : ignore_group_pairs)
@@ -136,6 +149,8 @@ class DebyeHuckelForceFieldGenerator final : public ForceFieldGeneratorBase
             }
         }
 
+        // if interaction_groups size is 0, no interaction group will be added,
+        // so all the particle inthe system will be considerd as participant
         for(const auto& group_pair : interaction_groups_)
         {
             dh_ff->addInteractionGroup(group_pair.first, group_pair.second);

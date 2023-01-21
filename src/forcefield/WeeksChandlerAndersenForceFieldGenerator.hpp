@@ -24,16 +24,23 @@ class WeeksChandlerAndersenForceFieldGenerator final : public ForceFieldGenerato
         // make interaction group
         if(ignore_group_pairs.size() == 0)
         {
-            std::set<int> participants;
-            for(std::size_t idx=0; idx<sigmas_.size(); ++idx)
+            // without interaction group force calculation is faster than
+            // with that. So if all particle have the parameter for this
+            // calculation, force don't use interaction group
+            if(std::any_of(sigmas_.begin(), sigmas_.end(),
+                          [](const std::optional<double>& val) { return !val; }))
             {
-                if(sigmas_[idx])
+                std::set<int> participants;
+                for(std::size_t idx=0; idx<sigmas_.size(); ++idx)
                 {
-                    assert(epsilons_[idx]);
-                    participants.insert(idx);
+                    if(sigmas_[idx])
+                    {
+                        assert(epsilons_[idx]);
+                        participants.insert(idx);
+                    }
                 }
+                interaction_groups_.push_back({ participants, participants });
             }
-            interaction_groups_.push_back({ participants, participants });
         }
         else // group based ignoration specified case
         {
@@ -148,6 +155,8 @@ class WeeksChandlerAndersenForceFieldGenerator final : public ForceFieldGenerato
             }
         }
 
+        // if interaction_groups size is 0, no interaction group will be added,
+        // so all the particle inthe system will be considerd as participant
         for(const auto& group_pair : interaction_groups_)
         {
             wca_ff->addInteractionGroup(group_pair.first, group_pair.second);

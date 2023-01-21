@@ -22,20 +22,30 @@ class ExcludedVolumeForceFieldGenerator final: public ForceFieldGeneratorBase
         : eps_(eps), cutoff_(cutoff), radiuses_(radiuses), ignore_list_(ignore_list),
           use_periodic_(use_periodic)
     {
-        // make interaction group
         if(ignore_group_pairs.size() == 0)
         {
-            std::set<int> participants;
-            for(std::size_t idx=0; idx<radiuses_.size(); ++idx)
+            // without interaction group force calculation is faster than
+            // with that. So if all particle have the parameter for this
+            // calculation, force don't use interaction group
+            if(std::any_of(radiuses_.begin(), radiuses_.end(),
+                          [](const std::optional<double>& val) { return !val; }))
             {
-                if(radiuses_[idx])
+                std::set<int> participants;
+                for(std::size_t idx=0; idx<radiuses_.size(); ++idx)
                 {
-                    participants.insert(idx);
+                    if(radiuses_[idx])
+                    {
+                        participants.insert(idx);
+                    }
                 }
+                interaction_groups_.push_back({ participants, participants });
             }
-            interaction_groups_.push_back({ participants, participants });
+            else
+            {
+                std::cerr << "        all particles are participants in this interaction" << std::endl;
+            }
         }
-        else // group based ignoration specified case
+        else // make interaction group when group based ignoration specified
         {
             std::set<std::string> related_group_names;
             for(const auto& name_group_pair : ignore_group_pairs)
@@ -133,6 +143,8 @@ class ExcludedVolumeForceFieldGenerator final: public ForceFieldGeneratorBase
             }
         }
 
+        // if interaction_groups size is 0, no interaction group will be added,
+        // so all the particle inthe system will be considerd as participant
         for(const auto& group_pair : interaction_groups_)
         {
             exv_ff->addInteractionGroup(group_pair.first, group_pair.second);
