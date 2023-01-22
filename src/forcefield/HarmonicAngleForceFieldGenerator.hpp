@@ -7,6 +7,9 @@
 #include <OpenMM.h>
 #include "ForceFieldGeneratorBase.hpp"
 
+// [Caution!] This potential formulaw is "1/2*k*(theta - theta0)^2",
+// so interaction coefficient is devided by 2. So if you use the coefficient
+// base on "k*(theta  - theta0)^2" potential, you should double that value.
 class HarmonicAngleForceFieldGenerator final : public ForceFieldGeneratorBase
 {
   public:

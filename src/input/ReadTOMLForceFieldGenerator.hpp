@@ -41,9 +41,12 @@ read_toml_harmonic_bond_ff_generator(
 
         const double v0 =
             Utility::find_parameter<double>(param, env, "v0") * OpenMM::NmPerAngstrom; // nm
+        // Toml input file assume the potential formula of HarmonicBond is
+        // "k*(r - r0)^2", but OpenMM HarmonicBond is "1/2*k*(r - r0)^2".
+        // So we needs double the interaction coefficient `k`.
         const double k =
             Utility::find_parameter<double>(param, env, "k") * OpenMM::KJPerKcal *
-            OpenMM::AngstromsPerNm * OpenMM::AngstromsPerNm; // KJ/(mol nm^2)
+            OpenMM::AngstromsPerNm * OpenMM::AngstromsPerNm * 2.0; // KJ/(mol nm^2)
 
         indices_vec.push_back(indices);
         v0s        .push_back(v0);
@@ -170,22 +173,27 @@ read_toml_harmonic_angle_ff_generator(
         {
             v0 = 2.0 * Constant::pi - v0;
         }
+
+        // Toml input file assume the potential formula of HarmonicAngle is
+        // "k*(theta - theta0)^2", but OpenMM HarmonicAngle is
+        // "1/2*k*(theta - theta0)^2". So we needs double the interaction
+        // coefficient `k`.
         const double k =
-            Utility::find_parameter<double>(param, env, "k") * OpenMM::KJPerKcal; // KJ/mol
+            Utility::find_parameter<double>(param, env, "k") * OpenMM::KJPerKcal * 2.0; // KJ/mol
 
         indices_vec.push_back(indices);
         v0s        .push_back(v0);
         ks         .push_back(k);
     }
 
+    std::cerr << "    BondAngle     : Harmonic (" << indices_vec.size() << " found)" << std::endl;
+
     if(local_ff_data.contains("topology"))
     {
         topology.add_edges(indices_vec, toml::find<std::string>(local_ff_data, "topology"));
     }
 
-    std::cerr << "    BondAngle     : Harmonic (" << indices_vec.size() << " found)" << std::endl;
     return HarmonicAngleForceFieldGenerator(indices_vec, v0s, ks, use_periodic);
-
 }
 
 const FlexibleLocalAngleForceFieldGenerator
