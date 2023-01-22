@@ -375,6 +375,8 @@ Simulator read_toml_input(const std::string& toml_file_name)
     const std::string& output_prefix = toml::find<std::string>(output, "prefix");
     const std::string& output_path   = toml::find<std::string>(output, "path");
     const std::string& output_format = toml::find<std::string>(output, "format");
+    const bool         dump_progress_bar =
+        toml::find_or<bool>(output, "progress_bar", true);
 
     // read simulator table
     const auto&        simulator_table = toml::find(data, "simulator");
@@ -436,7 +438,8 @@ Simulator read_toml_input(const std::string& toml_file_name)
                OpenMM::LangevinIntegrator(temperature,
                                           0.2/*friction coef ps^-1*/,
                                           delta_t*Constant::cafetime),
-               initial_position_in_nm, total_step, save_step, observers);
+               initial_position_in_nm, total_step, save_step,
+               observers, dump_progress_bar);
 }
 
 #endif // OPEN_AICG2_PLUS_READ_TOML_INPUT_HPP
