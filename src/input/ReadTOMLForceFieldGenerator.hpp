@@ -299,8 +299,9 @@ read_toml_flexible_local_dihedral_ff_generator(
             const auto offset = Utility::find_parameter_or<std::size_t>(param, env, "offset", 0);
             for(auto& idx : indices) { idx += offset; }
 
-            const std::string coef    = toml::find<std::string>(param, "coef");
-            const double      k       = Utility::find_parameter<double>(param, env, "k");
+            const std::string coef = toml::find<std::string>(param, "coef");
+            const double      k    =
+                Utility::find_parameter<double>(param, env, "k") * OpenMM::KJPerKcal;
 
             if(coef.substr(4, 3) == "GLY")
             {
@@ -323,7 +324,7 @@ read_toml_flexible_local_dihedral_ff_generator(
 
                 const std::string coef    = toml::find<std::string>(param, "coef");
                 const double      k       =
-                    Utility::find_parameter<double>(param, env, "k");
+                    Utility::find_parameter<double>(param, env, "k") * OpenMM::KJPerKcal;
 
                 if(coef == "GLY-PRO")
                 {
@@ -344,7 +345,7 @@ read_toml_flexible_local_dihedral_ff_generator(
 
                 const std::string coef    = toml::find<std::string>(param, "coef");
                 const double      k       =
-                    Utility::find_parameter<double>(param, env, "k");
+                    Utility::find_parameter<double>(param, env, "k") * OpenMM::KJPerKcal;
 
                 if(coef.substr(4, 3) == "PRO") // R2-PRO case
                 {
@@ -366,7 +367,7 @@ read_toml_flexible_local_dihedral_ff_generator(
 
             const std::string coef    = toml::find<std::string>(param, "coef");
             const double      k       =
-                Utility::find_parameter<double>(param, env, "k");
+                Utility::find_parameter<double>(param, env, "k") * OpenMM::KJPerKcal;
 
             const std::string second_aa = coef.substr(4, 3);
             if(second_aa != "GLY" && second_aa != "PRO")
