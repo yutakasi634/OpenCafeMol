@@ -33,24 +33,28 @@ class FlexibleLocalDihedralForceFieldGenerator final : public ForceFieldGenerato
     std::unique_ptr<OpenMM::Force> generate() const noexcept override
     {
         const std::string fld_expression =
-            "c + ksin1*sin(  theta) + kcos1*cos(  theta)"
-            "  + ksin2*sin(2*theta) + kcos2*cos(2*theta)"
-            "  + ksin3*sin(3*theta) + kcos3*cos(3*theta)";
+            "k *"
+            "(c + kcos1*cos(  theta) + ksin1*sin(  theta)"
+            "   + kcos2*cos(2*theta) + ksin2*sin(2*theta)"
+            "   + kcos3*cos(3*theta) + ksin3*sin(3*theta))";
         auto torsion_ff = std::make_unique<OpenMM::CustomTorsionForce>(fld_expression);
         torsion_ff->setUsesPeriodicBoundaryConditions(use_periodic_);
+        torsion_ff->addPerTorsionParameter("k");
         torsion_ff->addPerTorsionParameter("c");
-        torsion_ff->addPerTorsionParameter("ksin1");
         torsion_ff->addPerTorsionParameter("kcos1");
-        torsion_ff->addPerTorsionParameter("ksin2");
+        torsion_ff->addPerTorsionParameter("ksin1");
         torsion_ff->addPerTorsionParameter("kcos2");
-        torsion_ff->addPerTorsionParameter("ksin3");
+        torsion_ff->addPerTorsionParameter("ksin2");
         torsion_ff->addPerTorsionParameter("kcos3");
+        torsion_ff->addPerTorsionParameter("ksin3");
 
-        for(const auto& indices : indices_vec_)
+        for(std::size_t idx=0; idx<indices_vec_.size(); ++idx)
         {
+            const auto&  indices = indices_vec_[idx];
+            const double k       = ks_[idx];
             torsion_ff->addTorsion(
                     indices[0], indices[1], indices[2], indices[3],
-                    {fourier_table_[0],
+                    {k, fourier_table_[0],
                      fourier_table_[1], fourier_table_[2], fourier_table_[3],
                      fourier_table_[4], fourier_table_[5], fourier_table_[6]});
         }
