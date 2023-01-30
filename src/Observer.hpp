@@ -170,8 +170,11 @@ class DCDObserver final : public ObserverBase
 
             Utility::write_as_bytes(ofs, delta_t_);
 
-            // 9 * integers with null flag
-            for(std::size_t i=0; i<9; ++i) {Utility::write_as_bytes(ofs, zero);}
+            const std::int32_t has_unitcell = use_periodic_;
+            Utility::write_as_bytes(ofs, has_unitcell);
+
+            // 8 * integers with null flag
+            for(std::size_t i=0; i<8; ++i) {Utility::write_as_bytes(ofs, zero);}
 
             const std::int32_t version(24);
             Utility::write_as_bytes(ofs, version);
@@ -204,9 +207,33 @@ class DCDObserver final : public ObserverBase
 
             Utility::write_as_bytes(ofs, block_size);
         }
+    }
 
-        // TODO: implement 4th block existing case
-        return;
+    void write_unitcell(std::ofstream& ofs, const OpenMM::State& state)
+    {
+        OpenMM::Vec3 A, B, C;
+        state.getPeriodicBoxVectors(A, B, C);
+
+        // This software only use cuboid box for periodic boundary condition.
+        // So, each A, B, C vector corresponds to X, Y, Z axis.
+        const double x_A   = A[0] * OpenMM::AngstromsPerNm;
+        const double y_B   = B[1] * OpenMM::AngstromsPerNm;
+        const double z_C   = C[2] * OpenMM::AngstromsPerNm;
+        const double alpha = 90.0;
+        const double beta  = 90.0;
+        const double gamma = 90.0;
+
+        const std::int32_t block_size = sizeof(double) * 6;
+        Utility::write_as_bytes(ofs, block_size);
+
+        Utility::write_as_bytes(ofs, x_A);
+        Utility::write_as_bytes(ofs, gamma);
+        Utility::write_as_bytes(ofs, y_B);
+        Utility::write_as_bytes(ofs, beta);
+        Utility::write_as_bytes(ofs, alpha);
+        Utility::write_as_bytes(ofs, z_C);
+
+        Utility::write_as_bytes(ofs, block_size);
     }
 
     void write_dcd_frame(std::ofstream& ofs, const OpenMM::State& state)
@@ -217,6 +244,9 @@ class DCDObserver final : public ObserverBase
         assert(this->buffer_x_.size() == pos_in_nm.size());
         assert(this->buffer_y_.size() == pos_in_nm.size());
         assert(this->buffer_z_.size() == pos_in_nm.size());
+
+        // write periodic box information
+        if(use_periodic_) { write_unitcell(ofs, state); }
 
         // write position
         {
