@@ -54,10 +54,11 @@ std::unique_ptr<OpenMM::System> read_toml_system(const toml::value& data)
     }
 
     // read ensemble condition
-    if(systems[0].contains("ensemble"))
+    const auto& attr = toml::find(systems[0], "attributes");
+    if(attr.contains("ensemble"))
     {
-        const auto&       ensemble = toml::find(systems[0], "ensemble");
-        const std::string type     = toml::find<std::string>(ensemble, "type");
+        const auto& ensemble = toml::find(attr, "ensemble");
+        const auto& type     = toml::find<std::string>(ensemble, "type");
         if(type == "NPT")
         {
             std::cerr << "    ensemble type is NPT with anisotropic barostat" << std::endl;
@@ -68,7 +69,7 @@ std::unique_ptr<OpenMM::System> read_toml_system(const toml::value& data)
             }
 
             const auto& default_pressure =
-                toml::find<std::array<double, 3>>(ensemble, "default_pressure");
+                toml::find<std::array<double, 3>>(ensemble, "pressure");
             const auto& scale_axis =
                 toml::find<std::array<bool, 3>>(ensemble, "scale_axis");
 
@@ -84,7 +85,6 @@ std::unique_ptr<OpenMM::System> read_toml_system(const toml::value& data)
             if(scale_axis[2]){ std::cerr << " Z: " << std::setw(7) << default_pressure[2]; }
             std::cerr << std::endl;
 
-            const auto attr = toml::find(systems[0], "attributes");
             const auto temperature = toml::expect<double>(attr, "temperature");
 
             const auto barostat_gen =
