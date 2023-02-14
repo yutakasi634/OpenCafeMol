@@ -135,8 +135,8 @@ class UniformWeeksChandlerAndersenForceFieldGenerator final : public ForceFieldG
 
     std::unique_ptr<OpenMM::Force> generate() const noexcept override
     {
-        const std::string potential_formula = 
-            "4*eps * (sigma_r_12 - sigma_r_6 + 1);"
+        const std::string potential_formula =
+            "4*eps * (sigma_r_12 - sigma_r_6 + 0.25);"
             "sigma_r_12 = sigma_r_6^2;"
             "sigma_r_6  = sigma_r^6;"
             "sigma_r    = sigma/r";
