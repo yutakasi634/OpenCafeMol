@@ -85,10 +85,22 @@ std::unique_ptr<OpenMM::System> read_toml_system(const toml::value& data)
             if(scale_axis[2]){ std::cerr << " Z: " << std::setw(7) << default_pressure[2]; }
             std::cerr << std::endl;
 
-            const auto temperature = toml::expect<double>(attr, "temperature");
+            const auto frequency = toml::find_or<std::size_t>(ensemble, "frequency", 25);
+            std::cerr << "        Monte Carlo pressure change frequency is ";
+            std::cerr << frequency << std::endl;
+
+            if(!attr.contains("temperature"))
+            {
+                throw std::runtime_error(
+                        "[error] attributes table must contains temperature.");
+            }
+            const double temperature = toml::find<double>(attr, "temperature");
+            std::cerr << "        barostat temperature is ";
+            std::cerr << std::setw(7) << std::fixed << temperature << std::endl;
 
             const auto barostat_gen =
-                MonteCarloAnisotropicBarostatGenerator(scale_axis, temperature, default_pressure);
+                MonteCarloAnisotropicBarostatGenerator(
+                        scale_axis, temperature, default_pressure, frequency);
             system_ptr->addForce(barostat_gen.generate().release());
         }
     }
@@ -386,9 +398,9 @@ Simulator read_toml_input(const std::string& toml_file_name)
     const double       delta_t         = toml::find<double>(simulator_table, "delta_t");
 
     // read system table
-    const auto& systems       = toml::find(data, "systems");
-    const auto& attr          = toml::find(systems[0], "attributes");
-    const auto  temperature   = toml::find<double>(attr, "temperature");
+    const auto& systems     = toml::find(data, "systems");
+    const auto& attr        = toml::find(systems[0], "attributes");
+    const auto  temperature = toml::find<double>(attr, "temperature");
     const std::vector<OpenMM::Vec3> initial_position_in_nm(read_toml_initial_conf(data));
 
     // construct observers
