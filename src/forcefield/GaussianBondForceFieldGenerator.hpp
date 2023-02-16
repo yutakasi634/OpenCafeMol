@@ -14,8 +14,10 @@ class GaussianBondForceFieldGenerator final : public ForceFieldGeneratorBase
   public:
     GaussianBondForceFieldGenerator(
         const std::vector<indices_type>& indices_vec, const std::vector<double>& ks,
-        const std::vector<double>& v0s, const std::vector<double>& sigmas, const bool use_periodic)
-        : indices_vec_(indices_vec), ks_(ks), v0s_(v0s), sigmas_(sigmas), use_periodic_(use_periodic)
+        const std::vector<double>& v0s, const std::vector<double>& sigmas,
+        const bool use_periodic, const std::size_t ffgen_id = 0)
+        : indices_vec_(indices_vec), ks_(ks), v0s_(v0s), sigmas_(sigmas),
+          use_periodic_(use_periodic), ffgen_id_str_(std::to_string(ffgen_id))
     {
         if(!(indices_vec.size() == v0s.size() && v0s.size() == ks.size()))
         {
@@ -33,12 +35,15 @@ class GaussianBondForceFieldGenerator final : public ForceFieldGeneratorBase
 
     std::unique_ptr<OpenMM::Force> generate() const noexcept override
     {
-        const std::string potential_formula = "k*exp(-(r-v0)^2/(2*sigma^2))";
+        const std::string potential_formula =
+            "GB"+ffgen_id_str_+"_k *"
+            "exp(-(r-GB"+ffgen_id_str_+"_v0)^2 /"
+                 "(2*GB"+ffgen_id_str_+"_sigma^2))";
         auto bond_ff = std::make_unique<OpenMM::CustomBondForce>(potential_formula);
         bond_ff->setUsesPeriodicBoundaryConditions(use_periodic_);
-        bond_ff->addPerBondParameter("k");
-        bond_ff->addPerBondParameter("v0");
-        bond_ff->addPerBondParameter("sigma");
+        bond_ff->addPerBondParameter("GB"+ffgen_id_str_+"_k");
+        bond_ff->addPerBondParameter("GB"+ffgen_id_str_+"_v0");
+        bond_ff->addPerBondParameter("GB"+ffgen_id_str_+"_sigma");
 
         for(std::size_t idx=0; idx<indices_vec_.size(); ++idx)
         {
@@ -66,6 +71,7 @@ class GaussianBondForceFieldGenerator final : public ForceFieldGeneratorBase
     std::vector<double>       v0s_;
     std::vector<double>       sigmas_;
     const bool                use_periodic_;
+    const std::string         ffgen_id_str_;
 };
 
 #endif // OPEN_AICG2_PLUS_GAUSSIAN_BOND_FORCE_FIELD_GENERATOR_HPP

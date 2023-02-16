@@ -12,11 +12,12 @@ class UniformWeeksChandlerAndersenForceFieldGenerator final : public ForceFieldG
         const std::size_t system_size, const double eps, const double sigma,
         const std::vector<std::size_t> former_group_vec,
         const std::vector<std::size_t> latter_group_vec,
-        const index_pairs_type& ignore_list, const bool use_periodic,
+        const index_pairs_type& ignore_list,
+        const bool use_periodic, const std::size_t ffgen_id,
         const std::vector<std::pair<std::string, std::string>> ignore_group_pairs = {},
         const std::vector<std::optional<std::string>> group_vec = {})
-        : system_size_(system_size), eps_(eps), sigma_(sigma),
-          ignore_list_(ignore_list), use_periodic_(use_periodic),
+        : system_size_(system_size), eps_(eps), sigma_(sigma), ignore_list_(ignore_list),
+          use_periodic_(use_periodic), ffgen_id_str_(std::to_string(ffgen_id)),
           former_group_size_(former_group_vec.size()), latter_group_size_(latter_group_vec.size())
     {
         // make interaction group
@@ -136,14 +137,14 @@ class UniformWeeksChandlerAndersenForceFieldGenerator final : public ForceFieldG
     std::unique_ptr<OpenMM::Force> generate() const noexcept override
     {
         const std::string potential_formula =
-            "4*eps * (sigma_r_12 - sigma_r_6 + 0.25);"
+            "4*UWCA"+ffgen_id_str_+"_eps * (sigma_r_12 - sigma_r_6 + 0.25);"
             "sigma_r_12 = sigma_r_6^2;"
             "sigma_r_6  = sigma_r^6;"
-            "sigma_r    = sigma/r";
+            "sigma_r    = UWCA"+ffgen_id_str_+"_sigma/r";
         auto uwca_ff = std::make_unique<OpenMM::CustomNonbondedForce>(potential_formula);
 
-        uwca_ff->addGlobalParameter("sigma", sigma_);
-        uwca_ff->addGlobalParameter("eps", eps_);
+        uwca_ff->addGlobalParameter("UWCA"+ffgen_id_str_+"_sigma", sigma_);
+        uwca_ff->addGlobalParameter("UWCA"+ffgen_id_str_+"_eps", eps_);
 
         for(std::size_t idx=0; idx<system_size_; ++idx)
         {
@@ -188,6 +189,7 @@ class UniformWeeksChandlerAndersenForceFieldGenerator final : public ForceFieldG
     const double           sigma_;
     const index_pairs_type ignore_list_;
     const bool             use_periodic_;
+    const std::string      ffgen_id_str_;
     const std::size_t      former_group_size_;
     const std::size_t      latter_group_size_;
 

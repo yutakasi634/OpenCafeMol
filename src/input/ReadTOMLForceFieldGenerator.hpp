@@ -64,7 +64,8 @@ read_toml_harmonic_bond_ff_generator(
 
 const GaussianBondForceFieldGenerator
 read_toml_gaussian_bond_ff_generator(
-        const toml::value& local_ff_data, Topology& topology, const bool use_periodic)
+        const toml::value& local_ff_data, Topology& topology,
+        const bool use_periodic, const std::size_t ffgen_id)
 {
     const auto& params = toml::find<toml::array>(local_ff_data, "parameters");
     const auto& env = local_ff_data.contains("env") ? local_ff_data.at("env") : toml::value{};
@@ -102,12 +103,13 @@ read_toml_gaussian_bond_ff_generator(
     }
 
     std::cerr << "    BondLength    : Gaussian (" << indices_vec.size() << " found)" << std::endl;
-    return GaussianBondForceFieldGenerator(indices_vec, ks, v0s, sigmas, use_periodic);
+    return GaussianBondForceFieldGenerator(indices_vec, ks, v0s, sigmas, use_periodic, ffgen_id);
 }
 
 const GoContactForceFieldGenerator
 read_toml_go_contact_ff_generator(
-        const toml::value& local_ff_data, Topology& topology, const bool use_periodic)
+        const toml::value& local_ff_data, Topology& topology,
+        const bool use_periodic, const std::size_t ffgen_id)
 {
     // TODO: enable to optimization based on cutoff
     const auto& params = toml::find<toml::array>(local_ff_data, "parameters");
@@ -141,7 +143,7 @@ read_toml_go_contact_ff_generator(
     }
 
     std::cerr << "    BondLength    : GoContact (" << indices_vec.size() << " found)" << std::endl;
-    return GoContactForceFieldGenerator(indices_vec, ks, r0s, use_periodic);
+    return GoContactForceFieldGenerator(indices_vec, ks, r0s, use_periodic, ffgen_id);
 }
 
 const HarmonicAngleForceFieldGenerator
@@ -199,7 +201,8 @@ read_toml_harmonic_angle_ff_generator(
 const FlexibleLocalAngleForceFieldGenerator
 read_toml_flexible_local_angle_ff_generator(
         const toml::value& local_ff_data, const std::string& aa_type,
-        const std::array<double, 10> spline_table, Topology& topology, const bool use_periodic)
+        const std::array<double, 10> spline_table, Topology& topology,
+        const bool use_periodic, const std::size_t ffgen_id)
 {
     const auto& params = toml::find<toml::array>(local_ff_data, "parameters");
     const auto& env = local_ff_data.contains("env") ? local_ff_data.at("env") : toml::value{};
@@ -234,12 +237,13 @@ read_toml_flexible_local_angle_ff_generator(
               << aa_type << " (" << indices_vec.size() << " found)" << std::endl;
 
     return FlexibleLocalAngleForceFieldGenerator(
-               indices_vec, ks, spline_table, aa_type, use_periodic);
+               indices_vec, ks, spline_table, aa_type, use_periodic, ffgen_id);
 }
 
 const GaussianDihedralForceFieldGenerator
 read_toml_gaussian_dihedral_ff_generator(
-        const toml::value& local_ff_data, Topology& topology, const bool use_periodic)
+        const toml::value& local_ff_data, Topology& topology,
+        const bool use_periodic, const std::size_t ffgen_id)
 {
 
     const auto& params = toml::find<toml::array>(local_ff_data, "parameters");
@@ -276,13 +280,15 @@ read_toml_gaussian_dihedral_ff_generator(
     }
 
     std::cerr << "    DihedralAngle : Gaussian (" << indices_vec.size() << " found)" << std::endl;
-    return GaussianDihedralForceFieldGenerator(indices_vec, ks, theta0s, sigmas, use_periodic);
+    return GaussianDihedralForceFieldGenerator(
+            indices_vec, ks, theta0s, sigmas, use_periodic, ffgen_id);
 }
 
 const FlexibleLocalDihedralForceFieldGenerator
 read_toml_flexible_local_dihedral_ff_generator(
         const toml::value& local_ff_data, const std::pair<std::string, std::string> aa_pair_type,
-        const std::array<double, 7> fourier_table, Topology& topology, const bool use_periodic)
+        const std::array<double, 7> fourier_table, Topology& topology,
+        const bool use_periodic, const std::size_t ffgen_id)
 {
     const auto& params = toml::find<toml::array>(local_ff_data, "parameters");
     const auto& env = local_ff_data.contains("env") ? local_ff_data.at("env") : toml::value{};
@@ -390,7 +396,7 @@ read_toml_flexible_local_dihedral_ff_generator(
     std::cerr << "    DihedralAngle : FlexibleLocalDihedral - "
               << aa_pair_name << " (" << indices_vec.size() << " found)" << std::endl;
     return FlexibleLocalDihedralForceFieldGenerator(
-               indices_vec, ks, fourier_table, aa_pair_name, use_periodic);
+               indices_vec, ks, fourier_table, aa_pair_name, use_periodic, ffgen_id);
 }
 
 // ----------------------------------------------------------------------------
@@ -488,7 +494,8 @@ read_ignore_group(const toml::value& ignore_table)
 const ExcludedVolumeForceFieldGenerator
 read_toml_excluded_volume_ff_generator(
     const toml::value& global_ff_data, const std::size_t system_size, const Topology& topology,
-    const std::vector<std::optional<std::string>>& group_vec, const bool use_periodic)
+    const std::vector<std::optional<std::string>>& group_vec,
+    const bool use_periodic, const std::size_t ffgen_id)
 {
     using index_pairs_type = std::vector<std::pair<std::size_t, std::size_t>>;
 
@@ -522,14 +529,16 @@ read_toml_excluded_volume_ff_generator(
         ignore_group_pairs = read_ignore_group(ignore);
     }
 
-    return ExcludedVolumeForceFieldGenerator(eps, cutoff, radius_vec, ignore_list,
-                                             use_periodic, ignore_group_pairs, group_vec);
+    return ExcludedVolumeForceFieldGenerator(
+            eps, cutoff, radius_vec, ignore_list, use_periodic, ffgen_id,
+            ignore_group_pairs, group_vec);
 }
 
 const WeeksChandlerAndersenForceFieldGenerator
 read_toml_weeks_chandler_andersen_ff_generator(
         const toml::value& global_ff_data, const std::size_t system_size, const Topology& topology,
-        const std::vector<std::optional<std::string>>& group_vec, const bool use_periodic)
+        const std::vector<std::optional<std::string>>& group_vec,
+        const bool use_periodic, const std::size_t ffgen_id)
 {
     using index_pairs_type = WeeksChandlerAndersenForceFieldGenerator::index_pairs_type;
 
@@ -566,8 +575,9 @@ read_toml_weeks_chandler_andersen_ff_generator(
         ignore_group_pairs = read_ignore_group(ignore);
     }
 
-    return WeeksChandlerAndersenForceFieldGenerator(sigma_vec, eps_vec, ignore_list, use_periodic,
-                                                    ignore_group_pairs, group_vec);
+    return WeeksChandlerAndersenForceFieldGenerator(
+            sigma_vec, eps_vec, ignore_list, use_periodic, ffgen_id,
+            ignore_group_pairs, group_vec);
 }
 
 const UniformWeeksChandlerAndersenForceFieldGenerator
@@ -575,7 +585,8 @@ read_toml_uniform_weeks_chandler_andersen_ff_generator(
         const toml::value& global_ff_data, const std::size_t system_size,
         const double sigma, const double epsilon,
         const std::pair<std::string, std::string>& name_pair, const Topology& topology,
-        const std::vector<std::optional<std::string>>& group_vec, const bool use_periodic)
+        const std::vector<std::optional<std::string>>& group_vec,
+        const bool use_periodic, const std::size_t ffgen_id)
 {
     const auto& params = toml::find<toml::array>(global_ff_data, "parameters");
     const auto& env = global_ff_data.contains("env") ? global_ff_data.at("env") : toml::value{};
@@ -616,14 +627,15 @@ read_toml_uniform_weeks_chandler_andersen_ff_generator(
 
     return UniformWeeksChandlerAndersenForceFieldGenerator(
             system_size, epsilon, sigma, former_participants, latter_participants,
-            ignore_list, use_periodic, ignore_group_pairs, group_vec);
+            ignore_list, use_periodic, ffgen_id, ignore_group_pairs, group_vec);
 }
 
 const DebyeHuckelForceFieldGenerator
 read_toml_debye_huckel_ff_generator(
     const toml::value& global_ff_data, const std::size_t system_size,
     const double ionic_strength, const double temperature, const Topology& topology,
-    const std::vector<std::optional<std::string>>& group_vec, const bool use_periodic)
+    const std::vector<std::optional<std::string>>& group_vec,
+    const bool use_periodic, const std::size_t ffgen_id)
 {
     using index_pairs_type = DebyeHuckelForceFieldGenerator::index_pairs_type;
 
@@ -656,13 +668,14 @@ read_toml_debye_huckel_ff_generator(
 
     return DebyeHuckelForceFieldGenerator(
             ionic_strength, temperature, cutoff, charge_vec, ignore_list, use_periodic,
-            ignore_group_pairs, group_vec);
+            ffgen_id, ignore_group_pairs, group_vec);
 }
 
 const iSoLFAttractiveForceFieldGenerator
 read_toml_isolf_attractive_ff_generator(
     const toml::value& global_ff_data, const std::size_t system_size, const Topology& topology,
-    const std::vector<std::optional<std::string>>& group_vec, const bool use_periodic)
+    const std::vector<std::optional<std::string>>& group_vec,
+    const bool use_periodic, const std::size_t ffgen_id)
 {
     using index_pairs_type = iSoLFAttractiveForceFieldGenerator::index_pairs_type;
 
@@ -702,7 +715,7 @@ read_toml_isolf_attractive_ff_generator(
     }
 
     return iSoLFAttractiveForceFieldGenerator(sigma_vec, eps_vec, omega_vec, ignore_list,
-            use_periodic, ignore_group_pairs, group_vec);
+            use_periodic, ffgen_id, ignore_group_pairs, group_vec);
 }
 
 const UniformLennardJonesAttractiveForceFieldGenerator
@@ -710,7 +723,8 @@ read_toml_uniform_lennard_jones_attractive_ff_generator(
         const toml::value& global_ff_data, const std::size_t system_size,
         const double sigma, const double epsilon,
         const std::pair<std::string, std::string>& name_pair, const Topology& topology,
-        const std::vector<std::optional<std::string>>& group_vec, const bool use_periodic)
+        const std::vector<std::optional<std::string>>& group_vec,
+        const bool use_periodic, const std::size_t ffgen_id)
 {
     const auto& params = toml::find<toml::array>(global_ff_data, "parameters");
     const auto& env = global_ff_data.contains("env") ? global_ff_data.at("env") : toml::value{};
@@ -753,7 +767,7 @@ read_toml_uniform_lennard_jones_attractive_ff_generator(
 
     return UniformLennardJonesAttractiveForceFieldGenerator(
         system_size, epsilon, sigma, cutoff, former_participants, latter_participants,
-        ignore_list, use_periodic, ignore_group_pairs, group_vec);
+        ignore_list, use_periodic, ffgen_id, ignore_group_pairs, group_vec);
 }
 
 #endif // OPEN_AICG2_PLUS_READ_TOML_FORCE_FIELD_GENERATOR_HPP

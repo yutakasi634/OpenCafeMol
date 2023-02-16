@@ -11,14 +11,17 @@ class UniformLennardJonesAttractiveForceFieldGenerator final : public ForceField
     UniformLennardJonesAttractiveForceFieldGenerator(
         const std::size_t system_size, const double eps,
         const double sigma, const double cutoff_ratio,
-        const std::vector<std::size_t> former_group_vec,
-        const std::vector<std::size_t> latter_group_vec,
+        const std::vector<std::size_t>& former_group_vec,
+        const std::vector<std::size_t>& latter_group_vec,
         const index_pairs_type& ignore_list, const bool use_periodic,
+        const std::size_t ffgen_count = 0,
         const std::vector<std::pair<std::string, std::string>> ignore_group_pairs = {},
         const std::vector<std::optional<std::string>> group_vec = {})
         : system_size_(system_size), eps_(eps), sigma_(sigma),
           ignore_list_(ignore_list), use_periodic_(use_periodic),
-          former_group_size_(former_group_vec.size()), latter_group_size_(latter_group_vec.size())
+          former_group_size_(former_group_vec.size()),
+          latter_group_size_(latter_group_vec.size()),
+          ffgen_id_str_(std::to_string(ffgen_count))
     {
         cutoff_correction_ =
             4.0*(std::pow(1.0 / cutoff_ratio, 12) - std::pow(1.0 / cutoff_ratio, 6));
@@ -141,17 +144,18 @@ class UniformLennardJonesAttractiveForceFieldGenerator final : public ForceField
     std::unique_ptr<OpenMM::Force> generate() const noexcept override
     {
         const std::string potential_formula =
-            "epsilon * (step(r-threthold)*4*(sigma_r_12 - sigma_r_6) - step(threthold-r) -"
-            "           cutoff_correction);"
+            "ULJ"+ffgen_id_str_+"_epsilon *"
+            "(step(r-threthold)*4*(sigma_r_12 - sigma_r_6) - step(threthold-r) -"
+            " ULJ"+ffgen_id_str_+"_cutoff_correction);"
             "sigma_r_12 = sigma_r_6^2;"
             "sigma_r_6  = sigma_r^6;"
-            "sigma_r    = sigma/r;"
-            "threthold  = sigma*2^(1/6)";
+            "sigma_r    = ULJ"+ffgen_id_str_+"_sigma/r;"
+            "threthold  = ULJ"+ffgen_id_str_+"_sigma*2^(1/6)";
         auto uljattr_ff = std::make_unique<OpenMM::CustomNonbondedForce>(potential_formula);
 
-        uljattr_ff->addGlobalParameter("epsilon", eps_);
-        uljattr_ff->addGlobalParameter("sigma", sigma_);
-        uljattr_ff->addGlobalParameter("cutoff_correction", cutoff_correction_);
+        uljattr_ff->addGlobalParameter("ULJ"+ffgen_id_str_+"_epsilon", eps_);
+        uljattr_ff->addGlobalParameter("ULJ"+ffgen_id_str_+"_sigma", sigma_);
+        uljattr_ff->addGlobalParameter("ULJ"+ffgen_id_str_+"_cutoff_correction", cutoff_correction_);
 
         for(std::size_t idx=0; idx<system_size_; ++idx)
         {
@@ -197,6 +201,7 @@ class UniformLennardJonesAttractiveForceFieldGenerator final : public ForceField
     const bool             use_periodic_;
     const std::size_t      former_group_size_;
     const std::size_t      latter_group_size_;
+    const std::string      ffgen_id_str_;
 
     std::vector<interaction_group_type> interaction_groups_;
     double                              cutoff_correction_;

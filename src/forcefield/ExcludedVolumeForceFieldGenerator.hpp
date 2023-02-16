@@ -17,10 +17,11 @@ class ExcludedVolumeForceFieldGenerator final: public ForceFieldGeneratorBase
     ExcludedVolumeForceFieldGenerator(const double eps, const double cutoff,
         const std::vector<std::optional<double>>& radiuses,
         const index_pairs_type& ignore_list, const bool use_periodic,
+        const std::size_t ffgen_count = 0,
         const std::vector<std::pair<std::string, std::string>> ignore_group_pairs = {},
         const std::vector<std::optional<std::string>> group_vec = {})
         : eps_(eps), cutoff_(cutoff), radiuses_(radiuses), ignore_list_(ignore_list),
-          use_periodic_(use_periodic)
+          use_periodic_(use_periodic), ffgen_id_str_(std::to_string(ffgen_count))
     {
         if(ignore_group_pairs.size() == 0)
         {
@@ -114,22 +115,22 @@ class ExcludedVolumeForceFieldGenerator final: public ForceFieldGeneratorBase
     std::unique_ptr<OpenMM::Force> generate() const noexcept override
     {
         const std::string potential_formula =
-            "epsilon*(sigma1+sigma2)^12*((1/r)^12-cutoff_correction)";
+            "EXV"+ffgen_id_str_+"_epsilon*"
+            "(sigma_sum)^12*((1/r)^12-EXV"+ffgen_id_str_+"_cutoff_correction);"
+            "sigma_sum = EXV"+ffgen_id_str_+"_sigma1 + EXV"+ffgen_id_str_+"_sigma2";
         auto exv_ff = std::make_unique<OpenMM::CustomNonbondedForce>(potential_formula);
 
-        exv_ff->addPerParticleParameter("sigma");
-        exv_ff->addGlobalParameter("epsilon", eps_);
+        exv_ff->addPerParticleParameter("EXV"+ffgen_id_str_+"_sigma");
+        exv_ff->addGlobalParameter("EXV"+ffgen_id_str_+"_epsilon", eps_);
 
         double max_radius        = std::numeric_limits<double>::min();
         double second_max_radius = std::numeric_limits<double>::min();
-        std::set<int> participants;
         for(std::size_t idx=0; idx<radiuses_.size(); ++idx)
         {
             const std::optional<double>& radius = radiuses_[idx];
             if(radius)
             {
                 exv_ff->addParticle({radius.value()});
-                participants.insert(idx);
 
                 if(max_radius < radius.value())
                 {
@@ -165,7 +166,7 @@ class ExcludedVolumeForceFieldGenerator final: public ForceFieldGeneratorBase
         const double cutoff_correction = std::pow(1.0 / cutoff_distance, 12);
         std::cerr << "        cutoff disntace is " << cutoff_distance << " nm" << std::endl;
         exv_ff->setCutoffDistance(cutoff_distance);
-        exv_ff->addGlobalParameter("cutoff_correction", cutoff_correction);
+        exv_ff->addGlobalParameter("EXV"+ffgen_id_str_+"_cutoff_correction", cutoff_correction);
 
         // set exclusion list
         for(const auto& pair : ignore_list_)
@@ -208,6 +209,7 @@ class ExcludedVolumeForceFieldGenerator final: public ForceFieldGeneratorBase
     index_pairs_type                    ignore_list_;
     std::vector<interaction_group_type> interaction_groups_;
     const bool                          use_periodic_;
+    const std::string                   ffgen_id_str_;
 };
 
 #endif // OPEN_AICG2_PLUS_EXCLUDED_VOLUME_FORCE_FIELD_GENERATOR_HPP

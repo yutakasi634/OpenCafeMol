@@ -11,9 +11,9 @@ class GaussianDihedralForceFieldGenerator final : public ForceFieldGeneratorBase
     GaussianDihedralForceFieldGenerator(
         const std::vector<indices_type>& indices_vec, const std::vector<double>& ks,
         const std::vector<double>&       theta0s,     const std::vector<double>& sigmas,
-        const bool use_periodic)
+        const bool use_periodic, const std::size_t ffgen_id = 0)
         : indices_vec_(indices_vec), ks_(ks), theta0s_(theta0s), sigmas_(sigmas),
-          use_periodic_(use_periodic)
+          use_periodic_(use_periodic), ffgen_id_str_(std::to_string(ffgen_id))
     {
         const std::size_t system_size = indices_vec.size();
         if(!(system_size == ks.size() && system_size == theta0s.size() &&
@@ -33,12 +33,15 @@ class GaussianDihedralForceFieldGenerator final : public ForceFieldGeneratorBase
 
     std::unique_ptr<OpenMM::Force> generate() const noexcept override
     {
-        const std::string potential_formula = "k*exp(-(theta-theta0)^2/(2*sigma^2))";
+        const std::string potential_formula =
+            "GD"+ffgen_id_str_+"_k *"
+            "exp(-(theta-GD"+ffgen_id_str_+"_theta0)^2 /"
+            "     (2*GD"+ffgen_id_str_+"_sigma^2))";
         auto torsion_ff = std::make_unique<OpenMM::CustomTorsionForce>(potential_formula);
         torsion_ff->setUsesPeriodicBoundaryConditions(use_periodic_);
-        torsion_ff->addPerTorsionParameter("k");
-        torsion_ff->addPerTorsionParameter("theta0");
-        torsion_ff->addPerTorsionParameter("sigma");
+        torsion_ff->addPerTorsionParameter("GD"+ffgen_id_str_+"_k");
+        torsion_ff->addPerTorsionParameter("GD"+ffgen_id_str_+"_theta0");
+        torsion_ff->addPerTorsionParameter("GD"+ffgen_id_str_+"_sigma");
 
         for(std::size_t idx=0; idx<indices_vec_.size(); ++idx)
         {
@@ -67,6 +70,7 @@ class GaussianDihedralForceFieldGenerator final : public ForceFieldGeneratorBase
     std::vector<double>       theta0s_;
     std::vector<double>       sigmas_;
     const bool                use_periodic_;
+    const std::string         ffgen_id_str_;
 };
 
 #endif // OPEN_AICG2_PLUS_GAUSSIAN_DIHEDRAL_FORCE_FIELD_GENERATOR_HPP

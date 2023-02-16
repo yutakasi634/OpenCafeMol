@@ -14,9 +14,10 @@ class FlexibleLocalDihedralForceFieldGenerator final : public ForceFieldGenerato
     FlexibleLocalDihedralForceFieldGenerator(
         const std::vector<indices_type>& indices_vec, const std::vector<double>& ks,
         const std::array<double, 7>& fourier_table, const std::string& aa_pair_name,
-        const bool use_periodic)
+        const bool use_periodic, const std::size_t ffgen_id = 0)
         : indices_vec_(indices_vec), ks_(ks),
-          fourier_table_(fourier_table), aa_pair_name_(aa_pair_name), use_periodic_(use_periodic)
+          fourier_table_(fourier_table), aa_pair_name_(aa_pair_name),
+          use_periodic_(use_periodic), ffgen_id_str_(std::to_string(ffgen_id))
     {
         if(!(indices_vec.size() == ks.size()))
         {
@@ -33,20 +34,23 @@ class FlexibleLocalDihedralForceFieldGenerator final : public ForceFieldGenerato
     std::unique_ptr<OpenMM::Force> generate() const noexcept override
     {
         const std::string fld_expression =
-            "k *"
-            "(c + kcos1*cos(  theta) + ksin1*sin(  theta)"
-            "   + kcos2*cos(2*theta) + ksin2*sin(2*theta)"
-            "   + kcos3*cos(3*theta) + ksin3*sin(3*theta))";
+            "FLD"+ffgen_id_str_+"_k *"
+            "(FLD"+ffgen_id_str_+"_c + FLD"+ffgen_id_str_+"_kcos1*cos(  theta) +"
+            "                          FLD"+ffgen_id_str_+"_ksin1*sin(  theta) +"
+            "                          FLD"+ffgen_id_str_+"_kcos2*cos(2*theta) +"
+            "                          FLD"+ffgen_id_str_+"_ksin2*sin(2*theta) +"
+            "                          FLD"+ffgen_id_str_+"_kcos3*cos(3*theta) +"
+            "                          FLD"+ffgen_id_str_+"_ksin3*sin(3*theta))";
         auto torsion_ff = std::make_unique<OpenMM::CustomTorsionForce>(fld_expression);
         torsion_ff->setUsesPeriodicBoundaryConditions(use_periodic_);
-        torsion_ff->addPerTorsionParameter("k");
-        torsion_ff->addPerTorsionParameter("c");
-        torsion_ff->addPerTorsionParameter("kcos1");
-        torsion_ff->addPerTorsionParameter("ksin1");
-        torsion_ff->addPerTorsionParameter("kcos2");
-        torsion_ff->addPerTorsionParameter("ksin2");
-        torsion_ff->addPerTorsionParameter("kcos3");
-        torsion_ff->addPerTorsionParameter("ksin3");
+        torsion_ff->addPerTorsionParameter("FLD"+ffgen_id_str_+"_k");
+        torsion_ff->addPerTorsionParameter("FLD"+ffgen_id_str_+"_c");
+        torsion_ff->addPerTorsionParameter("FLD"+ffgen_id_str_+"_kcos1");
+        torsion_ff->addPerTorsionParameter("FLD"+ffgen_id_str_+"_ksin1");
+        torsion_ff->addPerTorsionParameter("FLD"+ffgen_id_str_+"_kcos2");
+        torsion_ff->addPerTorsionParameter("FLD"+ffgen_id_str_+"_ksin2");
+        torsion_ff->addPerTorsionParameter("FLD"+ffgen_id_str_+"_kcos3");
+        torsion_ff->addPerTorsionParameter("FLD"+ffgen_id_str_+"_ksin3");
 
         for(std::size_t idx=0; idx<indices_vec_.size(); ++idx)
         {
@@ -79,6 +83,7 @@ class FlexibleLocalDihedralForceFieldGenerator final : public ForceFieldGenerato
     std::array<double, 7>     fourier_table_;
     std::string               aa_pair_name_;
     const bool                use_periodic_;
+    const std::string         ffgen_id_str_;
 };
 
 #endif // OPEN_AICG2_PLUS_FLEXIBLE_LOCAL_DIHEDRAL_FORCE_FIELD_GENERATOR_HPP

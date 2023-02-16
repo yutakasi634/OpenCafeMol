@@ -127,6 +127,9 @@ std::unique_ptr<OpenMM::System> read_toml_system(const toml::value& data)
     std::cerr << "generating forcefields..." << std::endl;
     // read forcefields info
     const auto ff = toml::find(data, "forcefields").at(0);
+    // to distinguish same name parameters between forcefields, we need to label forcefield
+    // id to that parameter. so we need to count the number of forcefield generator.
+    std::size_t ffgen_count = 0;
     if(ff.contains("local"))
     {
         const auto& locals = toml::find(ff, "local").as_array();
@@ -140,24 +143,30 @@ std::unique_ptr<OpenMM::System> read_toml_system(const toml::value& data)
                 const auto ff_gen =
                     read_toml_harmonic_bond_ff_generator(local_ff, topology, use_periodic);
                 system_ptr->addForce(ff_gen.generate().release());
+                ++ffgen_count;
             }
             else if(interaction == "BondLength" && potential == "Gaussian")
             {
                 const auto ff_gen =
-                    read_toml_gaussian_bond_ff_generator(local_ff, topology, use_periodic);
+                    read_toml_gaussian_bond_ff_generator(
+                        local_ff, topology, use_periodic, ffgen_count);
                 system_ptr->addForce(ff_gen.generate().release());
+                ++ffgen_count;
             }
             else if(interaction == "BondLength" && potential == "GoContact")
             {
                 const auto ff_gen =
-                    read_toml_go_contact_ff_generator(local_ff, topology, use_periodic);
+                    read_toml_go_contact_ff_generator(
+                        local_ff, topology, use_periodic, ffgen_count);
                 system_ptr->addForce(ff_gen.generate().release());
+                ++ffgen_count;
             }
             else if(interaction == "BondAngle" && potential == "Harmonic")
             {
                 const auto ff_gen =
                     read_toml_harmonic_angle_ff_generator(local_ff, topology, use_periodic);
                 system_ptr->addForce(ff_gen.generate().release());
+                ++ffgen_count;
             }
             else if(interaction == "BondAngle" && potential == "FlexibleLocalAngle")
             {
@@ -165,15 +174,18 @@ std::unique_ptr<OpenMM::System> read_toml_system(const toml::value& data)
                 {
                     const auto ff_gen =
                         read_toml_flexible_local_angle_ff_generator(
-                                local_ff, aa_type, spline_table, topology, use_periodic);
+                            local_ff, aa_type, spline_table, topology, use_periodic, ffgen_count);
                     system_ptr->addForce(ff_gen.generate().release());
                 }
+                ++ffgen_count;
             }
             else if(interaction == "DihedralAngle" && potential == "Gaussian")
             {
                 const auto ff_gen =
-                    read_toml_gaussian_dihedral_ff_generator(local_ff, topology, use_periodic);
+                    read_toml_gaussian_dihedral_ff_generator(
+                            local_ff, topology, use_periodic, ffgen_count);
                 system_ptr->addForce(ff_gen.generate().release());
+                ++ffgen_count;
             }
             else if(interaction == "DihedralAngle" && potential == "FlexibleLocalDihedral")
             {
@@ -181,8 +193,10 @@ std::unique_ptr<OpenMM::System> read_toml_system(const toml::value& data)
                 {
                     const auto ff_gen =
                         read_toml_flexible_local_dihedral_ff_generator(
-                            local_ff, aa_pair_type, fourier_table, topology, use_periodic);
+                            local_ff, aa_pair_type, fourier_table, topology,
+                            use_periodic, ffgen_count);
                     system_ptr->addForce(ff_gen.generate().release());
+                    ++ffgen_count;
                 }
             }
         }
@@ -200,8 +214,9 @@ std::unique_ptr<OpenMM::System> read_toml_system(const toml::value& data)
             {
                 const auto ff_gen =
                     read_toml_excluded_volume_ff_generator(
-                            global_ff, system_size, topology, group_vec, use_periodic);
+                        global_ff, system_size, topology, group_vec, use_periodic, ffgen_count);
                 system_ptr->addForce(ff_gen.generate().release());
+                ++ffgen_count;
             }
             if(potential == "WCA")
             {
@@ -233,7 +248,7 @@ std::unique_ptr<OpenMM::System> read_toml_system(const toml::value& data)
                                 const auto ff_gen =
                                     read_toml_uniform_weeks_chandler_andersen_ff_generator(
                                         global_ff, system_size, sigma, epsilon, name_pair, topology,
-                                        group_vec, use_periodic);
+                                        group_vec, use_periodic, ffgen_count);
                                 if(ff_gen.former_group_size() == 0 || ff_gen.latter_group_size() == 0)
                                 {
                                     std::cerr << "        "
@@ -242,6 +257,7 @@ std::unique_ptr<OpenMM::System> read_toml_system(const toml::value& data)
                                     continue;
                                 }
                                 system_ptr->addForce(ff_gen.generate().release());
+                                ++ffgen_count;
                                 treated_pair.push_back(name_pair);
                             }
                         }
@@ -251,8 +267,9 @@ std::unique_ptr<OpenMM::System> read_toml_system(const toml::value& data)
                 {
                     const auto ff_gen =
                         read_toml_weeks_chandler_andersen_ff_generator(
-                                global_ff, system_size, topology, group_vec, use_periodic);
+                            global_ff, system_size, topology, group_vec, use_periodic, ffgen_count);
                     system_ptr->addForce(ff_gen.generate().release());
+                    ++ffgen_count;
                 }
             }
             if(potential == "DebyeHuckel")
@@ -274,15 +291,17 @@ std::unique_ptr<OpenMM::System> read_toml_system(const toml::value& data)
                 const auto ff_gen =
                     read_toml_debye_huckel_ff_generator(global_ff, system_size,
                         ionic_strength.unwrap(), temperature.unwrap(), topology, group_vec,
-                        use_periodic);
+                        use_periodic, ffgen_count);
                 system_ptr->addForce(ff_gen.generate().release());
+                ++ffgen_count;
             }
             if(potential == "iSoLFAttractive")
             {
                 const auto ff_gen =
                     read_toml_isolf_attractive_ff_generator(
-                            global_ff, system_size, topology, group_vec, use_periodic);
+                        global_ff, system_size, topology, group_vec, use_periodic, ffgen_count);
                 system_ptr->addForce(ff_gen.generate().release());
+                ++ffgen_count;
             }
             if(potential == "LennardJonesAttractive")
             {
@@ -314,7 +333,7 @@ std::unique_ptr<OpenMM::System> read_toml_system(const toml::value& data)
                                 const auto ff_gen =
                                     read_toml_uniform_lennard_jones_attractive_ff_generator(
                                         global_ff, system_size, sigma, epsilon, name_pair,
-                                        topology, group_vec, use_periodic);
+                                        topology, group_vec, use_periodic, ffgen_count);
                                 if(ff_gen.former_group_size() == 0 ||ff_gen.latter_group_size() == 0)                                {
                                     std::cerr << "        "
                                         << "[warning] this force field generation will be skipped"
@@ -322,6 +341,7 @@ std::unique_ptr<OpenMM::System> read_toml_system(const toml::value& data)
                                     continue;
                                 }
                                 system_ptr->addForce(ff_gen.generate().release());
+                                ++ffgen_count;
                                 treated_pair.push_back(name_pair);
                             }
                         }

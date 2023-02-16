@@ -14,12 +14,13 @@ class DebyeHuckelForceFieldGenerator final : public ForceFieldGeneratorBase
     DebyeHuckelForceFieldGenerator(const double ionic_strength,
         const double temperature, const double cutoff_ratio,
         const std::vector<std::optional<double>>& charges,
-        const index_pairs_type& ignore_list, const bool use_periodic,
+        const index_pairs_type& ignore_list,
+        const bool use_periodic, const std::size_t ffgen_id = 0,
         const std::vector<std::pair<std::string, std::string>> ignore_group_pairs = {},
         const std::vector<std::optional<std::string>> group_vec = {})
         : ionic_strength_(ionic_strength), temperature_(temperature),
           cutoff_ratio_(cutoff_ratio), charges_(charges), ignore_list_(ignore_list),
-          use_periodic_(use_periodic)
+          use_periodic_(use_periodic), ffgen_id_str_(std::to_string(ffgen_id))
     {
         const double epsk = calc_dielectric_water(temperature_, ionic_strength_);
         const double eps0 = Constant::eps0 / Constant::elementary_charge
@@ -128,13 +129,15 @@ class DebyeHuckelForceFieldGenerator final : public ForceFieldGeneratorBase
     {
 
         const std::string potential_formula =
-            "q1*q2*inv_4_pi_eps0_epsk*(exp(-r/debye_length)-cutoff_correction)";
+            "DH"+ffgen_id_str_+"_q1*DH"+ffgen_id_str_+"_q2 *"
+            "DH"+ffgen_id_str_+"_inv_4_pi_eps0_epsk *"
+            "(exp(-r/DH"+ffgen_id_str_+"_debye_length)-DH"+ffgen_id_str_+"_cutoff_correction)";
         auto dh_ff = std::make_unique<OpenMM::CustomNonbondedForce>(potential_formula);
 
-        dh_ff->addPerParticleParameter("q");
-        dh_ff->addGlobalParameter("inv_4_pi_eps0_epsk", inv_4_pi_eps0_epsk_);
-        dh_ff->addGlobalParameter("debye_length",       debye_length_);
-        dh_ff->addGlobalParameter("cutoff_correction",  cutoff_correction_);
+        dh_ff->addPerParticleParameter("DH"+ffgen_id_str_+"_q");
+        dh_ff->addGlobalParameter("DH"+ffgen_id_str_+"_inv_4_pi_eps0_epsk", inv_4_pi_eps0_epsk_);
+        dh_ff->addGlobalParameter("DH"+ffgen_id_str_+"_debye_length",       debye_length_);
+        dh_ff->addGlobalParameter("DH"+ffgen_id_str_+"_cutoff_correction",  cutoff_correction_);
 
         for(std::size_t idx=0; idx<charges_.size(); ++idx)
         {
@@ -195,6 +198,7 @@ class DebyeHuckelForceFieldGenerator final : public ForceFieldGeneratorBase
     index_pairs_type                         ignore_list_;
     std::vector<interaction_group_type>      interaction_groups_;
     const bool                               use_periodic_;
+    const std::string                        ffgen_id_str_;
 
     double debye_length_;
     double inv_4_pi_eps0_epsk_;
