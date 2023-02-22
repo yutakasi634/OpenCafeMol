@@ -1,0 +1,48 @@
+#ifndef OPEN_AICG2_PLUS_HARMONIC_COM_PULLING_FORCE_FIELD_GENERATOR_HPP
+#define OPEN_AICG2_PLUS_HARMONIC_COM_PULLING_FORCE_FIELD_GENERATOR_HPP
+
+#include <memory>
+#include <limits>
+#include <set>
+#include <optional>
+#include <OpenMM.h>
+
+class HarmonicCoMPullingForceFieldGenerator : public ForceFieldGeneratorBase
+{
+  public:
+    HarmonicCoMPullingForceFieldGenerator(
+        const double k, const double v0,
+        const std::vector<int>& first_group, const std::vector<int>& second_group,
+        const bool use_periodic, const std::size_t ffgen_id)
+        : k_(k), v0_(v0), first_group_(first_group), second_group_(second_group),
+          use_periodic_(use_periodic), ffgen_id_str_(std::to_string(ffgen_id))
+    {}
+
+    std::unique_ptr<OpenMM::Force> generate() const noexcept override
+    {
+        const std::string potential_formula =
+            "0.5*HCP"+ffgen_id_str_+"_k*"
+            "(distance(g1, g2) - HCP"+ffgen_id_str_+"_v0)^2";
+        auto com_ff = std::make_unique<OpenMM::CustomCentroidBondForce>(2, potential_formula);
+
+        com_ff->addGlobalParameter("HCP"+ffgen_id_str_+"_k", k_);
+        com_ff->addGlobalParameter("HCP"+ffgen_id_str_+"_v0", v0_);
+        com_ff->addGroup(first_group_);
+        com_ff->addGroup(second_group_);
+        com_ff->addBond({0, 1});
+
+        com_ff->setUsesPeriodicBoundaryConditions(use_periodic_);
+
+        return com_ff;
+    }
+
+  private:
+    const double           k_;
+    const double           v0_;
+    const std::vector<int> first_group_;
+    const std::vector<int> second_group_;
+    const bool             use_periodic_;
+    const std::string      ffgen_id_str_;
+};
+
+#endif // OPEN_AICG2_PLUS_HARMONIC_COM_PULLING_FORCE_FIELD_GENERATOR_HPP

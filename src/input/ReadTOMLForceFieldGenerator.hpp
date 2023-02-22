@@ -16,6 +16,7 @@
 #include "src/forcefield/iSoLFAttractiveForceFieldGenerator.hpp"
 #include "src/forcefield/UniformLennardJonesAttractiveForceFieldGenerator.hpp"
 #include "src/forcefield/UniformWeeksChandlerAndersenForceFieldGenerator.hpp"
+#include "src/forcefield/HarmonicCoMPullingForceFieldGenerator.hpp"
 
 // -----------------------------------------------------------------------------
 // read local force field
@@ -768,6 +769,39 @@ read_toml_uniform_lennard_jones_attractive_ff_generator(
     return UniformLennardJonesAttractiveForceFieldGenerator(
         system_size, epsilon, sigma, cutoff, former_participants, latter_participants,
         ignore_list, use_periodic, ffgen_id, ignore_group_pairs, group_vec);
+}
+
+// -----------------------------------------------------------------------------
+// read external force field
+
+const HarmonicCoMPullingForceFieldGenerator
+read_toml_harmonic_com_pulling_ff_generator(
+        const toml::value& external_ff_param, const bool use_periodic,
+        const toml::value& env, const std::size_t ffgen_id)
+{
+    std::vector<int> first_group_indices;
+    std::vector<int> second_group_indices;
+
+    const double k  = Utility::find_parameter<double>(external_ff_param, env, "k");
+    const double v0 = Utility::find_parameter<double>(external_ff_param, env, "v0");
+
+    const auto& indices_pair = toml::find<toml::array>(external_ff_param, "indices_pair");
+    for(const auto& idx : indices_pair.at(0).as_array())
+    {
+        first_group_indices.push_back(toml::get<std::size_t>(idx));
+    }
+
+    for(const auto& idx : indices_pair.at(1).as_array())
+    {
+        second_group_indices.push_back(toml::get<std::size_t>(idx));
+    }
+
+    std::cerr << "    External      : HarmonicCoMPulling"
+              << " (" << first_group_indices.size() << "-" << second_group_indices.size()
+              << " found)" << std::endl;
+
+    return HarmonicCoMPullingForceFieldGenerator(
+            k, v0, first_group_indices, second_group_indices, use_periodic, ffgen_id);
 }
 
 #endif // OPEN_AICG2_PLUS_READ_TOML_FORCE_FIELD_GENERATOR_HPP

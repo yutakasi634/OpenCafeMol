@@ -357,6 +357,30 @@ std::unique_ptr<OpenMM::System> read_toml_system(const toml::value& data)
         }
     }
 
+    if(ff.contains("external"))
+    {
+        const auto& externals = toml::find(ff, "external").as_array();
+
+        for(const auto& external_ff : externals)
+        {
+            const std::string potential = toml::find<std::string>(external_ff, "potential");
+            if(potential == "Harmonic")
+            {
+                const auto& env =
+                    external_ff.contains("env") ? external_ff.at("env") : toml::value{};
+                const auto& params = toml::find<toml::array>(external_ff, "parameters");
+                for(const auto& param : params)
+                {
+                    const auto ff_gen =
+                        read_toml_harmonic_com_pulling_ff_generator(
+                                param, use_periodic, env, ffgen_count);
+                    system_ptr->addForce(ff_gen.generate().release());
+                    ++ffgen_count;
+                }
+            }
+        }
+    }
+
     return system_ptr;
 }
 
