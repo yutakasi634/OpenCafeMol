@@ -161,6 +161,14 @@ std::unique_ptr<OpenMM::System> read_toml_system(const toml::value& data)
                 system_ptr->addForce(ff_gen.generate().release());
                 ++ffgen_count;
             }
+            else if (interaction == "BondLength" && potential == "3SPN2Bond")
+            {
+                const auto ff_gen =
+                    read_toml_3spn2_bond_ff_generator(
+                        local_ff, topology, use_periodic, ffgen_count);
+                system_ptr->addForce(ff_gen.generate().release());
+                ++ffgen_count;
+            }
             else if(interaction == "BondAngle" && potential == "Harmonic")
             {
                 const auto ff_gen =
