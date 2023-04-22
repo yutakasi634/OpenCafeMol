@@ -57,8 +57,6 @@ class ThreeSPN2BondForceFieldGenerator final : public ForceFieldGeneratorBase
         bond_ff->addPerBondParameter(ff_params.at("k4"));
         bond_ff->addPerBondParameter(ff_params.at("v0"));
 
-        std::cout << "3SPN2 Bond = " << potential_formula << std::endl;
-
         for(std::size_t idx=0; idx<indices_vec_.size(); ++idx)
         {
             const indices_type& idx_pair = indices_vec_[idx];
