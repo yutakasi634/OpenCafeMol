@@ -1,0 +1,483 @@
+[files]
+output.prefix = "dna_3SPN2"  # output file prefix
+output.path   = "./output/"  # output path
+output.format = "pdb"        # output format
+
+[units]
+length = "angstrom" # "angstorm" or "Å" or "nm"
+energy = "kcal/mol"   # "kcal/mol" or "kJ/mol"
+
+[simulator]
+type          = "MolecularDynamics"
+boundary_type = "Unlimited"
+precision     = "double"
+delta_t       = 0.01
+total_step    = 1
+save_step     = 1
+seed          = 12345
+integrator.type   = "UnderdampedLangevin"
+integrator.gammas = [ # {{{
+{index =   0, gamma = 0.0101492 },# "S"
+{index =   1, gamma = 0.00629008},# "A"
+{index =   2, gamma = 0.00888175},# "P"
+{index =   3, gamma = 0.0101492 },# "S"
+{index =   4, gamma = 0.00674261},# "T"
+{index =   5, gamma = 0.00888175},# "P"
+{index =   6, gamma = 0.0101492 },# "S"
+{index =   7, gamma = 0.00629008},# "A"
+{index =   8, gamma = 0.00888175},# "P"
+{index =   9, gamma = 0.0101492 },# "S"
+{index =  10, gamma = 0.00766122},# "C"
+{index =  11, gamma = 0.00888175},# "P"
+{index =  12, gamma = 0.0101492 },# "S"
+{index =  13, gamma = 0.00629008},# "A"
+{index =  14, gamma = 0.00888175},# "P"
+{index =  15, gamma = 0.0101492 },# "S"
+{index =  16, gamma = 0.00629008},# "A"
+{index =  17, gamma = 0.00888175},# "P"
+{index =  18, gamma = 0.0101492 },# "S"
+{index =  19, gamma = 0.00629008},# "A"
+{index =  20, gamma = 0.00888175},# "P"
+{index =  21, gamma = 0.0101492 },# "S"
+{index =  22, gamma = 0.00561959},# "G"
+{index =  23, gamma = 0.00888175},# "P"
+{index =  24, gamma = 0.0101492 },# "S"
+{index =  25, gamma = 0.00561959},# "G"
+{index =  26, gamma = 0.00888175},# "P"
+{index =  27, gamma = 0.0101492 },# "S"
+{index =  28, gamma = 0.00674261},# "T"
+{index =  29, gamma = 0.00888175},# "P"
+{index =  30, gamma = 0.0101492 },# "S"
+{index =  31, gamma = 0.00561959},# "G"
+{index =  32, gamma = 0.00888175},# "P"
+{index =  33, gamma = 0.0101492 },# "S"
+{index =  34, gamma = 0.00766122},# "C"
+{index =  35, gamma = 0.00888175},# "P"
+{index =  36, gamma = 0.0101492 },# "S"
+{index =  37, gamma = 0.00561959},# "G"
+{index =  38, gamma = 0.00888175},# "P"
+{index =  39, gamma = 0.0101492 },# "S"
+{index =  40, gamma = 0.00629008},# "A"
+{index =  41, gamma = 0.00888175},# "P"
+{index =  42, gamma = 0.0101492 },# "S"
+{index =  43, gamma = 0.00561959},# "G"
+{index =  44, gamma = 0.00888175},# "P"
+{index =  45, gamma = 0.0101492 },# "S"
+{index =  46, gamma = 0.00561959},# "G"
+{index =  47, gamma = 0.00888175},# "P"
+{index =  48, gamma = 0.0101492 },# "S"
+{index =  49, gamma = 0.00674261},# "T"
+{index =  50, gamma = 0.00888175},# "P"
+{index =  51, gamma = 0.0101492 },# "S"
+{index =  52, gamma = 0.00674261},# "T"
+{index =  53, gamma = 0.00888175},# "P"
+{index =  54, gamma = 0.0101492 },# "S"
+{index =  55, gamma = 0.00674261},# "T"
+{index =  56, gamma = 0.00888175},# "P"
+{index =  57, gamma = 0.0101492 },# "S"
+{index =  58, gamma = 0.00766122},# "C"
+{index =  59, gamma = 0.00888175},# "P"
+{index =  60, gamma = 0.0101492 },# "S"
+{index =  61, gamma = 0.00674261},# "T"
+{index =  62, gamma = 0.00888175},# "P"
+{index =  63, gamma = 0.0101492 },# "S"
+{index =  64, gamma = 0.00629008},# "A"
+{index =  65, gamma = 0.00888175},# "P"
+{index =  66, gamma = 0.0101492 },# "S"
+{index =  67, gamma = 0.00674261},# "T"
+{index =  68, gamma = 0.00888175},# "P"
+{index =  69, gamma = 0.0101492 },# "S"
+{index =  70, gamma = 0.00561959},# "G"
+{index =  71, gamma = 0.00888175},# "P"
+{index =  72, gamma = 0.0101492 },# "S"
+{index =  73, gamma = 0.00766122},# "C"
+{index =  74, gamma = 0.00888175},# "P"
+{index =  75, gamma = 0.0101492 },# "S"
+{index =  76, gamma = 0.00674261},# "T"
+{index =  77, gamma = 0.00888175},# "P"
+{index =  78, gamma = 0.0101492 },# "S"
+{index =  79, gamma = 0.00766122},# "C"
+{index =  80, gamma = 0.00888175},# "P"
+{index =  81, gamma = 0.0101492 },# "S"
+{index =  82, gamma = 0.00766122},# "C"
+{index =  83, gamma = 0.00888175},# "P"
+{index =  84, gamma = 0.0101492 },# "S"
+{index =  85, gamma = 0.00766122},# "C"
+{index =  86, gamma = 0.00888175},# "P"
+{index =  87, gamma = 0.0101492 },# "S"
+{index =  88, gamma = 0.00629008},# "A"
+{index =  89, gamma = 0.00888175},# "P"
+{index =  90, gamma = 0.0101492 },# "S"
+{index =  91, gamma = 0.00766122},# "C"
+{index =  92, gamma = 0.00888175},# "P"
+{index =  93, gamma = 0.0101492 },# "S"
+{index =  94, gamma = 0.00561959},# "G"
+{index =  95, gamma = 0.0101492 },# "S"
+{index =  96, gamma = 0.00766122},# "C"
+{index =  97, gamma = 0.00888175},# "P"
+{index =  98, gamma = 0.0101492 },# "S"
+{index =  99, gamma = 0.00561959},# "G"
+{index = 100, gamma = 0.00888175},# "P"
+{index = 101, gamma = 0.0101492 },# "S"
+{index = 102, gamma = 0.00674261},# "T"
+{index = 103, gamma = 0.00888175},# "P"
+{index = 104, gamma = 0.0101492 },# "S"
+{index = 105, gamma = 0.00561959},# "G"
+{index = 106, gamma = 0.00888175},# "P"
+{index = 107, gamma = 0.0101492 },# "S"
+{index = 108, gamma = 0.00561959},# "G"
+{index = 109, gamma = 0.00888175},# "P"
+{index = 110, gamma = 0.0101492 },# "S"
+{index = 111, gamma = 0.00561959},# "G"
+{index = 112, gamma = 0.00888175},# "P"
+{index = 113, gamma = 0.0101492 },# "S"
+{index = 114, gamma = 0.00629008},# "A"
+{index = 115, gamma = 0.00888175},# "P"
+{index = 116, gamma = 0.0101492 },# "S"
+{index = 117, gamma = 0.00561959},# "G"
+{index = 118, gamma = 0.00888175},# "P"
+{index = 119, gamma = 0.0101492 },# "S"
+{index = 120, gamma = 0.00766122},# "C"
+{index = 121, gamma = 0.00888175},# "P"
+{index = 122, gamma = 0.0101492 },# "S"
+{index = 123, gamma = 0.00629008},# "A"
+{index = 124, gamma = 0.00888175},# "P"
+{index = 125, gamma = 0.0101492 },# "S"
+{index = 126, gamma = 0.00674261},# "T"
+{index = 127, gamma = 0.00888175},# "P"
+{index = 128, gamma = 0.0101492 },# "S"
+{index = 129, gamma = 0.00629008},# "A"
+{index = 130, gamma = 0.00888175},# "P"
+{index = 131, gamma = 0.0101492 },# "S"
+{index = 132, gamma = 0.00561959},# "G"
+{index = 133, gamma = 0.00888175},# "P"
+{index = 134, gamma = 0.0101492 },# "S"
+{index = 135, gamma = 0.00629008},# "A"
+{index = 136, gamma = 0.00888175},# "P"
+{index = 137, gamma = 0.0101492 },# "S"
+{index = 138, gamma = 0.00629008},# "A"
+{index = 139, gamma = 0.00888175},# "P"
+{index = 140, gamma = 0.0101492 },# "S"
+{index = 141, gamma = 0.00629008},# "A"
+{index = 142, gamma = 0.00888175},# "P"
+{index = 143, gamma = 0.0101492 },# "S"
+{index = 144, gamma = 0.00766122},# "C"
+{index = 145, gamma = 0.00888175},# "P"
+{index = 146, gamma = 0.0101492 },# "S"
+{index = 147, gamma = 0.00766122},# "C"
+{index = 148, gamma = 0.00888175},# "P"
+{index = 149, gamma = 0.0101492 },# "S"
+{index = 150, gamma = 0.00674261},# "T"
+{index = 151, gamma = 0.00888175},# "P"
+{index = 152, gamma = 0.0101492 },# "S"
+{index = 153, gamma = 0.00766122},# "C"
+{index = 154, gamma = 0.00888175},# "P"
+{index = 155, gamma = 0.0101492 },# "S"
+{index = 156, gamma = 0.00561959},# "G"
+{index = 157, gamma = 0.00888175},# "P"
+{index = 158, gamma = 0.0101492 },# "S"
+{index = 159, gamma = 0.00766122},# "C"
+{index = 160, gamma = 0.00888175},# "P"
+{index = 161, gamma = 0.0101492 },# "S"
+{index = 162, gamma = 0.00629008},# "A"
+{index = 163, gamma = 0.00888175},# "P"
+{index = 164, gamma = 0.0101492 },# "S"
+{index = 165, gamma = 0.00766122},# "C"
+{index = 166, gamma = 0.00888175},# "P"
+{index = 167, gamma = 0.0101492 },# "S"
+{index = 168, gamma = 0.00766122},# "C"
+{index = 169, gamma = 0.00888175},# "P"
+{index = 170, gamma = 0.0101492 },# "S"
+{index = 171, gamma = 0.00674261},# "T"
+{index = 172, gamma = 0.00888175},# "P"
+{index = 173, gamma = 0.0101492 },# "S"
+{index = 174, gamma = 0.00674261},# "T"
+{index = 175, gamma = 0.00888175},# "P"
+{index = 176, gamma = 0.0101492 },# "S"
+{index = 177, gamma = 0.00674261},# "T"
+{index = 178, gamma = 0.00888175},# "P"
+{index = 179, gamma = 0.0101492 },# "S"
+{index = 180, gamma = 0.00561959},# "G"
+{index = 181, gamma = 0.00888175},# "P"
+{index = 182, gamma = 0.0101492 },# "S"
+{index = 183, gamma = 0.00674261},# "T"
+{index = 184, gamma = 0.00888175},# "P"
+{index = 185, gamma = 0.0101492 },# "S"
+{index = 186, gamma = 0.00629008},# "A"
+{index = 187, gamma = 0.00888175},# "P"
+{index = 188, gamma = 0.0101492 },# "S"
+{index = 189, gamma = 0.00674261},# "T"
+] # }}}
+
+[[systems]]
+attributes.temperature    = 300.0
+attributes.ionic_strength = 0.1 # = 100mM
+# boundary_shape.lower = [-124.384, -124.384, -124.384]
+# boundary_shape.upper = [ 124.384,  124.384,  124.384]
+particles = [ # {{{
+{m= 83.110, pos=[ -1.988684,  6.690268, 53.676844], name = "S", group = "DNA"},
+{m=134.122, pos=[ -1.264672,  2.174358, 52.600844], name = "A", group = "DNA"},
+{m= 94.970, pos=[ -0.669098,  8.882528, 51.202844], name = "P", group = "DNA"},
+{m= 83.110, pos=[  2.323562,  6.554449, 50.296844], name = "S", group = "DNA"},
+{m=125.108, pos=[ -0.239912,  3.398475, 49.288844], name = "T", group = "DNA"},
+{m= 94.970, pos=[  4.679707,  7.552391, 47.822844], name = "P", group = "DNA"},
+{m= 83.110, pos=[  5.732409,  3.909894, 46.916844], name = "S", group = "DNA"},
+{m=134.122, pos=[  1.661256,  1.825825, 45.840844], name = "A", group = "DNA"},
+{m= 94.970, pos=[  8.225147,  3.332339, 44.442844], name = "P", group = "DNA"},
+{m= 83.110, pos=[  6.935795, -0.233265, 43.536844], name = "S", group = "DNA"},
+{m=110.096, pos=[  3.105943,  0.865236, 42.520844], name = "C", group = "DNA"},
+{m= 94.970, pos=[  8.612983, -2.165712, 41.062844], name = "P", group = "DNA"},
+{m= 83.110, pos=[  5.474066, -4.292484, 40.156844], name = "S", group = "DNA"},
+{m=134.122, pos=[  2.233943, -1.064600, 39.080844], name = "A", group = "DNA"},
+{m= 94.970, pos=[  5.695076, -6.841693, 37.682844], name = "P", group = "DNA"},
+{m= 83.110, pos=[  1.905554, -6.717279, 36.776844], name = "S", group = "DNA"},
+{m=134.122, pos=[  1.181541, -2.201369, 35.700844], name = "A", group = "DNA"},
+{m= 94.970, pos=[  0.585967, -8.909538, 34.302844], name = "P", group = "DNA"},
+{m= 83.110, pos=[ -2.406692, -6.581460, 33.396844], name = "S", group = "DNA"},
+{m=134.122, pos=[ -0.338045, -2.502448, 32.320844], name = "A", group = "DNA"},
+{m= 94.970, pos=[ -4.762838, -7.579401, 30.922844], name = "P", group = "DNA"},
+{m= 83.110, pos=[ -5.815540, -3.936905, 30.016844], name = "S", group = "DNA"},
+{m=150.121, pos=[ -1.792040, -1.500592, 28.922844], name = "G", group = "DNA"},
+{m= 94.970, pos=[ -8.308277, -3.359349, 27.542844], name = "P", group = "DNA"},
+{m= 83.110, pos=[ -7.018925,  0.206255, 26.636844], name = "S", group = "DNA"},
+{m=150.121, pos=[ -2.331817, -0.187680, 25.542844], name = "G", group = "DNA"},
+{m= 94.970, pos=[ -8.696114,  2.138701, 24.162844], name = "P", group = "DNA"},
+{m= 83.110, pos=[ -5.557196,  4.265474, 23.256844], name = "S", group = "DNA"},
+{m=125.108, pos=[ -3.347843,  0.852215, 22.248844], name = "T", group = "DNA"},
+{m= 94.970, pos=[ -5.778207,  6.814682, 20.782844], name = "P", group = "DNA"},
+{m= 83.110, pos=[ -1.988684,  6.690268, 19.876844], name = "S", group = "DNA"},
+{m=150.121, pos=[ -0.914942,  2.110830, 18.782844], name = "G", group = "DNA"},
+{m= 94.970, pos=[ -0.669098,  8.882528, 17.402844], name = "P", group = "DNA"},
+{m= 83.110, pos=[  2.323562,  6.554449, 16.496844], name = "S", group = "DNA"},
+{m=110.096, pos=[  0.095336,  3.251499, 15.480844], name = "C", group = "DNA"},
+{m= 94.970, pos=[  4.679707,  7.552391, 14.022844], name = "P", group = "DNA"},
+{m= 83.110, pos=[  5.732409,  3.909894, 13.116844], name = "S", group = "DNA"},
+{m=150.121, pos=[  1.708910,  1.473581, 12.022844], name = "G", group = "DNA"},
+{m= 94.970, pos=[  8.225147,  3.332339, 10.642844], name = "P", group = "DNA"},
+{m= 83.110, pos=[  6.935795, -0.233265,  9.736844], name = "S", group = "DNA"},
+{m=134.122, pos=[  2.417177,  0.473651,  8.660844], name = "A", group = "DNA"},
+{m= 94.970, pos=[  8.612983, -2.165712,  7.262844], name = "P", group = "DNA"},
+{m= 83.110, pos=[  5.474066, -4.292484,  6.356844], name = "S", group = "DNA"},
+{m=150.121, pos=[  1.913664, -1.218771,  5.262844], name = "G", group = "DNA"},
+{m= 94.970, pos=[  5.695076, -6.841693,  3.882844], name = "P", group = "DNA"},
+{m= 83.110, pos=[  1.905554, -6.717279,  2.976844], name = "S", group = "DNA"},
+{m=150.121, pos=[  0.831811, -2.137841,  1.882844], name = "G", group = "DNA"},
+{m= 94.970, pos=[  0.585967, -8.909538,  0.502844], name = "P", group = "DNA"},
+{m= 83.110, pos=[ -2.406692, -6.581460, -0.403156], name = "S", group = "DNA"},
+{m=125.108, pos=[  0.156782, -3.425485, -1.411156], name = "T", group = "DNA"},
+{m= 94.970, pos=[ -4.762838, -7.579401, -2.877156], name = "P", group = "DNA"},
+{m= 83.110, pos=[ -5.815540, -3.936905, -3.783156], name = "S", group = "DNA"},
+{m=125.108, pos=[ -1.886611, -2.890440, -4.791156], name = "T", group = "DNA"},
+{m= 94.970, pos=[ -8.308277, -3.359349, -6.257156], name = "P", group = "DNA"},
+{m= 83.110, pos=[ -7.018925,  0.206255, -7.163156], name = "S", group = "DNA"},
+{m=125.108, pos=[ -3.225258, -1.256504, -8.171156], name = "T", group = "DNA"},
+{m= 94.970, pos=[ -8.696114,  2.138701, -9.637156], name = "P", group = "DNA"},
+{m= 83.110, pos=[ -5.557196,  4.265474,-10.543156], name = "S", group = "DNA"},
+{m=110.096, pos=[ -3.104464,  1.125637,-11.559156], name = "C", group = "DNA"},
+{m= 94.970, pos=[ -5.778207,  6.814682,-13.017156], name = "P", group = "DNA"},
+{m= 83.110, pos=[ -1.988684,  6.690268,-13.923156], name = "S", group = "DNA"},
+{m=125.108, pos=[ -2.207543,  2.630259,-14.931156], name = "T", group = "DNA"},
+{m= 94.970, pos=[ -0.669098,  8.882528,-16.397156], name = "P", group = "DNA"},
+{m= 83.110, pos=[  2.323562,  6.554449,-17.303156], name = "S", group = "DNA"},
+{m=134.122, pos=[  0.254915,  2.475438,-18.379156], name = "A", group = "DNA"},
+{m= 94.970, pos=[  4.679707,  7.552391,-19.777156], name = "P", group = "DNA"},
+{m= 83.110, pos=[  5.732409,  3.909894,-20.683156], name = "S", group = "DNA"},
+{m=125.108, pos=[  1.803480,  2.863430,-21.691156], name = "T", group = "DNA"},
+{m= 94.970, pos=[  8.225147,  3.332339,-23.157156], name = "P", group = "DNA"},
+{m= 83.110, pos=[  6.935795, -0.233265,-24.063156], name = "S", group = "DNA"},
+{m=150.121, pos=[  2.248686,  0.160669,-25.157156], name = "G", group = "DNA"},
+{m= 94.970, pos=[  8.612983, -2.165712,-26.537156], name = "P", group = "DNA"},
+{m= 83.110, pos=[  5.474066, -4.292484,-27.443156], name = "S", group = "DNA"},
+{m=110.096, pos=[  3.021333, -1.152648,-28.459156], name = "C", group = "DNA"},
+{m= 94.970, pos=[  5.695076, -6.841693,-29.917156], name = "P", group = "DNA"},
+{m= 83.110, pos=[  1.905554, -6.717279,-30.823156], name = "S", group = "DNA"},
+{m=125.108, pos=[  2.124412, -2.657270,-31.831156], name = "T", group = "DNA"},
+{m= 94.970, pos=[  0.585967, -8.909538,-33.297156], name = "P", group = "DNA"},
+{m= 83.110, pos=[ -2.406692, -6.581460,-34.203156], name = "S", group = "DNA"},
+{m=110.096, pos=[ -0.178467, -3.278509,-35.219156], name = "C", group = "DNA"},
+{m= 94.970, pos=[ -4.762838, -7.579401,-36.677156], name = "P", group = "DNA"},
+{m= 83.110, pos=[ -5.815540, -3.936905,-37.583156], name = "S", group = "DNA"},
+{m=110.096, pos=[ -2.071442, -2.574481,-38.599156], name = "C", group = "DNA"},
+{m= 94.970, pos=[ -8.308277, -3.359349,-40.057156], name = "P", group = "DNA"},
+{m= 83.110, pos=[ -7.018925,  0.206255,-40.963156], name = "S", group = "DNA"},
+{m=110.096, pos=[ -3.189074, -0.892246,-41.979156], name = "C", group = "DNA"},
+{m= 94.970, pos=[ -8.696114,  2.138701,-43.437156], name = "P", group = "DNA"},
+{m= 83.110, pos=[ -5.557196,  4.265474,-44.343156], name = "S", group = "DNA"},
+{m=134.122, pos=[ -2.317073,  1.037590,-45.419156], name = "A", group = "DNA"},
+{m= 94.970, pos=[ -5.778207,  6.814682,-46.817156], name = "P", group = "DNA"},
+{m= 83.110, pos=[ -1.988684,  6.690268,-47.723156], name = "S", group = "DNA"},
+{m=110.096, pos=[ -1.849931,  2.708407,-48.739156], name = "C", group = "DNA"},
+{m= 94.970, pos=[ -0.669098,  8.882528,-50.197156], name = "P", group = "DNA"},
+{m= 83.110, pos=[  2.323562,  6.554449,-51.103156], name = "S", group = "DNA"},
+{m=150.121, pos=[  0.500511,  2.218476,-52.197156], name = "G", group = "DNA"},
+
+{m= 83.110, pos=[  2.323562, -6.581460,-53.663156], name = "S", group = "DNA"},
+{m=110.096, pos=[  0.095336, -3.278509,-52.647156], name = "C", group = "DNA"},
+{m= 94.970, pos=[  4.679707, -7.579401,-51.189156], name = "P", group = "DNA"},
+{m= 83.110, pos=[  5.732409, -3.936905,-50.283156], name = "S", group = "DNA"},
+{m=150.121, pos=[  1.708910, -1.500592,-49.189156], name = "G", group = "DNA"},
+{m= 94.970, pos=[  8.225147, -3.359349,-47.809156], name = "P", group = "DNA"},
+{m= 83.110, pos=[  6.935795,  0.206255,-46.903156], name = "S", group = "DNA"},
+{m=125.108, pos=[  3.142128, -1.256504,-45.895156], name = "T", group = "DNA"},
+{m= 94.970, pos=[  8.612983,  2.138701,-44.429156], name = "P", group = "DNA"},
+{m= 83.110, pos=[  5.474066,  4.265474,-43.523156], name = "S", group = "DNA"},
+{m=150.121, pos=[  1.913664,  1.191760,-42.429156], name = "G", group = "DNA"},
+{m= 94.970, pos=[  5.695076,  6.814682,-41.049156], name = "P", group = "DNA"},
+{m= 83.110, pos=[  1.905554,  6.690268,-40.143156], name = "S", group = "DNA"},
+{m=150.121, pos=[  0.831811,  2.110830,-39.049156], name = "G", group = "DNA"},
+{m= 94.970, pos=[  0.585967,  8.882528,-37.669156], name = "P", group = "DNA"},
+{m= 83.110, pos=[ -2.406692,  6.554449,-36.763156], name = "S", group = "DNA"},
+{m=150.121, pos=[ -0.583642,  2.218476,-35.669156], name = "G", group = "DNA"},
+{m= 94.970, pos=[ -4.762838,  7.552391,-34.289156], name = "P", group = "DNA"},
+{m= 83.110, pos=[ -5.815540,  3.909894,-33.383156], name = "S", group = "DNA"},
+{m=134.122, pos=[ -1.744387,  1.825825,-32.307156], name = "A", group = "DNA"},
+{m= 94.970, pos=[ -8.308277,  3.332339,-30.909156], name = "P", group = "DNA"},
+{m= 83.110, pos=[ -7.018925, -0.233265,-30.003156], name = "S", group = "DNA"},
+{m=150.121, pos=[ -2.331817,  0.160669,-28.909156], name = "G", group = "DNA"},
+{m= 94.970, pos=[ -8.696114, -2.165712,-27.529156], name = "P", group = "DNA"},
+{m= 83.110, pos=[ -5.557196, -4.292484,-26.623156], name = "S", group = "DNA"},
+{m=110.096, pos=[ -3.104464, -1.152648,-25.607156], name = "C", group = "DNA"},
+{m= 94.970, pos=[ -5.778207, -6.841693,-24.149156], name = "P", group = "DNA"},
+{m= 83.110, pos=[ -1.988684, -6.717279,-23.243156], name = "S", group = "DNA"},
+{m=134.122, pos=[ -1.264672, -2.201369,-22.167156], name = "A", group = "DNA"},
+{m= 94.970, pos=[ -0.669098, -8.909538,-20.769156], name = "P", group = "DNA"},
+{m= 83.110, pos=[  2.323562, -6.581460,-19.863156], name = "S", group = "DNA"},
+{m=125.108, pos=[ -0.239912, -3.425485,-18.855156], name = "T", group = "DNA"},
+{m= 94.970, pos=[  4.679707, -7.579401,-17.389156], name = "P", group = "DNA"},
+{m= 83.110, pos=[  5.732409, -3.936905,-16.483156], name = "S", group = "DNA"},
+{m=134.122, pos=[  1.661256, -1.852836,-15.407156], name = "A", group = "DNA"},
+{m= 94.970, pos=[  8.225147, -3.359349,-14.009156], name = "P", group = "DNA"},
+{m= 83.110, pos=[  6.935795,  0.206255,-13.103156], name = "S", group = "DNA"},
+{m=150.121, pos=[  2.248686, -0.187680,-12.009156], name = "G", group = "DNA"},
+{m= 94.970, pos=[  8.612983,  2.138701,-10.629156], name = "P", group = "DNA"},
+{m= 83.110, pos=[  5.474066,  4.265474, -9.723156], name = "S", group = "DNA"},
+{m=134.122, pos=[  2.233943,  1.037590, -8.647156], name = "A", group = "DNA"},
+{m= 94.970, pos=[  5.695076,  6.814682, -7.249156], name = "P", group = "DNA"},
+{m= 83.110, pos=[  1.905554,  6.690268, -6.343156], name = "S", group = "DNA"},
+{m=134.122, pos=[  1.181541,  2.174358, -5.267156], name = "A", group = "DNA"},
+{m= 94.970, pos=[  0.585967,  8.882528, -3.869156], name = "P", group = "DNA"},
+{m= 83.110, pos=[ -2.406692,  6.554449, -2.963156], name = "S", group = "DNA"},
+{m=134.122, pos=[ -0.338045,  2.475438, -1.887156], name = "A", group = "DNA"},
+{m= 94.970, pos=[ -4.762838,  7.552391, -0.489156], name = "P", group = "DNA"},
+{m= 83.110, pos=[ -5.815540,  3.909894,  0.416844], name = "S", group = "DNA"},
+{m=110.096, pos=[ -2.071442,  2.547470,  1.432844], name = "C", group = "DNA"},
+{m= 94.970, pos=[ -8.308277,  3.332339,  2.890844], name = "P", group = "DNA"},
+{m= 83.110, pos=[ -7.018925, -0.233265,  3.796844], name = "S", group = "DNA"},
+{m=110.096, pos=[ -3.189074,  0.865236,  4.812844], name = "C", group = "DNA"},
+{m= 94.970, pos=[ -8.696114, -2.165712,  6.270844], name = "P", group = "DNA"},
+{m= 83.110, pos=[ -5.557196, -4.292484,  7.176844], name = "S", group = "DNA"},
+{m=125.108, pos=[ -3.347843, -0.879226,  8.184844], name = "T", group = "DNA"},
+{m= 94.970, pos=[ -5.778207, -6.841693,  9.650844], name = "P", group = "DNA"},
+{m= 83.110, pos=[ -1.988684, -6.717279, 10.556844], name = "S", group = "DNA"},
+{m=110.096, pos=[ -1.849931, -2.735418, 11.572844], name = "C", group = "DNA"},
+{m= 94.970, pos=[ -0.669098, -8.909538, 13.030844], name = "P", group = "DNA"},
+{m= 83.110, pos=[  2.323562, -6.581460, 13.936844], name = "S", group = "DNA"},
+{m=150.121, pos=[  0.500511, -2.245487, 15.030844], name = "G", group = "DNA"},
+{m= 94.970, pos=[  4.679707, -7.579401, 16.410844], name = "P", group = "DNA"},
+{m= 83.110, pos=[  5.732409, -3.936905, 17.316844], name = "S", group = "DNA"},
+{m=110.096, pos=[  1.988312, -2.574481, 18.332844], name = "C", group = "DNA"},
+{m= 94.970, pos=[  8.225147, -3.359349, 19.790844], name = "P", group = "DNA"},
+{m= 83.110, pos=[  6.935795,  0.206255, 20.696844], name = "S", group = "DNA"},
+{m=134.122, pos=[  2.417177, -0.500662, 21.772844], name = "A", group = "DNA"},
+{m= 94.970, pos=[  8.612983,  2.138701, 23.170844], name = "P", group = "DNA"},
+{m= 83.110, pos=[  5.474066,  4.265474, 24.076844], name = "S", group = "DNA"},
+{m=110.096, pos=[  3.021333,  1.125637, 25.092844], name = "C", group = "DNA"},
+{m= 94.970, pos=[  5.695076,  6.814682, 26.550844], name = "P", group = "DNA"},
+{m= 83.110, pos=[  1.905554,  6.690268, 27.456844], name = "S", group = "DNA"},
+{m=110.096, pos=[  1.766801,  2.708407, 28.472844], name = "C", group = "DNA"},
+{m= 94.970, pos=[  0.585967,  8.882528, 29.930844], name = "P", group = "DNA"},
+{m= 83.110, pos=[ -2.406692,  6.554449, 30.836844], name = "S", group = "DNA"},
+{m=125.108, pos=[  0.156782,  3.398475, 31.844844], name = "T", group = "DNA"},
+{m= 94.970, pos=[ -4.762838,  7.552391, 33.310844], name = "P", group = "DNA"},
+{m= 83.110, pos=[ -5.815540,  3.909894, 34.216844], name = "S", group = "DNA"},
+{m=125.108, pos=[ -1.886611,  2.863430, 35.224844], name = "T", group = "DNA"},
+{m= 94.970, pos=[ -8.308277,  3.332339, 36.690844], name = "P", group = "DNA"},
+{m= 83.110, pos=[ -7.018925, -0.233265, 37.596844], name = "S", group = "DNA"},
+{m=125.108, pos=[ -3.225258,  1.229493, 38.604844], name = "T", group = "DNA"},
+{m= 94.970, pos=[ -8.696114, -2.165712, 40.070844], name = "P", group = "DNA"},
+{m= 83.110, pos=[ -5.557196, -4.292484, 40.976844], name = "S", group = "DNA"},
+{m=150.121, pos=[ -1.996795, -1.218771, 42.070844], name = "G", group = "DNA"},
+{m= 94.970, pos=[ -5.778207, -6.841693, 43.450844], name = "P", group = "DNA"},
+{m= 83.110, pos=[ -1.988684, -6.717279, 44.356844], name = "S", group = "DNA"},
+{m=125.108, pos=[ -2.207543, -2.657270, 45.364844], name = "T", group = "DNA"},
+{m= 94.970, pos=[ -0.669098, -8.909538, 46.830844], name = "P", group = "DNA"},
+{m= 83.110, pos=[  2.323562, -6.581460, 47.736844], name = "S", group = "DNA"},
+{m=134.122, pos=[  0.254915, -2.502448, 48.812844], name = "A", group = "DNA"},
+{m= 94.970, pos=[  4.679707, -7.579401, 50.210844], name = "P", group = "DNA"},
+{m= 83.110, pos=[  5.732409, -3.936905, 51.116844], name = "S", group = "DNA"},
+{m=125.108, pos=[  1.803480, -2.890440, 52.124844], name = "T", group = "DNA"},
+] # }}}
+
+[[forcefields]]
+[[forcefields.local]]
+interaction = "3SPN2BaseStacking"
+potential   = "3SPN2"
+topology    = "nucleotide" # adjacent nucleotide
+parameters  = [ # {{{
+# `nucleotide` index starts from 5' and ends at 3'.
+{strand = 0, nucleotide =  0,          S =   0, B =   1, Base = "A"},
+{strand = 0, nucleotide =  1, P =   2, S =   3, B =   4, Base = "T"},
+{strand = 0, nucleotide =  2, P =   5, S =   6, B =   7, Base = "A"},
+{strand = 0, nucleotide =  3, P =   8, S =   9, B =  10, Base = "C"},
+{strand = 0, nucleotide =  4, P =  11, S =  12, B =  13, Base = "A"},
+{strand = 0, nucleotide =  5, P =  14, S =  15, B =  16, Base = "A"},
+{strand = 0, nucleotide =  6, P =  17, S =  18, B =  19, Base = "A"},
+{strand = 0, nucleotide =  7, P =  20, S =  21, B =  22, Base = "G"},
+{strand = 0, nucleotide =  8, P =  23, S =  24, B =  25, Base = "G"},
+{strand = 0, nucleotide =  9, P =  26, S =  27, B =  28, Base = "T"},
+{strand = 0, nucleotide = 10, P =  29, S =  30, B =  31, Base = "G"},
+{strand = 0, nucleotide = 11, P =  32, S =  33, B =  34, Base = "C"},
+{strand = 0, nucleotide = 12, P =  35, S =  36, B =  37, Base = "G"},
+{strand = 0, nucleotide = 13, P =  38, S =  39, B =  40, Base = "A"},
+{strand = 0, nucleotide = 14, P =  41, S =  42, B =  43, Base = "G"},
+{strand = 0, nucleotide = 15, P =  44, S =  45, B =  46, Base = "G"},
+{strand = 0, nucleotide = 16, P =  47, S =  48, B =  49, Base = "T"},
+{strand = 0, nucleotide = 17, P =  50, S =  51, B =  52, Base = "T"},
+{strand = 0, nucleotide = 18, P =  53, S =  54, B =  55, Base = "T"},
+{strand = 0, nucleotide = 19, P =  56, S =  57, B =  58, Base = "C"},
+{strand = 0, nucleotide = 20, P =  59, S =  60, B =  61, Base = "T"},
+{strand = 0, nucleotide = 21, P =  62, S =  63, B =  64, Base = "A"},
+{strand = 0, nucleotide = 22, P =  65, S =  66, B =  67, Base = "T"},
+{strand = 0, nucleotide = 23, P =  68, S =  69, B =  70, Base = "G"},
+{strand = 0, nucleotide = 24, P =  71, S =  72, B =  73, Base = "C"},
+{strand = 0, nucleotide = 25, P =  74, S =  75, B =  76, Base = "T"},
+{strand = 0, nucleotide = 26, P =  77, S =  78, B =  79, Base = "C"},
+{strand = 0, nucleotide = 27, P =  80, S =  81, B =  82, Base = "C"},
+{strand = 0, nucleotide = 28, P =  83, S =  84, B =  85, Base = "C"},
+{strand = 0, nucleotide = 29, P =  86, S =  87, B =  88, Base = "A"},
+{strand = 0, nucleotide = 30, P =  89, S =  90, B =  91, Base = "C"},
+{strand = 0, nucleotide = 31, P =  92, S =  93, B =  94, Base = "G"},
+# anti-sense
+{strand = 1, nucleotide = 32,          S =  95, B =  96, Base = "C"},
+{strand = 1, nucleotide = 33, P =  97, S =  98, B =  99, Base = "G"},
+{strand = 1, nucleotide = 34, P = 100, S = 101, B = 102, Base = "T"},
+{strand = 1, nucleotide = 35, P = 103, S = 104, B = 105, Base = "G"},
+{strand = 1, nucleotide = 36, P = 106, S = 107, B = 108, Base = "G"},
+{strand = 1, nucleotide = 37, P = 109, S = 110, B = 111, Base = "G"},
+{strand = 1, nucleotide = 38, P = 112, S = 113, B = 114, Base = "A"},
+{strand = 1, nucleotide = 39, P = 115, S = 116, B = 117, Base = "G"},
+{strand = 1, nucleotide = 40, P = 118, S = 119, B = 120, Base = "C"},
+{strand = 1, nucleotide = 41, P = 121, S = 122, B = 123, Base = "A"},
+{strand = 1, nucleotide = 42, P = 124, S = 125, B = 126, Base = "T"},
+{strand = 1, nucleotide = 43, P = 127, S = 128, B = 129, Base = "A"},
+{strand = 1, nucleotide = 44, P = 130, S = 131, B = 132, Base = "G"},
+{strand = 1, nucleotide = 45, P = 133, S = 134, B = 135, Base = "A"},
+{strand = 1, nucleotide = 46, P = 136, S = 137, B = 138, Base = "A"},
+{strand = 1, nucleotide = 47, P = 139, S = 140, B = 141, Base = "A"},
+{strand = 1, nucleotide = 48, P = 142, S = 143, B = 144, Base = "C"},
+{strand = 1, nucleotide = 49, P = 145, S = 146, B = 147, Base = "C"},
+{strand = 1, nucleotide = 50, P = 148, S = 149, B = 150, Base = "T"},
+{strand = 1, nucleotide = 51, P = 151, S = 152, B = 153, Base = "C"},
+{strand = 1, nucleotide = 52, P = 154, S = 155, B = 156, Base = "G"},
+{strand = 1, nucleotide = 53, P = 157, S = 158, B = 159, Base = "C"},
+{strand = 1, nucleotide = 54, P = 160, S = 161, B = 162, Base = "A"},
+{strand = 1, nucleotide = 55, P = 163, S = 164, B = 165, Base = "C"},
+{strand = 1, nucleotide = 56, P = 166, S = 167, B = 168, Base = "C"},
+{strand = 1, nucleotide = 57, P = 169, S = 170, B = 171, Base = "T"},
+{strand = 1, nucleotide = 58, P = 172, S = 173, B = 174, Base = "T"},
+{strand = 1, nucleotide = 59, P = 175, S = 176, B = 177, Base = "T"},
+{strand = 1, nucleotide = 60, P = 178, S = 179, B = 180, Base = "G"},
+{strand = 1, nucleotide = 61, P = 181, S = 182, B = 183, Base = "T"},
+{strand = 1, nucleotide = 62, P = 184, S = 185, B = 186, Base = "A"},
+{strand = 1, nucleotide = 63, P = 187, S = 188, B = 189, Base = "T"},
+] # }}}

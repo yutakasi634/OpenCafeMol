@@ -1,3 +1,4 @@
+
 #ifndef OPEN_AICG2_PLUS_READ_TOML_INPUT_HPP
 #define OPEN_AICG2_PLUS_READ_TOML_INPUT_HPP
 
@@ -198,6 +199,14 @@ std::unique_ptr<OpenMM::System> read_toml_system(const toml::value& data)
                     system_ptr->addForce(ff_gen.generate().release());
                     ++ffgen_count;
                 }
+            }
+            else if (interaction == "3SPN2BaseStacking" && (potential == "3SPN2" || potential == "3SPN2C"))
+            {
+                const auto ff_gen =
+                    read_toml_3spn2_base_stacking_ff_generator(
+                        local_ff, topology, use_periodic, ffgen_count);
+                    system_ptr->addForce(ff_gen.generate().release());
+                    ++ffgen_count;
             }
         }
     }
