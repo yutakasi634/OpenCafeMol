@@ -196,7 +196,7 @@ read_toml_3spn2_bond_ff_generator(
         topology.add_edges(indices_vec, toml::find<std::string>(local_ff_data, "topology"));
     }
 
-    std::cerr << "    BondLength    : 3SPN2C (" << indices_vec.size() << " found)" << std::endl;
+    std::cerr << "    BondLength    : 3SPN2 (" << indices_vec.size() << " found)" << std::endl;
     return ThreeSPN2BondForceFieldGenerator(indices_vec, k2s, k4s, v0s, use_periodic, ffgen_id);
 }
 
