@@ -193,6 +193,8 @@ class UniformLennardJonesAttractiveForceFieldGenerator final : public ForceField
     const std::size_t former_group_size() const noexcept { return former_group_size_; }
     const std::size_t latter_group_size() const noexcept { return latter_group_size_; }
 
+    const std::string name() const noexcept { return "UniformLennardJonesAttractive"; }
+
   private:
     const std::size_t      system_size_;
     const double           eps_;

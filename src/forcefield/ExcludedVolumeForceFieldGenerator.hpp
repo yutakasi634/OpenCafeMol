@@ -202,6 +202,8 @@ class ExcludedVolumeForceFieldGenerator final: public ForceFieldGeneratorBase
         }
     }
 
+    const std::string name() const noexcept { return "ExcludedVolume"; }
+
   private:
     double                              eps_;
     double                              cutoff_;
