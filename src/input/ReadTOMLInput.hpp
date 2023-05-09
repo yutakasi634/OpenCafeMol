@@ -205,8 +205,8 @@ std::unique_ptr<OpenMM::System> read_toml_system(const toml::value& data)
                 const auto ff_gen =
                     read_toml_3spn2_base_stacking_ff_generator(
                         local_ff, topology, use_periodic, ffgen_count);
-                    system_ptr->addForce(ff_gen.generate().release());
-                    ++ffgen_count;
+                system_ptr->addForce(ff_gen.generate().release());
+                ++ffgen_count;
             }
         }
     }

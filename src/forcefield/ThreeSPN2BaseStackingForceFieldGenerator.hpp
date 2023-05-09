@@ -64,16 +64,12 @@ class ThreeSPN2BaseStackingForceFieldGenerator final : public ForceFieldGenerato
             {"K_BS",    "TSPN2BS" + ffgen_id_str_ + "_K_BS"},
         };
 
-        std::cout << potential_formula << std::endl; // FIXME:: delete this
-
         for (auto itr=ff_params.begin(); itr!=ff_params.end(); ++itr)
         {
             potential_formula = std::regex_replace(
                 potential_formula, std::regex(itr->first), itr->second);
         }
         auto ccbond_ff = std::make_unique<OpenMM::CustomCompoundBondForce>(3, potential_formula);
-
-        std::cout << potential_formula << std::endl; // FIXME: delete this
 
         ccbond_ff->setUsesPeriodicBoundaryConditions(use_periodic_);
         ccbond_ff->addPerBondParameter(ff_params.at("epsilon"));
