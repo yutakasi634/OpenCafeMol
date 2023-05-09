@@ -30,7 +30,7 @@ class ThreeSPN2BaseStackingForceFieldGenerator final : public ForceFieldGenerato
              r0s.size() == theta0.size()))
         {
             std::ostringstream oss;
-            oss << "[error] ThreeSPN2BondForceFieldGenerator: "
+            oss << "[error] ThreeSPN2BaseStackingForceFieldGenerator: "
                    "parameter number of "
                    "indices_vec (" << indices_vec.size() << "), "
                    "eps_vec ("     << eps_vec.size()     << "), "
