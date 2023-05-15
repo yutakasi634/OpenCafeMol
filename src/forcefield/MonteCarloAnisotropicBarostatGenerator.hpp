@@ -1,6 +1,8 @@
 #ifndef OPEN_AICG2_PLUS_MONTE_CARLO_ANISOTROPIC_BAROSTAT_GENERATOR_HPP
 #define OPEN_AICG2_PLUS_MONTE_CARLO_ANISOTROPIC_BAROSTAT_GENERATOR_HPP
 
+#include <OpenMM.h>
+
 class MonteCarloAnisotropicBarostatGenerator
 {
   public:
@@ -21,11 +23,16 @@ class MonteCarloAnisotropicBarostatGenerator
         return barostat;
     }
 
+    const std::array<bool, 3> scale_axis()         const noexcept { return scale_axis_; }
+    const double              temperature()        const noexcept { return temperature_; }
+    const std::array<double, 3> default_pressure() const noexcept { return default_pressure_; }
+    const std::size_t         frequency()        const noexcept { return frequency_; }
+
   private:
-    const std::array<bool, 3>   scale_axis_;
-    const double                temperature_;
-    const std::array<double, 3> default_pressure_;
-    const std::size_t           frequency_;
+    std::array<bool, 3>   scale_axis_;
+    double                temperature_;
+    std::array<double, 3> default_pressure_;
+    std::size_t           frequency_;
 };
 
 #endif // OPEN_AICG2_PLUS_MONTE_CARLO_ANISOTROPIC_BAROSTAT_GENERATOR_HPP

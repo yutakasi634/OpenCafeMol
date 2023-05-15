@@ -4,15 +4,36 @@
 #include <memory>
 #include <OpenMM.h>
 #include "src/Simulator.hpp"
+#include "src/SystemGenerator.hpp"
 #include "src/Topology.hpp"
 #include "ReadTOMLForceFieldGenerator.hpp"
 #include "src/forcefield/MonteCarloAnisotropicBarostatGenerator.hpp"
 
-std::unique_ptr<OpenMM::System> read_toml_system(const toml::value& data)
+const SystemGenerator read_toml_system(const toml::value& data)
 {
-    auto system_ptr = std::make_unique<OpenMM::System>();
-
+    // read systems table
     const auto& systems   = toml::find(data, "systems");
+
+    // read particles info
+    const auto& particles = toml::find<toml::array>(systems[0], "particles");
+
+    std::size_t system_size = particles.size();
+    Topology        topology(system_size);
+    std::vector<std::optional<std::string>> group_vec(system_size, std::nullopt);
+    std::vector<double>                     mass_vec(system_size);
+    for(std::size_t idx=0; idx<system_size; ++idx)
+    {
+        // set mass
+        const auto& p = particles.at(idx);
+        mass_vec[idx] = toml::get<double>(Utility::find_either(p, "m", "mass")); // amu
+
+        if(p.contains("group"))
+        {
+            const std::string group_name = toml::find<std::string>(p, "group");
+            group_vec[idx] = group_name;
+        }
+    }
+    SystemGenerator system_gen(mass_vec);
 
     // read boundary condition
     const auto&       simulator_table = toml::find(data, "simulator");
@@ -24,33 +45,22 @@ std::unique_ptr<OpenMM::System> read_toml_system(const toml::value& data)
         const auto& boundary_shape = toml::find(systems[0], "boundary_shape");
         const auto lower_bound = toml::find<std::array<double, 3>>(boundary_shape, "lower");
         const auto upper_bound = toml::find<std::array<double, 3>>(boundary_shape, "upper");
-        std::cerr << "    boundary type is periodic cuboid" << std::endl;
-        std::cerr  << std::fixed << std::setprecision(2)
-                  << "        lower bound is ("
-                  << std::setw(7) << lower_bound[0] << ", "
-                  << std::setw(7) << lower_bound[1] << ", "
-                  << std::setw(7) << lower_bound[2] << ")" << std::endl;
-        std::cerr << std::fixed << std::setprecision(2)
-                  << "        upper bound is ("
-                  << std::setw(7) << upper_bound[0] << ", "
-                  << std::setw(7) << upper_bound[1] << ", "
-                  << std::setw(7) << upper_bound[2] << ")" << std::endl;
         if(lower_bound[0] != 0.0 || lower_bound[1] != 0.0 || lower_bound[2] != 0.0)
         {
             std::cerr << "[warning] Lower bound of periodic boundary box is not (0.0, 0.0, 0.0). "
                          "OpenAICG2+ only support the case lower bound is origin, "
-                         "so the simulation box will be moved to satisfy this condition."
-                      << std::endl;
+                         "so the simulation box will be moved to satisfy this condition. "
+                         "In this case, specified lower bound is ("
+                      << std::fixed << std::setprecision(2)
+                      << std::setw(7) << lower_bound[0] << ", "
+                      << std::setw(7) << lower_bound[1] << ", "
+                      << std::setw(7) << lower_bound[2] << ")" << std::endl;
         }
 
-        system_ptr->setDefaultPeriodicBoxVectors(
-                OpenMM::Vec3((upper_bound[0] - lower_bound[0]) * OpenMM::NmPerAngstrom, 0.0, 0.0),
-                OpenMM::Vec3(0.0, (upper_bound[1] - lower_bound[1]) * OpenMM::NmPerAngstrom, 0.0),
-                OpenMM::Vec3(0.0, 0.0, (upper_bound[2] - lower_bound[2]) * OpenMM::NmPerAngstrom));
-    }
-    else
-    {
-        std::cerr << "    boundary type is unlimited" << std::endl;
+        const double xlength = (upper_bound[0] - lower_bound[0]) * OpenMM::NmPerAngstrom;
+        const double ylength = (upper_bound[1] - lower_bound[1]) * OpenMM::NmPerAngstrom;
+        const double zlength = (upper_bound[2] - lower_bound[2]) * OpenMM::NmPerAngstrom;
+        system_gen.set_pbc(xlength, ylength, zlength);
     }
 
     // read ensemble condition
@@ -61,70 +71,27 @@ std::unique_ptr<OpenMM::System> read_toml_system(const toml::value& data)
         const auto& type     = toml::find<std::string>(ensemble, "type");
         if(type == "NPT")
         {
-            std::cerr << "    ensemble type is NPT with anisotropic barostat" << std::endl;
-            if(!use_periodic)
-            {
-                throw std::runtime_error(
-                        "[error] ensemble type \"NPT\" should be used with periodic boundary condition.");
-            }
-
             const auto& default_pressure =
                 toml::find<std::array<double, 3>>(ensemble, "pressure");
             const auto& scale_axis =
                 toml::find<std::array<bool, 3>>(ensemble, "scale_axis");
-
-            std::cerr << "        scaling axis is ";
-            if(scale_axis[0]){ std::cerr << "X"; }
-            if(scale_axis[1]){ std::cerr << "Y"; }
-            if(scale_axis[2]){ std::cerr << "Z"; }
-            std::cerr << std::endl;
-
-            std::cerr << "        default pressure is";
-            if(scale_axis[0]){ std::cerr << " X: " << std::setw(7) << default_pressure[0]; }
-            if(scale_axis[1]){ std::cerr << " Y: " << std::setw(7) << default_pressure[1]; }
-            if(scale_axis[2]){ std::cerr << " Z: " << std::setw(7) << default_pressure[2]; }
-            std::cerr << std::endl;
-
             const auto frequency = toml::find_or<std::size_t>(ensemble, "frequency", 25);
-            std::cerr << "        Monte Carlo pressure change frequency is ";
-            std::cerr << frequency << std::endl;
 
             if(!attr.contains("temperature"))
             {
                 throw std::runtime_error(
-                        "[error] attributes table must contains temperature.");
+                        "[error] attributes table must contains temperature in NPT ensemble case.");
             }
             const double temperature = toml::find<double>(attr, "temperature");
-            std::cerr << "        barostat temperature is ";
-            std::cerr << std::setw(7) << std::fixed << temperature << std::endl;
 
-            const auto barostat_gen =
+            auto barostat_gen =
                 MonteCarloAnisotropicBarostatGenerator(
                         scale_axis, temperature, default_pressure, frequency);
-            system_ptr->addForce(barostat_gen.generate().release());
+            system_gen.set_barostat(barostat_gen);
         }
     }
 
-    // read particles info
-    const auto& particles = toml::find<toml::array>(systems[0], "particles");
-
-    std::size_t system_size = particles.size();
-    Topology topology(system_size);
-    std::vector<std::optional<std::string>> group_vec(system_size, std::nullopt);
-    std::cerr << "generating system with size " << system_size << "..." << std::endl;
-    for(std::size_t idx=0; idx<system_size; ++idx)
-    {
-        // set mass
-        const auto& p = particles.at(idx);
-        system_ptr->addParticle(toml::get<double>(Utility::find_either(p, "m", "mass"))); // amu
-        if(p.contains("group"))
-        {
-            const std::string group_name = toml::find<std::string>(p, "group");
-            group_vec[idx] = group_name;
-        }
-    }
-
-    std::cerr << "generating forcefields..." << std::endl;
+    std::cerr << "reading forcefield tables..." << std::endl;
     // read forcefields info
     const auto ff = toml::find(data, "forcefields").at(0);
     // to distinguish same name parameters between forcefields, we need to label forcefield
@@ -140,62 +107,70 @@ std::unique_ptr<OpenMM::System> read_toml_system(const toml::value& data)
             const std::string potential   = toml::find<std::string>(local_ff, "potential");
             if(interaction == "BondLength" && potential == "Harmonic")
             {
-                const auto ff_gen =
+                HarmonicBondForceFieldGenerator ff_gen =
                     read_toml_harmonic_bond_ff_generator(local_ff, topology, use_periodic);
-                system_ptr->addForce(ff_gen.generate().release());
+                system_gen.add_ff_generator(
+                        std::make_unique<HarmonicBondForceFieldGenerator>(ff_gen));
                 ++ffgen_count;
             }
             else if(interaction == "BondLength" && potential == "Gaussian")
             {
-                const auto ff_gen =
+                GaussianBondForceFieldGenerator ff_gen =
                     read_toml_gaussian_bond_ff_generator(
                         local_ff, topology, use_periodic, ffgen_count);
-                system_ptr->addForce(ff_gen.generate().release());
+                system_gen.add_ff_generator(
+                        std::make_unique<GaussianBondForceFieldGenerator>(ff_gen));
                 ++ffgen_count;
             }
             else if(interaction == "BondLength" && potential == "GoContact")
             {
-                const auto ff_gen =
+                GoContactForceFieldGenerator ff_gen =
                     read_toml_go_contact_ff_generator(
                         local_ff, topology, use_periodic, ffgen_count);
-                system_ptr->addForce(ff_gen.generate().release());
+                system_gen.add_ff_generator(
+                        std::make_unique<GoContactForceFieldGenerator>(ff_gen));
                 ++ffgen_count;
             }
             else if(interaction == "BondAngle" && potential == "Harmonic")
             {
-                const auto ff_gen =
+                HarmonicAngleForceFieldGenerator ff_gen =
                     read_toml_harmonic_angle_ff_generator(local_ff, topology, use_periodic);
-                system_ptr->addForce(ff_gen.generate().release());
+                system_gen.add_ff_generator(
+                        std::make_unique<HarmonicAngleForceFieldGenerator>(ff_gen));
                 ++ffgen_count;
             }
             else if(interaction == "BondAngle" && potential == "FlexibleLocalAngle")
             {
                 for(const auto& [aa_type, spline_table] : Constant::fla_spline_table)
                 {
-                    const auto ff_gen =
+                    FlexibleLocalAngleForceFieldGenerator ff_gen =
                         read_toml_flexible_local_angle_ff_generator(
                             local_ff, aa_type, spline_table, topology, use_periodic, ffgen_count);
-                    system_ptr->addForce(ff_gen.generate().release());
+                    system_gen.add_ff_generator(
+                            std::make_unique<FlexibleLocalAngleForceFieldGenerator>(ff_gen));
                 }
                 ++ffgen_count;
             }
             else if(interaction == "DihedralAngle" && potential == "Gaussian")
             {
-                const auto ff_gen =
+                GaussianDihedralForceFieldGenerator ff_gen =
                     read_toml_gaussian_dihedral_ff_generator(
                             local_ff, topology, use_periodic, ffgen_count);
-                system_ptr->addForce(ff_gen.generate().release());
+                system_gen.add_ff_generator(
+                        std::make_unique<GaussianDihedralForceFieldGenerator>(ff_gen));
                 ++ffgen_count;
             }
             else if(interaction == "DihedralAngle" && potential == "FlexibleLocalDihedral")
             {
                 for(const auto& [aa_pair_type, fourier_table] : Constant::fld_fourier_table)
                 {
-                    const auto ff_gen =
+                    FlexibleLocalDihedralForceFieldGenerator ff_gen =
                         read_toml_flexible_local_dihedral_ff_generator(
                             local_ff, aa_pair_type, fourier_table, topology,
                             use_periodic, ffgen_count);
-                    system_ptr->addForce(ff_gen.generate().release());
+                    system_gen.add_ff_generator(
+                            std::make_unique<FlexibleLocalDihedralForceFieldGenerator>(
+                                ff_gen));
                     ++ffgen_count;
                 }
             }
@@ -212,10 +187,11 @@ std::unique_ptr<OpenMM::System> read_toml_system(const toml::value& data)
             const std::string potential = toml::find<std::string>(global_ff, "potential");
             if(potential == "ExcludedVolume")
             {
-                const auto ff_gen =
+                ExcludedVolumeForceFieldGenerator ff_gen =
                     read_toml_excluded_volume_ff_generator(
                         global_ff, system_size, topology, group_vec, use_periodic, ffgen_count);
-                system_ptr->addForce(ff_gen.generate().release());
+                system_gen.add_ff_generator(
+                        std::make_unique<ExcludedVolumeForceFieldGenerator>(ff_gen));
                 ++ffgen_count;
             }
             if(potential == "WCA")
@@ -245,7 +221,7 @@ std::unique_ptr<OpenMM::System> read_toml_system(const toml::value& data)
                                     toml::get<double>(
                                             Utility::find_either(second_table, "epsilon", "ε")) *
                                     OpenMM::KJPerKcal; // KJPermol
-                                const auto ff_gen =
+                                UniformWeeksChandlerAndersenForceFieldGenerator ff_gen =
                                     read_toml_uniform_weeks_chandler_andersen_ff_generator(
                                         global_ff, system_size, sigma, epsilon, name_pair, topology,
                                         group_vec, use_periodic, ffgen_count);
@@ -256,7 +232,10 @@ std::unique_ptr<OpenMM::System> read_toml_system(const toml::value& data)
                                         << std::endl;
                                     continue;
                                 }
-                                system_ptr->addForce(ff_gen.generate().release());
+                                system_gen.add_ff_generator(
+                                    std::make_unique<
+                                        UniformWeeksChandlerAndersenForceFieldGenerator>(
+                                                ff_gen));
                                 ++ffgen_count;
                                 treated_pair.push_back(name_pair);
                             }
@@ -265,10 +244,12 @@ std::unique_ptr<OpenMM::System> read_toml_system(const toml::value& data)
                 }
                 else
                 {
-                    const auto ff_gen =
+                    WeeksChandlerAndersenForceFieldGenerator ff_gen =
                         read_toml_weeks_chandler_andersen_ff_generator(
                             global_ff, system_size, topology, group_vec, use_periodic, ffgen_count);
-                    system_ptr->addForce(ff_gen.generate().release());
+                    system_gen.add_ff_generator(
+                            std::make_unique<WeeksChandlerAndersenForceFieldGenerator>(
+                                ff_gen));
                     ++ffgen_count;
                 }
             }
@@ -288,19 +269,21 @@ std::unique_ptr<OpenMM::System> read_toml_system(const toml::value& data)
                     std::cerr << ionic_strength.unwrap_err() << std::endl;
                 }
 
-                const auto ff_gen =
+                DebyeHuckelForceFieldGenerator ff_gen =
                     read_toml_debye_huckel_ff_generator(global_ff, system_size,
                         ionic_strength.unwrap(), temperature.unwrap(), topology, group_vec,
                         use_periodic, ffgen_count);
-                system_ptr->addForce(ff_gen.generate().release());
+                system_gen.add_ff_generator(
+                        std::make_unique<DebyeHuckelForceFieldGenerator>(ff_gen));
                 ++ffgen_count;
             }
             if(potential == "iSoLFAttractive")
             {
-                const auto ff_gen =
+                iSoLFAttractiveForceFieldGenerator ff_gen =
                     read_toml_isolf_attractive_ff_generator(
                         global_ff, system_size, topology, group_vec, use_periodic, ffgen_count);
-                system_ptr->addForce(ff_gen.generate().release());
+                system_gen.add_ff_generator(
+                        std::make_unique<iSoLFAttractiveForceFieldGenerator>(ff_gen));
                 ++ffgen_count;
             }
             if(potential == "LennardJonesAttractive")
@@ -330,7 +313,7 @@ std::unique_ptr<OpenMM::System> read_toml_system(const toml::value& data)
                                     toml::get<double>(
                                             Utility::find_either(second_table, "epsilon", "ε")) *
                                     OpenMM::KJPerKcal; // KJ/mol
-                                const auto ff_gen =
+                                UniformLennardJonesAttractiveForceFieldGenerator ff_gen =
                                     read_toml_uniform_lennard_jones_attractive_ff_generator(
                                         global_ff, system_size, sigma, epsilon, name_pair,
                                         topology, group_vec, use_periodic, ffgen_count);
@@ -340,7 +323,10 @@ std::unique_ptr<OpenMM::System> read_toml_system(const toml::value& data)
                                         << std::endl;
                                     continue;
                                 }
-                                system_ptr->addForce(ff_gen.generate().release());
+                                system_gen.add_ff_generator(
+                                    std::make_unique<
+                                        UniformLennardJonesAttractiveForceFieldGenerator>(
+                                                ff_gen));
                                 ++ffgen_count;
                                 treated_pair.push_back(name_pair);
                             }
@@ -371,17 +357,18 @@ std::unique_ptr<OpenMM::System> read_toml_system(const toml::value& data)
                 const auto& params = toml::find<toml::array>(external_ff, "parameters");
                 for(const auto& param : params)
                 {
-                    const auto ff_gen =
+                    HarmonicCoMPullingForceFieldGenerator ff_gen =
                         read_toml_harmonic_com_pulling_ff_generator(
                                 param, use_periodic, env, ffgen_count);
-                    system_ptr->addForce(ff_gen.generate().release());
+                    system_gen.add_ff_generator(
+                            std::make_unique<HarmonicCoMPullingForceFieldGenerator>(ff_gen));
                     ++ffgen_count;
                 }
             }
         }
     }
 
-    return system_ptr;
+    return system_gen;
 }
 
 std::vector<OpenMM::Vec3> read_toml_initial_conf(const toml::value& data)
@@ -446,6 +433,7 @@ Simulator read_toml_input(const std::string& toml_file_name)
     const auto& attr        = toml::find(systems[0], "attributes");
     const auto  temperature = toml::find<double>(attr, "temperature");
     const std::vector<OpenMM::Vec3> initial_position_in_nm(read_toml_initial_conf(data));
+    std::unique_ptr<OpenMM::System> system_ptr = read_toml_system(data).generate();
 
     // construct observers
     const bool use_periodic =
@@ -490,7 +478,7 @@ Simulator read_toml_input(const std::string& toml_file_name)
     // So in this implementation, we fix the gamma to 0.2 ps^-1 temporary, correspond to
     // approximatry 0.01 in cafemol friction coefficient. We need to implement new
     // LangevinIntegrator which can use different gamma for different particles.
-    return Simulator(std::move(read_toml_system(data)),
+    return Simulator(std::move(system_ptr),
                OpenMM::LangevinIntegrator(temperature,
                                           0.2/*friction coef ps^-1*/,
                                           delta_t*Constant::cafetime),

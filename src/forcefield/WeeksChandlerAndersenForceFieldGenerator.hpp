@@ -188,6 +188,8 @@ class WeeksChandlerAndersenForceFieldGenerator final : public ForceFieldGenerato
         return wca_ff;
     }
 
+    const std::string name() const noexcept { return "WeeksChandlerAndersen"; }
+
   private:
     const std::vector<std::optional<double>> sigmas_;
     const std::vector<std::optional<double>> epsilons_;

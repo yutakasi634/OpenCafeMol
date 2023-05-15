@@ -4,6 +4,7 @@
 #include <regex>
 #include <OpenMM.h>
 #include "src/Simulator.hpp"
+#include "src/SystemGenerator.hpp"
 #include "src/Topology.hpp"
 #include "ReadGenesisForceFieldGenerator.hpp"
 
@@ -182,8 +183,6 @@ Simulator make_simulator_from_genesis_inputs(
         const std::string& file_path)
 {
     // read [INPUT] section
-    auto system_ptr = std::make_unique<OpenMM::System>();
-
     const std::map<std::string, std::vector<std::string>>& top_data =
         read_top_file(topfile_name, file_path);
 
@@ -192,13 +191,15 @@ Simulator make_simulator_from_genesis_inputs(
         throw std::runtime_error(
                 "[error] There is no atoms section. Top file must contain one atoms section.");
     }
+    std::vector<double>      mass_vec;
     std::vector<std::string> res_name_vec, atom_name_vec;
     for(auto& atoms_line : top_data.at("atoms"))
     {
-        system_ptr->addParticle(std::stof(atoms_line.substr(49, 9))); // amu
+        mass_vec.push_back(std::stof(atoms_line.substr(49, 9))); // amu
         res_name_vec .push_back(atoms_line.substr(27, 3));
         atom_name_vec.push_back(atoms_line.substr(31, 4));
     }
+    SystemGenerator system_gen(mass_vec);
 
     // read [BOUNDARY] section
     const std::map<std::string, std::string> boundary_section = inpfile_data.at("BOUNDARY");
@@ -209,15 +210,16 @@ Simulator make_simulator_from_genesis_inputs(
         std::cerr << "    boundary type is periodic boundary condition" << std::endl;
     }
 
-    std::cerr << "generating forcefields..." << std::endl;
+    std::cerr << "reading forcefield tables..." << std::endl;
     Topology topology(top_data.at("atoms").size());
     if(top_data.find("bonds") != top_data.end())
     {
-        const auto ff_gen =
+        HarmonicBondForceFieldGenerator ff_gen =
             read_genesis_harmonic_bond_ff_generator(top_data.at("bonds"), topology, use_periodic);
         if(ff_gen.indices().size() != 0)
         {
-            system_ptr->addForce(ff_gen.generate().release());
+            system_gen.add_ff_generator(
+                    std::make_unique<HarmonicBondForceFieldGenerator>(ff_gen));
         }
         else
         {
@@ -228,11 +230,12 @@ Simulator make_simulator_from_genesis_inputs(
     if(top_data.find("angles") != top_data.end())
     {
         // make force field generator for AICG2+ angle
-        const auto aicg_ff_gen =
+        GaussianBondForceFieldGenerator aicg_ff_gen =
             read_genesis_gaussian_bond_ff_generator(top_data.at("angles"), use_periodic);
         if(aicg_ff_gen.indices().size() != 0)
         {
-            system_ptr->addForce(aicg_ff_gen.generate().release());
+            system_gen.add_ff_generator(
+                    std::make_unique<GaussianBondForceFieldGenerator>(aicg_ff_gen));
         }
         else
         {
@@ -242,14 +245,16 @@ Simulator make_simulator_from_genesis_inputs(
         // make force field generator for Flexible Local angle
         for(const auto& aa_type_table : Constant::fla_spline_table)
         {
-            const auto fla_ff_gen =
+            FlexibleLocalAngleForceFieldGenerator fla_ff_gen =
                 read_genesis_flexible_local_angle_ff_generator(top_data.at("angles"),
                                                                top_data.at("atoms"),
                                                                aa_type_table.first,
                                                                use_periodic);
             if(fla_ff_gen.indices().size() != 0)
             {
-                system_ptr->addForce(fla_ff_gen.generate().release());
+                system_gen.add_ff_generator(
+                        std::make_unique<FlexibleLocalAngleForceFieldGenerator>(
+                            fla_ff_gen));
             }
             else
             {
@@ -261,11 +266,12 @@ Simulator make_simulator_from_genesis_inputs(
     if(top_data.find("dihedrals") != top_data.end())
     {
         // make force field generator for AICG2+ dihedral
-        const auto aicg_ff_gen =
+        GaussianDihedralForceFieldGenerator aicg_ff_gen =
             read_genesis_gaussian_dihedral_ff_generator(top_data.at("dihedrals"), use_periodic);
         if(aicg_ff_gen.indices().size() != 0)
         {
-            system_ptr->addForce(aicg_ff_gen.generate().release());
+            system_gen.add_ff_generator(
+                    std::make_unique<GaussianDihedralForceFieldGenerator>(aicg_ff_gen));
         }
         else
         {
@@ -275,14 +281,16 @@ Simulator make_simulator_from_genesis_inputs(
         // make force field generator for Flexible Local dihedral
         for(const auto& aa_type_pair_table : Constant::fld_fourier_table)
         {
-             const auto fld_ff_gen =
+             FlexibleLocalDihedralForceFieldGenerator fld_ff_gen =
                  read_genesis_flexible_local_dihedral_ff_generator(top_data.at("dihedrals"),
                                                                    top_data.at("atoms"),
                                                                    aa_type_pair_table.first,
                                                                    use_periodic);
              if(fld_ff_gen.indices().size() != 0)
              {
-                 system_ptr->addForce(fld_ff_gen.generate().release());
+                 system_gen.add_ff_generator(
+                     std::make_unique<FlexibleLocalDihedralForceFieldGenerator>(
+                         fld_ff_gen));
              }
              else
              {
@@ -293,11 +301,12 @@ Simulator make_simulator_from_genesis_inputs(
 
     if(top_data.find("pairs") != top_data.end())
     {
-        const auto ff_gen =
+        GoContactForceFieldGenerator ff_gen =
             read_genesis_go_contact_ff_generator(top_data.at("pairs"), topology, use_periodic);
         if(ff_gen.indices().size() != 0)
         {
-            system_ptr->addForce(ff_gen.generate().release());
+            system_gen.add_ff_generator(
+                    std::make_unique<GoContactForceFieldGenerator>(ff_gen));
         }
         else
         {
@@ -321,9 +330,11 @@ Simulator make_simulator_from_genesis_inputs(
 
         const std::size_t ignore_particle_within_bond =
             std::stoi(moleculetype_data[0].substr(17, 6));
-        const auto ff_gen = read_genesis_exv_ff_generator(top_data.at("atomtypes"),
+        ExcludedVolumeForceFieldGenerator ff_gen =
+            read_genesis_exv_ff_generator(top_data.at("atomtypes"),
                 top_data.at("atoms"), topology, use_periodic, ignore_particle_within_bond);
-        system_ptr->addForce(ff_gen.generate().release());
+        system_gen.add_ff_generator(
+                std::make_unique<ExcludedVolumeForceFieldGenerator>(ff_gen));
     }
     else
     {
@@ -392,7 +403,7 @@ Simulator make_simulator_from_genesis_inputs(
     // So in this implementation, we fix the gamma to 0.2 ps^-1 temporary, correspond to
     // approximatry 0.01 in cafemol friction coefficient. We need to implement new
     // LangevinIntegrator which can use different gamma for different particles.
-    return Simulator(std::move(system_ptr),
+    return Simulator(std::move(system_gen.generate()),
                    OpenMM::LangevinIntegrator(temperature,
                                               gamma_t/*friction coef ps^-1*/,
                                               timestep/* delta t */),

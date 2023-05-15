@@ -1,0 +1,119 @@
+#ifndef OPEN_AICG2_PLUS_SYSTEM_HPP
+#define OPEN_AICG2_PLUS_SYSTEM_HPP
+
+#include "src/forcefield/ForceFieldGeneratorBase.hpp"
+#include "src/forcefield/MonteCarloAnisotropicBarostatGenerator.hpp"
+
+class SystemGenerator
+{
+  public:
+    SystemGenerator(const std::vector<double> mass_vec)
+    : mass_vec_(mass_vec), edge_lengthes_opt_(std::nullopt), barostat_gen_opt_(std::nullopt)
+    {}
+
+    void add_ff_generator(std::unique_ptr<ForceFieldGeneratorBase>&& ff_gen_ptr)
+    {
+        ff_gen_ptrs_.push_back(std::move(ff_gen_ptr));
+    }
+
+    void set_barostat(MonteCarloAnisotropicBarostatGenerator& baro_gen)
+    {
+        barostat_gen_opt_ = baro_gen;
+    }
+
+    void set_pbc(const double xlength, const double ylength, const double zlength)
+    {
+        edge_lengthes_opt_ = {xlength, ylength, zlength}; // unit of edge length is Nm
+    }
+
+    std::unique_ptr<OpenMM::System> generate() const
+    {
+        std::unique_ptr system_ptr = std::make_unique<OpenMM::System>();
+
+        std::cerr << "generating system with size " << mass_vec_.size()
+                  << "..." << std::endl;
+        for(auto& mass : mass_vec_)
+        {
+            system_ptr->addParticle(mass);
+        }
+
+        // set boundary condition
+        if(edge_lengthes_opt_)
+        {
+            const std::array<double, 3>& edge_length = edge_lengthes_opt_.value();
+            std::cerr << "    boundary type is periodic cuboid" << std::endl;
+            std::cerr << "        the box size is " << std::fixed << std::setprecision(2)
+                      << std::setw(7) << edge_length[0] << "Nm x "
+                      << std::setw(7) << edge_length[1] << "Nm x "
+                      << std::setw(7) << edge_length[2] << "Nm" << std::endl;
+            system_ptr->setDefaultPeriodicBoxVectors(
+                    OpenMM::Vec3(edge_length[0],            0.0,            0.0),
+                    OpenMM::Vec3(           0.0, edge_length[1],            0.0),
+                    OpenMM::Vec3(           0.0,            0.0, edge_length[2]));
+        }
+        else
+        {
+            std::cerr << "    boundary type is unlimited" << std::endl;
+        }
+
+        // set forcefields
+        std::cerr << "generating forcefields..." << std::endl;
+        for(auto& ff_gen_ptr : ff_gen_ptrs_)
+        {
+            std::cerr << "    " << ff_gen_ptr->name() << std::endl;
+            system_ptr->addForce(ff_gen_ptr->generate().release());
+        }
+
+        // set barostat
+        std::cerr << "generating barostat..." << std::endl;
+        if(barostat_gen_opt_)
+        {
+            const auto& barostat_gen = barostat_gen_opt_.value();
+            std::cerr << "    ensemble type is NPT with anisotropic barostat" << std::endl;
+            if(!edge_lengthes_opt_)
+            {
+                throw std::runtime_error(
+                        "[error] ensemble type \"NPT\" should be used with periodic boundary condition.");
+            }
+
+            std::cerr << "        scaling axis is ";
+            const std::array<bool, 3>& scale_axis = barostat_gen.scale_axis();
+            if(scale_axis[0]){ std::cerr << "X"; }
+            if(scale_axis[1]){ std::cerr << "Y"; }
+            if(scale_axis[2]){ std::cerr << "Z"; }
+            std::cerr << std::endl;
+
+            std::cerr << "        default pressure is"
+                      << std::fixed << std::setprecision(2);
+            const std::array<double, 3>& default_pressure = barostat_gen.default_pressure();
+            if(scale_axis[0]){ std::cerr << " X: " << std::setw(7) << default_pressure[0]; }
+            if(scale_axis[1]){ std::cerr << " Y: " << std::setw(7) << default_pressure[1]; }
+            if(scale_axis[2]){ std::cerr << " Z: " << std::setw(7) << default_pressure[2]; }
+            std::cerr << std::endl;
+
+            const std::size_t frequency = barostat_gen.frequency();
+            std::cerr << "        Monte Carlo pressure change frequency is "
+                      << frequency << std::endl;
+
+            const double temperature = barostat_gen.temperature();
+            std::cerr << "        barostat temperature is "
+                      << std::setw(7) << std::fixed << temperature << std::endl;
+
+            system_ptr->addForce(barostat_gen.generate().release());
+        }
+
+        return system_ptr;
+    }
+
+  private:
+    const std::vector<double>                             mass_vec_;
+    std::vector<std::unique_ptr<ForceFieldGeneratorBase>> ff_gen_ptrs_;
+
+    // for periodic boundary condition
+    std::optional<std::array<double, 3>> edge_lengthes_opt_;
+
+    // for barostat
+    std::optional<MonteCarloAnisotropicBarostatGenerator> barostat_gen_opt_;
+};
+
+#endif // OPEN_AICG2_PLUS_SYSTEM_HPP
