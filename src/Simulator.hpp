@@ -9,21 +9,21 @@ class Simulator
 {
   public:
     Simulator(
-        std::unique_ptr<OpenMM::System>&& system_ptr, OpenMM::LangevinIntegrator&& integrator,
+        const SystemGenerator& system_gen, OpenMM::LangevinIntegrator&& integrator,
         const std::vector<OpenMM::Vec3>& initial_position,
         const std::size_t total_step, const std::size_t save_step,
         std::vector<std::unique_ptr<ObserverBase>>& observers, bool output_progress = true)
-        : Simulator(std::move(system_ptr), std::move(integrator),
+        : Simulator(system_gen, std::move(integrator),
                     total_step, save_step, observers, output_progress)
     {
         this->initialize(initial_position);
     }
 
     Simulator(
-        std::unique_ptr<OpenMM::System>&& system_ptr, OpenMM::LangevinIntegrator&& integrator,
+        const SystemGenerator& system_gen, OpenMM::LangevinIntegrator&& integrator,
         const std::size_t total_step, const std::size_t save_step,
         std::vector<std::unique_ptr<ObserverBase>>& observers, bool output_progress = true)
-        : system_ptr_(std::move(system_ptr)), integrator_(std::move(integrator)),
+        : system_ptr_(system_gen.generate().release()), integrator_(std::move(integrator)),
           context_(*system_ptr_, integrator_, OpenMM::Platform::getPlatformByName("CUDA")),
           total_step_(total_step), save_step_(save_step), output_progress_(output_progress),
           progress_bar_(/* width of bar = */ 50)
@@ -39,6 +39,9 @@ class Simulator
             << std::setw(7) << std::fixed << std::setprecision(3)
             << integrator_.getStepSize() / Constant::cafetime << " cafetime"
             << std::endl;
+        std::cerr << "    gamma       : "
+            << std::setw(7) << std::fixed << std::setprecision(3)
+            << integrator_.getFriction() << " ps^-1" << std::endl;
 
         std::cerr << "initializing observers..." << std::endl;
         for(auto& observer : observers)

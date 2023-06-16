@@ -372,7 +372,7 @@ Simulator make_simulator_from_genesis_inputs(
     std::vector<std::unique_ptr<ObserverBase>> observers;
     observers.push_back(std::make_unique<DCDObserver>(
                 file_prefix, nsteps, crdout_period, timestep, use_periodic));
-    observers.push_back(std::make_unique<EnergyObserver>(file_prefix));
+    observers.push_back(std::make_unique<EnergyObserver>(file_prefix, system_gen));
 
     // dump initial configuration to pdb file
     std::cerr << "    output initial state file : " << pdbfile_name << std::endl;
@@ -403,7 +403,7 @@ Simulator make_simulator_from_genesis_inputs(
     // So in this implementation, we fix the gamma to 0.2 ps^-1 temporary, correspond to
     // approximatry 0.01 in cafemol friction coefficient. We need to implement new
     // LangevinIntegrator which can use different gamma for different particles.
-    return Simulator(std::move(system_gen.generate()),
+    return Simulator(system_gen,
                    OpenMM::LangevinIntegrator(temperature,
                                               gamma_t/*friction coef ps^-1*/,
                                               timestep/* delta t */),

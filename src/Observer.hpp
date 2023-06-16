@@ -4,6 +4,7 @@
 #include <string>
 #include <iostream>
 #include <OpenMM.h>
+#include "src/SystemGenerator.hpp"
 #include "util/Utility.hpp"
 #include "util/ProgressBar.hpp"
 
@@ -284,7 +285,9 @@ class DCDObserver final : public ObserverBase
 class EnergyObserver final : public ObserverBase
 {
   public:
-    EnergyObserver(const std::string& file_prefix) : ene_filename_(file_prefix+".ene")
+    EnergyObserver(const std::string& file_prefix, const SystemGenerator& system_gen)
+    : ene_filename_(file_prefix+".ene"),
+      ffname_groupid_map_(system_gen.ffname_groupid_map())
     {
         Utility::clear_file(ene_filename_);
         std::cerr << "    output energy file        : " << ene_filename_ << std::endl;
@@ -294,7 +297,12 @@ class EnergyObserver final : public ObserverBase
     {
         std::ofstream ofs(ene_filename_, std::ios::out);
         ofs << "# unit of energy : kcal/mol" << std::endl;
-        ofs << "# timestep potential_energy kinetic_energy" << std::endl;
+        ofs << "# timestep";
+        for(auto ffname_groupid : ffname_groupid_map_)
+        {
+            ofs << " " << std::setw(24) << ffname_groupid.first;
+        }
+        ofs << " kinetic_energy" << std::endl;
         ofs.close();
         return;
     }
@@ -303,8 +311,7 @@ class EnergyObserver final : public ObserverBase
     {
         // output energy
         std::ofstream ofs(ene_filename_, std::ios::app);
-        OpenMM::State ene = context.getState(OpenMM::State::Energy);
-        write_energy(ofs, step, ene);
+        write_energy(ofs, step, context);
         ofs.close();
     }
 
@@ -312,17 +319,26 @@ class EnergyObserver final : public ObserverBase
     const std::string name() const { return "EnergyObserver"; }
 
   private:
-    void write_energy(std::ofstream& fp, int frame_num, const OpenMM::State& state) const
+    void write_energy(std::ofstream& fp, int frame_num,
+                      const OpenMM::Context& context) const
     {
-        const double pot_ene = state.getPotentialEnergy() * OpenMM::KcalPerKJ; // kcal/mol
+        fp << std::setw(10) << std::left  << frame_num;
+        for(auto ffname_groupid : ffname_groupid_map_)
+        {
+            const std::size_t groupid = ffname_groupid.second;
+            const OpenMM::State state =
+                context.getState(OpenMM::State::Energy, false, int(1)<<groupid);
+            const double pot_ene = state.getPotentialEnergy() * OpenMM::KcalPerKJ; // kcal/mol
+            fp << ' ' << std::setw(24) << std::right << std::fixed << pot_ene;
+        }
+        const OpenMM::State state = context.getState(OpenMM::State::Energy);
         const double kin_ene = state.getKineticEnergy() * OpenMM::KcalPerKJ; // kcal/mol
-        fp << std::setw(11) << std::left << frame_num << ' ';
-        fp << std::setw(16) << std::right << std::fixed << pot_ene;
-        fp << "  " << std::setw(14) << std::right << std::fixed << kin_ene << std::endl;
+        fp << ' ' << std::setw(14) << std::right << std::fixed << kin_ene << std::endl;
     }
 
   private:
     std::string ene_filename_;
+    const std::map<std::string, std::size_t> ffname_groupid_map_;
 };
 
 #endif // OPEN_AICG2_PLUS_OBSERVER_HPP

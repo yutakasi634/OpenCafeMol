@@ -13,6 +13,31 @@ class SystemGenerator
 
     void add_ff_generator(std::unique_ptr<ForceFieldGeneratorBase>&& ff_gen_ptr)
     {
+        const std::size_t group_id = ffname_groupid_map_.size();
+        const std::string ff_name  = ff_gen_ptr->name();
+        if(ff_name.find("FlexibleLocalAngle") != std::string::npos)
+        {
+            if(ffname_groupid_map_.find("FlexibleLocalAngle") ==
+                    ffname_groupid_map_.end())
+            {
+                ffname_groupid_map_.insert(
+                        std::make_pair("FlexibleLocalAngle", group_id));
+            }
+        }
+        else if(ff_name.find("FlexibleLocalDihedral") != std::string::npos)
+        {
+            if(ffname_groupid_map_.find("FlexibleLocalDihedral") ==
+                    ffname_groupid_map_.end())
+            {
+                ffname_groupid_map_.insert(
+                        std::make_pair("FlexibleLocalDihedral", group_id));
+            }
+        }
+        else
+        {
+            ffname_groupid_map_.insert(std::make_pair(ff_name, group_id));
+        }
+
         ff_gen_ptrs_.push_back(std::move(ff_gen_ptr));
     }
 
@@ -43,9 +68,9 @@ class SystemGenerator
             const std::array<double, 3>& edge_length = edge_lengthes_opt_.value();
             std::cerr << "    boundary type is periodic cuboid" << std::endl;
             std::cerr << "        the box size is " << std::fixed << std::setprecision(2)
-                      << std::setw(7) << edge_length[0] << "Nm x "
-                      << std::setw(7) << edge_length[1] << "Nm x "
-                      << std::setw(7) << edge_length[2] << "Nm" << std::endl;
+                      << std::setw(7) << edge_length[0] << " Nm x "
+                      << std::setw(7) << edge_length[1] << " Nm x "
+                      << std::setw(7) << edge_length[2] << " Nm" << std::endl;
             system_ptr->setDefaultPeriodicBoxVectors(
                     OpenMM::Vec3(edge_length[0],            0.0,            0.0),
                     OpenMM::Vec3(           0.0, edge_length[1],            0.0),
@@ -60,8 +85,24 @@ class SystemGenerator
         std::cerr << "generating forcefields..." << std::endl;
         for(auto& ff_gen_ptr : ff_gen_ptrs_)
         {
-            std::cerr << "    " << ff_gen_ptr->name() << std::endl;
-            system_ptr->addForce(ff_gen_ptr->generate().release());
+            const std::string ff_name = ff_gen_ptr->name();
+            std::cerr << "    " << ff_name << std::endl;
+            std::unique_ptr<OpenMM::Force> ff_ptr = ff_gen_ptr->generate();
+
+            // set forcegroup id
+            if(ff_name.find("FlexibleLocalAngle") != std::string::npos)
+            {
+                ff_ptr->setForceGroup(ffname_groupid_map_.at("FlexibleLocalAngle"));
+            }
+            else if(ff_name.find("FlexibleLocalDihedral") != std::string::npos)
+            {
+                ff_ptr->setForceGroup(ffname_groupid_map_.at("FlexibleLocalDihedral"));
+            }
+            else
+            {
+                ff_ptr->setForceGroup(ffname_groupid_map_.at(ff_name));
+            }
+            system_ptr->addForce(ff_ptr.release());
         }
 
         // set barostat
@@ -105,15 +146,23 @@ class SystemGenerator
         return system_ptr;
     }
 
+    const std::map<std::string, std::size_t> ffname_groupid_map() const
+    {
+        return ffname_groupid_map_;
+    }
+
   private:
     const std::vector<double>                             mass_vec_;
     std::vector<std::unique_ptr<ForceFieldGeneratorBase>> ff_gen_ptrs_;
 
     // for periodic boundary condition
-    std::optional<std::array<double, 3>> edge_lengthes_opt_;
+    std::optional<std::array<double, 3>>                  edge_lengthes_opt_;
 
     // for barostat
     std::optional<MonteCarloAnisotropicBarostatGenerator> barostat_gen_opt_;
+
+    // for EnergyObserver
+    std::map<std::string, std::size_t>                    ffname_groupid_map_;
 };
 
 #endif // OPEN_AICG2_PLUS_SYSTEM_HPP

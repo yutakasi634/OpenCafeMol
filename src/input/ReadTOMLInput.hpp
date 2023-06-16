@@ -433,7 +433,7 @@ Simulator read_toml_input(const std::string& toml_file_name)
     const auto& attr        = toml::find(systems[0], "attributes");
     const auto  temperature = toml::find<double>(attr, "temperature");
     const std::vector<OpenMM::Vec3> initial_position_in_nm(read_toml_initial_conf(data));
-    std::unique_ptr<OpenMM::System> system_ptr = read_toml_system(data).generate();
+    SystemGenerator system_gen = read_toml_system(data);
 
     // construct observers
     const bool use_periodic =
@@ -469,7 +469,7 @@ Simulator read_toml_input(const std::string& toml_file_name)
         throw std::runtime_error(
                 "[error] output file format `" + output_format + "` is not supported.");
     }
-    observers.push_back(std::make_unique<EnergyObserver>(output_path+output_prefix));
+    observers.push_back(std::make_unique<EnergyObserver>(output_path+output_prefix, system_gen));
 
     // setup OpenMM simulator
     // In OpenMM, we cannot use different friction coefficiet, gamma, for different molecules.
@@ -478,7 +478,7 @@ Simulator read_toml_input(const std::string& toml_file_name)
     // So in this implementation, we fix the gamma to 0.2 ps^-1 temporary, correspond to
     // approximatry 0.01 in cafemol friction coefficient. We need to implement new
     // LangevinIntegrator which can use different gamma for different particles.
-    return Simulator(std::move(system_ptr),
+    return Simulator(system_gen,
                OpenMM::LangevinIntegrator(temperature,
                                           0.2/*friction coef ps^-1*/,
                                           delta_t*Constant::cafetime),
