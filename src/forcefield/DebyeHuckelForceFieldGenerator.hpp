@@ -22,19 +22,22 @@ class DebyeHuckelForceFieldGenerator final : public ForceFieldGeneratorBase
           cutoff_ratio_(cutoff_ratio), charges_(charges), ignore_list_(ignore_list),
           use_periodic_(use_periodic), ffgen_id_str_(std::to_string(ffgen_id))
     {
-        const double epsk = calc_dielectric_water(temperature_, ionic_strength_);
+        const double epsk = calc_dielectric_water(temperature_, ionic_strength_); // dimensionless
         const double eps0 = Constant::eps0 / Constant::elementary_charge
-                                           / Constant::elementary_charge;
+                                           / Constant::elementary_charge; // [mol/KJ/nm]
+        std::cerr << "        eps0 is " << eps0 << " mol/KJ/nm" << std::endl;
+        std::cerr << "        epsk is " << epsk << " (dimensionless)" << std::endl;
 
-        inv_4_pi_eps0_epsk_ = 1.0 / (4 * Constant::pi * eps0 * epsk);
+        inv_4_pi_eps0_epsk_ = 1.0 / (4.0 * Constant::pi * eps0 * epsk); // [KJ nm/mol]
 
-        // convert [M] (mol/L) to [mol/m^3]
-        const double I = ionic_strength_ * 1.0e3; // [M/m^3]
+        // convert [M] (mol/L) to [mol/nm^3]
+        const double I = ionic_strength_ * 1.0e-24/*[/L]->[/nm^3]*/; // [mol/nm^3]
 
-        debye_length_ = std::sqrt((eps0 * epsk * Constant::kB * temperature_) /
-                                 (2. * Constant::Na * I)) * 1.0e9; // [nm]
+        debye_length_ =
+            std::sqrt((eps0 * epsk * Constant::kB * 1.0e-3 /*[J]->[KJ]*/ * temperature_) / (2. * I)); // [nm]
+        std::cerr << "        debye length is " << debye_length_ << " nm" << std::endl;
         abs_cutoff_   = debye_length_ * cutoff_ratio_;
-        cutoff_correction_ = std::exp(cutoff_ratio_) / abs_cutoff_;
+        cutoff_correction_ = std::exp(-cutoff_ratio_) / abs_cutoff_;
 
         if(ignore_group_pairs.size() == 0)
         {
@@ -127,16 +130,16 @@ class DebyeHuckelForceFieldGenerator final : public ForceFieldGeneratorBase
 
     std::unique_ptr<OpenMM::Force> generate() const noexcept override
     {
-
         const std::string potential_formula =
             "DH"+ffgen_id_str_+"_q1*DH"+ffgen_id_str_+"_q2 *"
-            "DH"+ffgen_id_str_+"_inv_4_pi_eps0_epsk *"
-            "(exp(-r/DH"+ffgen_id_str_+"_debye_length)-DH"+ffgen_id_str_+"_cutoff_correction)";
+            "DH"+ffgen_id_str_+"_inv_4_pi_eps0_epsk * "
+            "(exp(-r/DH"+ffgen_id_str_+"_debye_length)/r-DH"+ffgen_id_str_+"_cutoff_correction)";
+
         auto dh_ff = std::make_unique<OpenMM::CustomNonbondedForce>(potential_formula);
 
         dh_ff->addPerParticleParameter("DH"+ffgen_id_str_+"_q");
-        dh_ff->addGlobalParameter("DH"+ffgen_id_str_+"_inv_4_pi_eps0_epsk", inv_4_pi_eps0_epsk_);
-        dh_ff->addGlobalParameter("DH"+ffgen_id_str_+"_debye_length",       debye_length_);
+        dh_ff->addGlobalParameter("DH"+ffgen_id_str_+"_inv_4_pi_eps0_epsk", inv_4_pi_eps0_epsk_); // [KJ nm /mol]
+        dh_ff->addGlobalParameter("DH"+ffgen_id_str_+"_debye_length",       debye_length_); // [nm]
         dh_ff->addGlobalParameter("DH"+ffgen_id_str_+"_cutoff_correction",  cutoff_correction_);
 
         for(std::size_t idx=0; idx<charges_.size(); ++idx)
@@ -188,7 +191,7 @@ class DebyeHuckelForceFieldGenerator final : public ForceFieldGeneratorBase
     double calc_dielectric_water(const double T, const double C) const noexcept
     {
         // TODO: check this formula
-        return (249.4 - 0.778 * T + 7.2e-4 * T * T) *
+        return (249.4 - 0.788 * T + 7.2e-4 * T * T) *
             (1. - 2.551e-1 * C + 5.151e-2 * C * C - 6.889e-3 * C * C * C);
     }
 

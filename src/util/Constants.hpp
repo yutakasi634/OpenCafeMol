@@ -9,8 +9,8 @@ namespace Constant
 static const double Na   = 6.02214076e23;         // avogadro constant [/mol]
 static const double kB   = 1.380649e-23;          // boltzmann constant [J/K]
 static const double pi   = 3.1415926535897932385;
-static const double eps0 = 8.854187817e-12;       // vacuum permittivity [F/m]
-static const double elementary_charge = 1.6021766208e-19;
+static const double eps0 = 8.854187817e-12 /*[F/m] == [C^2/J/m]*/ * 1.0e3 /*[/J]->[/KJ]*/ * 1.0e-9 /*[/m]->[/nm]*/ / Na; // vacuum permittivity [C^2 mol/KJ/nm]
+static const double elementary_charge = 1.6021766208e-19; // [C]
 
 // prepare fundamental constant for calculation
 static const double cafetime = std::sqrt(1.0/OpenMM::KJPerKcal)*0.1; // Ps
