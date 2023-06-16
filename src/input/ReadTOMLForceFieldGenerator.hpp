@@ -347,7 +347,6 @@ read_toml_flexible_local_dihedral_ff_generator(
 
     std::vector<std::array<std::size_t, 4>> indices_vec;
     std::vector<double>                     ks;
-    std::string                             aa_pair_name;
 
     if(aa_pair_type.second == "GLY") // R1-GLY case
     {
@@ -367,7 +366,6 @@ read_toml_flexible_local_dihedral_ff_generator(
                 ks         .push_back(k);
             }
         }
-        aa_pair_name = aa_pair_type.first + "-" + aa_pair_type.second;
     }
     else if(aa_pair_type.second == "PRO")
     {
@@ -390,7 +388,6 @@ read_toml_flexible_local_dihedral_ff_generator(
                     ks         .push_back(k);
                 }
             }
-            aa_pair_name = aa_pair_type.first + "-" + aa_pair_type.second;
         }
         else
         {
@@ -411,7 +408,6 @@ read_toml_flexible_local_dihedral_ff_generator(
                     ks         .push_back(k);
                 }
             }
-            aa_pair_name = aa_pair_type.first + "-" + aa_pair_type.second;
         }
     }
     else // R1-R3 case
@@ -455,6 +451,8 @@ read_toml_flexible_local_dihedral_ff_generator(
         topology.add_edges(indices_vec, toml::find<std::string>(local_ff_data, "topology"));
     }
 
+    const std::string aa_pair_name =
+        aa_pair_type.first + "-" + aa_pair_type.second;
     std::cerr << "    DihedralAngle : FlexibleLocalDihedral - "
               << aa_pair_name << " (" << indices_vec.size() << " found)" << std::endl;
     return FlexibleLocalDihedralForceFieldGenerator(
