@@ -40,6 +40,15 @@ read_toml_harmonic_bond_ff_generator(
         indices.first  += offset;
         indices.second += offset;
 
+        if(topology.size() <= indices.first)
+        {
+            throw std::runtime_error("[error] read_toml_harmonic_bond_ff_generator : index "+std::to_string(indices.first)+" exceeds the system's largest index "+std::to_string(topology.size()-1)+".");
+        }
+        else if(topology.size() <= indices.second)
+        {
+            throw std::runtime_error("[error] read_toml_harmonic_bond_ff_generator : index "+std::to_string(indices.second)+" exceeds the system's largest index "+std::to_string(topology.size()-1)+".");
+        }
+
         const double v0 =
             Utility::find_parameter<double>(param, env, "v0") * OpenMM::NmPerAngstrom; // nm
         // Toml input file assume the potential formula of HarmonicBond is
@@ -83,6 +92,15 @@ read_toml_gaussian_bond_ff_generator(
         const auto offset = Utility::find_parameter_or<std::size_t>(param, env, "offset", 0);
         indices.first  += offset;
         indices.second += offset;
+
+        if(topology.size() <= indices.first)
+        {
+            throw std::runtime_error("[error] read_toml_gaussian_bond_ff_generator : index "+std::to_string(indices.first)+" exceeds the system's largest index "+std::to_string(topology.size()-1)+".");
+        }
+        else if(topology.size() <= indices.second)
+        {
+            throw std::runtime_error("[error] read_toml_gaussian_bond_ff_generator : index "+std::to_string(indices.second)+" exceeds the system's largest index "+std::to_string(topology.size()-1)+".");
+        }
 
         const double k  =
             Utility::find_parameter<double>(param, env, "k") * OpenMM::KJPerKcal; // KJ/mol
@@ -128,6 +146,15 @@ read_toml_go_contact_ff_generator(
         indices.first  += offset;
         indices.second += offset;
 
+        if(topology.size() <= indices.first)
+        {
+            throw std::runtime_error("[error] read_toml_go_contact_ff_generator : index "+std::to_string(indices.first)+" exceeds the system's largest index "+std::to_string(topology.size()-1)+".");
+        }
+        else if(topology.size() <= indices.second)
+        {
+            throw std::runtime_error("[error] read_toml_go_contact_ff_generator : index "+std::to_string(indices.second)+" exceeds the system's largest index "+std::to_string(topology.size()-1)+".");
+        }
+
         const double k =
             Utility::find_parameter<double>(param, env, "k") * OpenMM::KJPerKcal; // KJ/mol
         const double r0 =
@@ -164,6 +191,14 @@ read_toml_harmonic_angle_ff_generator(
             Utility::find_parameter<std::array<std::size_t, 3>>(param, env, "indices");
         const auto offset = Utility::find_parameter_or<std::size_t>(param, env, "offset", 0);
         for(auto& idx : indices) { idx += offset; }
+
+        for(auto idx : indices)
+        {
+            if(topology.size() <= idx)
+            {
+                throw std::runtime_error("[error] read_toml_harmonic_angle_ff_generator : index "+std::to_string(idx)+" exceeds the system's largest index "+std::to_string(topology.size()-1)+".");
+            }
+        }
 
         double v0 =
             Utility::find_parameter<double>(param, env, "v0"); // radian
@@ -221,6 +256,14 @@ read_toml_flexible_local_angle_ff_generator(
             const auto offset = Utility::find_parameter_or<std::size_t>(param, env, "offset", 0);
             for(auto& idx : indices) { idx += offset; }
 
+            for(auto idx : indices)
+            {
+                if(topology.size() <= idx)
+                {
+                    throw std::runtime_error("[error] read_toml_flexible_local_angle_ff_generator : index "+std::to_string(idx)+" exceeds the system's largest index "+std::to_string(topology.size()-1)+".");
+                }
+            }
+
             const double k =
                 Utility::find_parameter<double>(param, env, "k") * OpenMM::KJPerKcal; // KJ/mol
 
@@ -261,6 +304,14 @@ read_toml_gaussian_dihedral_ff_generator(
             Utility::find_parameter<std::array<std::size_t, 4>>(param, env, "indices");
         const auto offset = Utility::find_parameter_or<std::size_t>(param, env, "offset", 0);
         for(auto& idx : indices) { idx += offset; }
+
+        for(auto idx : indices)
+        {
+            if(topology.size() <= idx)
+            {
+                throw std::runtime_error("[error] read_toml_gaussian_dihedral_ff_generator : index "+std::to_string(idx)+" exceeds the system's largest index "+std::to_string(topology.size()-1)+".");
+            }
+        }
 
         const double k  =
             Utility::find_parameter<double>(param, env, "k") * OpenMM::KJPerKcal; // KJ/mol
@@ -386,7 +437,17 @@ read_toml_flexible_local_dihedral_ff_generator(
                 }
             }
         }
-        aa_pair_name = aa_pair_type.first + "-" + aa_pair_type.second;
+    }
+
+    for(auto& indices : indices_vec)
+    {
+        for(auto idx : indices)
+        {
+            if(topology.size() <= idx)
+            {
+                throw std::runtime_error("[error] read_toml_flexible_local_dihedral_ff_generator : index "+std::to_string(idx)+" exceeds the system's largest index "+std::to_string(topology.size()-1)+".");
+            }
+        }
     }
 
     if(local_ff_data.contains("topology"))
@@ -512,6 +573,11 @@ read_toml_excluded_volume_ff_generator(
     {
         const std::size_t index  = Utility::find_parameter<std::size_t>(param, env, "index") +
                                    Utility::find_parameter_or<std::size_t>(param, env, "offset", 0);
+        if(topology.size() <= index)
+        {
+            throw std::runtime_error("[error] read_toml_excluded_volume_ff_generator : index "+std::to_string(index)+" exceeds the system's largest index "+std::to_string(topology.size()-1)+".");
+        }
+
         const double      radius =
             Utility::find_parameter<double>(param, env, "radius") * OpenMM::NmPerAngstrom; // nm
         radius_vec[index] = radius;
@@ -553,6 +619,11 @@ read_toml_weeks_chandler_andersen_ff_generator(
         const std::size_t index =
             Utility::find_parameter<std::size_t>(param, env, "index") +
             Utility::find_parameter_or<std::size_t>(param, env, "offset", 0);
+        if(topology.size() <= index)
+        {
+            throw std::runtime_error("[error] read_toml_weeks_chandler_andersen_ff_generator : index "+std::to_string(index)+" exceeds the system's largest index "+std::to_string(topology.size()-1)+".");
+        }
+
         const double      sigma =
             Utility::find_parameter_either<double>(param, env, "sigma", "σ") *
             OpenMM::NmPerAngstrom; // nm
@@ -600,6 +671,11 @@ read_toml_uniform_weeks_chandler_andersen_ff_generator(
         const std::string& particle_name = toml::find<std::string>(param, "name");
         const std::size_t  index = Utility::find_parameter<std::size_t>(param, env, "index") +
                                    Utility::find_parameter_or<std::size_t>(param, env, "offset", 0);
+        if(topology.size() <= index)
+        {
+            throw std::runtime_error("[error] read_toml_uniform_weeks_chandler_andersen_ff_generator : index "+std::to_string(index)+" exceeds the system's largest index "+std::to_string(topology.size()-1)+".");
+        }
+
         if(particle_name == name_pair.first)
         {
             former_participants.push_back(index);
@@ -650,6 +726,11 @@ read_toml_debye_huckel_ff_generator(
     {
         const std::size_t index  = Utility::find_parameter<std::size_t>(param, env, "index") +
                                    Utility::find_parameter_or<std::size_t>(param, env, "offset", 0);
+        if(topology.size() <= index)
+        {
+            throw std::runtime_error("[error] read_toml_debye_huckel_ff_generator : index "+std::to_string(index)+" exceeds the system's largest index "+std::to_string(topology.size()-1)+".");
+        }
+
         const double      charge = Utility::find_parameter<double>(param, env, "charge");
         charge_vec[index] = charge;
     }
@@ -690,6 +771,11 @@ read_toml_isolf_attractive_ff_generator(
     {
         const std::size_t index = Utility::find_parameter<std::size_t>(param, env, "index") +
                                   Utility::find_parameter_or<std::size_t>(param, env, "offset", 0);
+        if(topology.size() <= index)
+        {
+            throw std::runtime_error("[error] read_toml_isolf_attractive_ff_generator : index "+std::to_string(index)+" exceeds the system's largest index "+std::to_string(topology.size()-1)+".");
+        }
+
         const double      sigma =
             Utility::find_parameter<double>(param, env, "sigma") * OpenMM::NmPerAngstrom; // nm
         const double      eps   =
@@ -740,6 +826,11 @@ read_toml_uniform_lennard_jones_attractive_ff_generator(
         const std::string& particle_name = toml::find<std::string>(param, "name");
         const std::size_t  index = Utility::find_parameter<std::size_t>(param, env, "index") +
                                    Utility::find_parameter_or<std::size_t>(param, env, "offset", 0);
+        if(topology.size() <= index)
+        {
+            throw std::runtime_error("[error] read_toml_uniform_lennard_jones_attractive_ff_generator : index "+std::to_string(index)+" exceeds the system's largest index "+std::to_string(topology.size()-1)+".");
+        }
+
         if(particle_name == name_pair.first)
         {
             former_participants.push_back(index);

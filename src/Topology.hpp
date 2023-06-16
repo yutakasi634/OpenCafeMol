@@ -164,6 +164,7 @@ class Topology
         return ignore_list;
     }
 
+    const std::size_t size()              const { return nodes_.size(); }
     const std::vector<node_type>& nodes() const { return nodes_; }
 
   private:
