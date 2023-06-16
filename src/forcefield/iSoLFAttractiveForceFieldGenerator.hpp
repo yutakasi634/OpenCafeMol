@@ -156,11 +156,19 @@ class iSoLFAttractiveForceFieldGenerator final : public ForceFieldGeneratorBase
                     second_max_sigma = max_sigma;
                     max_sigma        = sigma_val;
                 }
+                else if(second_max_sigma <= sigma_val)
+                {
+                    second_max_sigma = sigma_val;
+                }
 
                 if(max_omega <= omega_val)
                 {
                     second_max_omega = max_omega;
                     max_omega        = omega_val;
+                }
+                else if(second_max_omega <= omega_val)
+                {
+                    second_max_omega = omega_val;
                 }
             }
             else if(!sigma && !eps && !omega)

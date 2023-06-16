@@ -63,7 +63,7 @@ class WeeksChandlerAndersenForceFieldGenerator final : public ForceFieldGenerato
             {
                 if(sigmas_[idx])
                 {
-                    assert(epsilons[idx]);
+                    assert(epsilons_[idx]);
 
                     if(group_vec[idx])
                     {
@@ -91,7 +91,7 @@ class WeeksChandlerAndersenForceFieldGenerator final : public ForceFieldGenerato
             }
 
             interaction_groups_.push_back({ others, others });
-            for(std::size_t idx_i=0 ; idx_i<related_group_vec.size(); ++idx_i)
+            for(std::size_t idx_i=0; idx_i<related_group_vec.size(); ++idx_i)
             {
                 const auto& name_group_pair_i = related_group_vec[idx_i];
                 const std::string&   first_name  = name_group_pair_i.first;
@@ -141,6 +141,10 @@ class WeeksChandlerAndersenForceFieldGenerator final : public ForceFieldGenerato
                     second_max_sigma = max_sigma;
                     max_sigma        = sigma_val;
                 }
+                else if(second_max_sigma <= sigma_val)
+                {
+                    second_max_sigma = sigma_val;
+                }
             }
             else if(!sigma && !epsilon)
             {
@@ -157,7 +161,7 @@ class WeeksChandlerAndersenForceFieldGenerator final : public ForceFieldGenerato
         }
 
         // if interaction_groups size is 0, no interaction group will be added,
-        // so all the particle inthe system will be considerd as participant
+        // so all the particle in the system will be considerd as participant
         for(const auto& group_pair : interaction_groups_)
         {
             wca_ff->addInteractionGroup(group_pair.first, group_pair.second);
