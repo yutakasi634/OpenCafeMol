@@ -6,6 +6,7 @@
 #include "src/forcefield/HarmonicBondForceFieldGenerator.hpp"
 #include "src/forcefield/GaussianBondForceFieldGenerator.hpp"
 #include "src/forcefield/GoContactForceFieldGenerator.hpp"
+#include "src/forcefield/ThreeSPN2BondForceFieldGenerator.hpp"
 #include "src/forcefield/HarmonicAngleForceFieldGenerator.hpp"
 #include "src/forcefield/FlexibleLocalAngleForceFieldGenerator.hpp"
 #include "src/forcefield/GaussianDihedralForceFieldGenerator.hpp"
@@ -172,6 +173,58 @@ read_toml_go_contact_ff_generator(
 
     std::cerr << "    BondLength    : GoContact (" << indices_vec.size() << " found)" << std::endl;
     return GoContactForceFieldGenerator(indices_vec, ks, r0s, use_periodic, ffgen_id);
+}
+
+const ThreeSPN2BondForceFieldGenerator
+read_toml_3spn2_bond_ff_generator(
+        const toml::value& local_ff_data, Topology& topology,
+        const bool use_periodic, const std::size_t ffgen_id)
+{
+    const auto& params = toml::find<toml::array>(local_ff_data, "parameters");
+    const auto& env = local_ff_data.contains("env") ? local_ff_data.at("env") : toml::value{};
+
+    std::vector<std::pair<std::size_t, std::size_t>> indices_vec;
+    std::vector<double>                              v0s;
+    std::vector<double>                              k2s;
+    std::vector<double>                              k4s;
+
+    for(const auto& param : params)
+    {
+        auto indices =
+            Utility::find_parameter<std::pair<std::size_t, std::size_t>>(param, env, "indices");
+        const auto offset = Utility::find_parameter_or<std::size_t>(param, env, "offset", 0);
+        indices.first  += offset;
+        indices.second += offset;
+
+        const double v0 =
+            Utility::find_parameter<double>(param, env, "v0") * OpenMM::NmPerAngstrom; // nm
+        // The potential energy of the 3SPN2 bond is k (r-v0)^2 + 100*k*(r-v0)^4,
+        // where the parameter, k ,is shared in the harmonic and quartic terms.
+        // Unit of k for harmonic and quartic terms are kJ/(mol nm^2) and kJ/(mol nm^4),
+        // respectively. Thus, the coefficient, k, for the quartic term is 100 times larger than
+        // the coefficient for the harmonic term.
+        const double k2 =
+            Utility::find_parameter<double>(param, env, "k") * OpenMM::KJPerKcal *
+            OpenMM::AngstromsPerNm * OpenMM::AngstromsPerNm;  // KJ/(mol nm^2)
+
+        const double k4 =
+            Utility::find_parameter<double>(param, env, "k") * OpenMM::KJPerKcal *
+            OpenMM::AngstromsPerNm * OpenMM::AngstromsPerNm *
+            OpenMM::AngstromsPerNm * OpenMM::AngstromsPerNm;  // KJ/(mol nm^4)
+
+        indices_vec.push_back(indices);
+        k2s        .push_back(k2);
+        k4s        .push_back(k4);
+        v0s        .push_back(v0);
+    }
+
+    if(local_ff_data.contains("topology"))
+    {
+        topology.add_edges(indices_vec, toml::find<std::string>(local_ff_data, "topology"));
+    }
+
+    std::cerr << "    BondLength    : 3SPN2 (" << indices_vec.size() << " found)" << std::endl;
+    return ThreeSPN2BondForceFieldGenerator(indices_vec, k2s, k4s, v0s, use_periodic, ffgen_id);
 }
 
 const HarmonicAngleForceFieldGenerator
