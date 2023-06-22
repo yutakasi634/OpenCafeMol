@@ -218,7 +218,7 @@ const SystemGenerator read_toml_system(const toml::value& data)
                             {
                                 throw std::runtime_error(
                                     "[error] parameter table for " + name_pair.first + "-" +
-                                    name_pair.second + " is difined in dupulicate.");
+                                    name_pair.second + " is defined in dupulicate.");
                             }
                             else
                             {
@@ -310,7 +310,7 @@ const SystemGenerator read_toml_system(const toml::value& data)
                             {
                                 throw std::runtime_error(
                                     "[error] parameter table for " + name_pair.first + "-" +
-                                    name_pair.second + " is difined in dupulicate.");
+                                    name_pair.second + " is defined in dupulicate.");
                             }
                             else
                             {
