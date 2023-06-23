@@ -178,6 +178,16 @@ const SystemGenerator read_toml_system(const toml::value& data)
                         std::make_unique<CosineDihedralForceFieldGenerator>(ff_gen));
                 ++ffgen_count;
             }
+            else if(interaction == "DihedralAngle" &&
+                   (potential == "Gaussian+Cosine" || potential == "Cosine+Gaussian"))
+            {
+                GaussianCosineDihedralForceFieldGenerator ff_gen =
+                    read_toml_gaussian_cosine_dihedral_ff_generator(
+                        local_ff, topology, use_periodic, ffgen_count);
+                system_gen.add_ff_generator(
+                        std::make_unique<GaussianCosineDihedralForceFieldGenerator>(ff_gen));
+                ++ffgen_count;
+            }
             else if(interaction == "DihedralAngle" && potential == "FlexibleLocalDihedral")
             {
                 for(const auto& [aa_pair_type, fourier_table] : Constant::fld_fourier_table)

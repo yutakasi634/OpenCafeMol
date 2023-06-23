@@ -12,6 +12,7 @@
 #include "src/forcefield/FlexibleLocalAngleForceFieldGenerator.hpp"
 #include "src/forcefield/GaussianDihedralForceFieldGenerator.hpp"
 #include "src/forcefield/CosineDihedralForceFieldGenerator.hpp"
+#include "src/forcefield/GaussianCosineDihedralForceFieldGenerator.hpp"
 #include "src/forcefield/FlexibleLocalDihedralForceFieldGenerator.hpp"
 #include "src/forcefield/ExcludedVolumeForceFieldGenerator.hpp"
 #include "src/forcefield/WeeksChandlerAndersenForceFieldGenerator.hpp"
@@ -447,6 +448,78 @@ read_toml_cosine_dihedral_ff_generator(
     std::cerr << "    DihedralAngle : Gaussian (" << indices_vec.size() << " found)" << std::endl;
     return CosineDihedralForceFieldGenerator(
             indices_vec, ks, theta0s, ns, use_periodic, ffgen_id);
+}
+
+const GaussianCosineDihedralForceFieldGenerator
+read_toml_gaussian_cosine_dihedral_ff_generator(
+        const toml::value& local_ff_data, Topology& topology,
+        const bool use_periodic, const std::size_t ffgen_id)
+{
+
+    const auto& params = toml::find<toml::array>(local_ff_data, "parameters");
+    const auto& env = local_ff_data.contains("env") ? local_ff_data.at("env") : toml::value{};
+
+    std::vector<std::array<std::size_t, 4>> indices_vec;
+    std::vector<double>                     ks_gauss;
+    std::vector<double>                     ks_cos;
+    std::vector<double>                     theta0s_gauss;
+    std::vector<double>                     theta0s_cos;
+    std::vector<double>                     sigmas;
+    std::vector<double>                     ns;
+
+    for(const auto& param : params)
+    {
+        auto indices =
+            Utility::find_parameter<std::array<std::size_t, 4>>(param, env, "indices");
+        const auto offset = Utility::find_parameter_or<std::size_t>(param, env, "offset", 0);
+        for(auto& idx : indices) { idx += offset; }
+
+        for(auto idx : indices)
+        {
+            if(topology.size() <= idx)
+            {
+                throw std::runtime_error("[error] read_toml_gaussian_cosine_dihedral_ff_generator : index "+std::to_string(idx)+" exceeds the system's largest index "+std::to_string(topology.size()-1)+".");
+            }
+        }
+        const auto& pot1 = Utility::find_parameter<toml::value>(param, env, "Gaussian");
+        const auto& pot2 = Utility::find_parameter<toml::value>(param, env, "Cosine");
+
+        const double k_gauss  =
+            Utility::find_parameter<double>(pot1, env, "k") * OpenMM::KJPerKcal; // KJ/mol
+        const double theta0_gauss =
+            Utility::find_parameter<double>(pot1, env, "v0"); // radian
+        const double sigma =
+            Utility::find_parameter_either<double>(pot1, env, "sigma", "σ"); // radiuns
+
+        const double k_cos  =
+            Utility::find_parameter<double>(pot2, env, "k") * OpenMM::KJPerKcal; // KJ/mol
+        const double theta0_cos =
+            Utility::find_parameter<double>(pot2, env, "v0") + Constant::pi;    // radian
+        const double n =
+            Utility::find_parameter<size_t>(pot2, env, "n");
+
+        // Toml input file assumes that a formula of the cosine dihedral potential is
+        // "k*(1 + cos(n0 * (theta - t0)", while that of 3SPNC2 DNA model is
+        // "k*(1 - cos(n0 * (theta - t0)". To adjust for this, we shift theta0 by π.
+
+        indices_vec  .push_back(indices);
+        ks_gauss     .push_back(k_gauss);
+        ks_cos       .push_back(k_cos);
+        theta0s_gauss.push_back(theta0_gauss);
+        theta0s_cos  .push_back(theta0_cos);
+        sigmas       .push_back(sigma);
+        ns           .push_back(n);
+    }
+
+    if(local_ff_data.contains("topology"))
+    {
+        topology.add_edges(indices_vec, toml::find<std::string>(local_ff_data, "topology"));
+    }
+
+    std::cerr << "    DihedralAngle : Gaussian+Cosine (" << indices_vec.size() << " found)" << std::endl;
+    return GaussianCosineDihedralForceFieldGenerator(
+        indices_vec, ks_gauss, ks_cos, theta0s_gauss, theta0s_cos, sigmas, ns,
+        use_periodic, ffgen_id);
 }
 
 const FlexibleLocalDihedralForceFieldGenerator
