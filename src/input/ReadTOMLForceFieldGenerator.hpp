@@ -3,6 +3,7 @@
 
 #include <OpenMM.h>
 #include "src/util/Utility.hpp"
+#include "src/util/Constants.hpp"
 #include "src/forcefield/HarmonicBondForceFieldGenerator.hpp"
 #include "src/forcefield/GaussianBondForceFieldGenerator.hpp"
 #include "src/forcefield/GoContactForceFieldGenerator.hpp"
@@ -10,6 +11,7 @@
 #include "src/forcefield/HarmonicAngleForceFieldGenerator.hpp"
 #include "src/forcefield/FlexibleLocalAngleForceFieldGenerator.hpp"
 #include "src/forcefield/GaussianDihedralForceFieldGenerator.hpp"
+#include "src/forcefield/CosineDihedralForceFieldGenerator.hpp"
 #include "src/forcefield/FlexibleLocalDihedralForceFieldGenerator.hpp"
 #include "src/forcefield/ExcludedVolumeForceFieldGenerator.hpp"
 #include "src/forcefield/WeeksChandlerAndersenForceFieldGenerator.hpp"
@@ -369,7 +371,7 @@ read_toml_gaussian_dihedral_ff_generator(
         const double k  =
             Utility::find_parameter<double>(param, env, "k") * OpenMM::KJPerKcal; // KJ/mol
         const double theta0 =
-            Utility::find_parameter<double>(param, env, "v0"); // radiuns
+            Utility::find_parameter<double>(param, env, "v0"); // radian
         const double sigma =
             Utility::find_parameter_either<double>(param, env, "sigma", "σ"); // radiuns
 
@@ -387,6 +389,64 @@ read_toml_gaussian_dihedral_ff_generator(
     std::cerr << "    DihedralAngle : Gaussian (" << indices_vec.size() << " found)" << std::endl;
     return GaussianDihedralForceFieldGenerator(
             indices_vec, ks, theta0s, sigmas, use_periodic, ffgen_id);
+}
+
+const CosineDihedralForceFieldGenerator
+read_toml_cosine_dihedral_ff_generator(
+        const toml::value& local_ff_data, Topology& topology,
+        const bool use_periodic, const std::size_t ffgen_id)
+{
+
+    const auto& params = toml::find<toml::array>(local_ff_data, "parameters");
+    const auto& env = local_ff_data.contains("env") ? local_ff_data.at("env") : toml::value{};
+
+    std::vector<std::array<std::size_t, 4>> indices_vec;
+    std::vector<double>                     ks;
+    std::vector<double>                     theta0s;
+    std::vector<double>                     ns;
+
+    for(const auto& param : params)
+    {
+        auto indices =
+            Utility::find_parameter<std::array<std::size_t, 4>>(param, env, "indices");
+        const auto offset = Utility::find_parameter_or<std::size_t>(param, env, "offset", 0);
+        for(auto& idx : indices) { idx += offset; }
+
+        for(auto idx : indices)
+        {
+            if(topology.size() <= idx)
+            {
+                throw std::runtime_error("[error] read_toml_cosine_dihedral_ff_generator : index "+std::to_string(idx)+" exceeds the system's largest index "+std::to_string(topology.size()-1)+".");
+            }
+        }
+
+        const double k  =
+            Utility::find_parameter<double>(param, env, "k") * OpenMM::KJPerKcal; // KJ/mol
+        const double theta0 =
+            Utility::find_parameter<double>(param, env, "v0") + Constant::pi;    // radian
+        const double n =
+            Utility::find_parameter<size_t>(param, env, "n");
+
+        // Toml input file assumes that a formula of the cosine dihedral potential is
+        // "k*(1 + cos(n0 * (theta - t0)", while that of 3SPNC2 DNA model is
+        // "k*(1 - cos(n0 * (theta - t0)". To adjust for this, we shift theta0 by π.
+
+        indices_vec.push_back(indices);
+        ks         .push_back(k);
+        theta0s    .push_back(theta0);
+        ns         .push_back(n);
+
+
+    }
+
+    if(local_ff_data.contains("topology"))
+    {
+        topology.add_edges(indices_vec, toml::find<std::string>(local_ff_data, "topology"));
+    }
+
+    std::cerr << "    DihedralAngle : Gaussian (" << indices_vec.size() << " found)" << std::endl;
+    return CosineDihedralForceFieldGenerator(
+            indices_vec, ks, theta0s, ns, use_periodic, ffgen_id);
 }
 
 const FlexibleLocalDihedralForceFieldGenerator
