@@ -445,7 +445,7 @@ read_toml_cosine_dihedral_ff_generator(
         topology.add_edges(indices_vec, toml::find<std::string>(local_ff_data, "topology"));
     }
 
-    std::cerr << "    DihedralAngle : Gaussian (" << indices_vec.size() << " found)" << std::endl;
+    std::cerr << "    DihedralAngle : Cosine (" << indices_vec.size() << " found)" << std::endl;
     return CosineDihedralForceFieldGenerator(
             indices_vec, ks, theta0s, ns, use_periodic, ffgen_id);
 }
