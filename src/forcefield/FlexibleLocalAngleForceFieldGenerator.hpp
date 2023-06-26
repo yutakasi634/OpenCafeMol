@@ -90,18 +90,6 @@ class FlexibleLocalAngleForceFieldGenerator final : public ForceFieldGeneratorBa
         return angle_ff;
     }
 
-    void add_exclusion(std::vector<std::pair<std::size_t, std::size_t>>& exclusion_pairs) const noexcept
-    {
-        for(const auto& indices : indices_vec_)
-        {
-            // TODO
-            // dupulication in exclusion list make error.
-            // all exclusion shoul be specified in HarmonicBond and GoContact
-
-            exclusion_pairs.push_back(std::make_pair(indices[0], indices[2]));
-        }
-    }
-
     const std::vector<indices_type>& indices() const noexcept { return indices_vec_; }
 
   private:

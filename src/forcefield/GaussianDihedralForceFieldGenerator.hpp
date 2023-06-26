@@ -54,14 +54,6 @@ class GaussianDihedralForceFieldGenerator final : public ForceFieldGeneratorBase
         return torsion_ff;
     }
 
-    void add_exclusion(std::vector<index_pair_type>& exclusion_pairs) const noexcept
-    {
-        for(const auto& indices : indices_vec_)
-        {
-            exclusion_pairs.push_back(std::make_pair(indices[0], indices[3]));
-        }
-    }
-
     const std::vector<indices_type>& indices() const noexcept { return indices_vec_; }
     const std::string name() const noexcept { return "GaussianDihedral"; }
 

@@ -66,15 +66,6 @@ class FlexibleLocalDihedralForceFieldGenerator final : public ForceFieldGenerato
         return torsion_ff;
     }
 
-    void add_exclusion(std::vector<std::pair<std::size_t, std::size_t>>& exclusion_pairs) const noexcept
-    {
-        // TODO
-        // duplication in exclusion list make error
-        // all exclusion should be specified in HarnomicBond and GoContact
-
-        // exclusion_pairs.push_back(std::make_pair(indices[0], indices[3]));
-    }
-
     const std::vector<indices_type>& indices() const noexcept { return indices_vec_; }
     const std::string name() const noexcept
     {

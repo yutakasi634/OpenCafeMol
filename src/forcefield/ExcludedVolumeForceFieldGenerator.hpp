@@ -177,31 +177,6 @@ class ExcludedVolumeForceFieldGenerator final: public ForceFieldGeneratorBase
         return exv_ff;
     }
 
-    void add_exclusion(index_pairs_type exclusion_pairs) noexcept
-    {
-
-        for(auto& pair : exclusion_pairs)
-        {
-            if(pair.first > pair.second)
-            {
-                const std::size_t first  = pair.first;
-                const std::size_t second = pair.second;
-                pair.first = second;
-                pair.second = first;
-            }
-        }
-
-        for(const auto& pair : exclusion_pairs)
-        {
-            const auto result =
-                std::find(ignore_list_.begin(), ignore_list_.end(), pair);
-            if(result == ignore_list_.end())
-            {
-                ignore_list_.push_back(std::make_pair(pair.first, pair.second));
-            }
-        }
-    }
-
     const std::string name() const noexcept { return "ExcludedVolume"; }
 
   private:
