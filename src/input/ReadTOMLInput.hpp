@@ -396,6 +396,32 @@ const SystemGenerator read_toml_system(const toml::value& data)
                         ++ffgen_count;
                     }
                 }
+                if (interaction == "3SPN2CrossStacking")
+                {
+                    const std::vector<std::pair<std::string, std::string>> base_pairs = {
+                        {"A", "T"}, {"T", "A"}, {"G", "C"}, {"C", "G"}
+                    };
+                    for (const auto& bp_kind: base_pairs) {
+
+                        // Cross stacking of sense-strand
+                        ThreeSPN2CrossStackingForceFieldGenerator ff_gen_sense =
+                            read_toml_3spn2_cross_stacking_ff_generator(
+                                global_ff, topology, bp_kind, "sense", use_periodic, ffgen_count);
+                        system_gen.add_ff_generator(
+                            std::make_unique<ThreeSPN2CrossStackingForceFieldGenerator>(
+                                ff_gen_sense));
+                        ++ffgen_count;
+
+                        // Cross stacking of antisense-strand
+                        ThreeSPN2CrossStackingForceFieldGenerator ff_gen_antisense =
+                            read_toml_3spn2_cross_stacking_ff_generator(
+                                global_ff, topology, bp_kind, "antisense", use_periodic, ffgen_count);
+                        system_gen.add_ff_generator(
+                            std::make_unique<ThreeSPN2CrossStackingForceFieldGenerator>(
+                                ff_gen_antisense));
+                        ++ffgen_count;
+                    }
+                }
             }
         }
     }
