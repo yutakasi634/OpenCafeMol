@@ -35,8 +35,10 @@ class GaussianDihedralForceFieldGenerator final : public ForceFieldGeneratorBase
     {
         const std::string potential_formula =
             "GD"+ffgen_id_str_+"_k *"
-            "exp(-(theta-GD"+ffgen_id_str_+"_theta0)^2 /"
-            "     (2*GD"+ffgen_id_str_+"_sigma^2))";
+            "exp(-(dt_periodic)^2 /(2*GD"+ffgen_id_str_+"_sigma^2));"
+            "dt_periodic = dt - floor((dt + pi)/(2*pi))*(2*pi);"
+            "dt = theta-GD"+ffgen_id_str_+"_theta0;"
+            "pi = 3.1415926535897932385";
         auto torsion_ff = std::make_unique<OpenMM::CustomTorsionForce>(potential_formula);
         torsion_ff->setUsesPeriodicBoundaryConditions(use_periodic_);
         torsion_ff->addPerTorsionParameter("GD"+ffgen_id_str_+"_k");
