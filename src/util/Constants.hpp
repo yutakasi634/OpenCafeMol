@@ -6,19 +6,19 @@
 namespace Constant
 {
 // define physical constnt
-static const double Na   = 6.02214076e23;         // avogadro constant [/mol]
-static const double kB   = 1.380649e-23;          // boltzmann constant [J/K]
-static const double pi   = 3.1415926535897932385;
-static const double eps0 = 8.854187817e-12 /*[F/m] == [C^2/J/m]*/ * 1.0e3 /*[/J]->[/KJ]*/ * 1.0e-9 /*[/m]->[/nm]*/ / Na; // vacuum permittivity [C^2 mol/KJ/nm]
-static const double elementary_charge = 1.6021766208e-19; // [C]
+inline static const double Na   = 6.02214076e23;         // avogadro constant [/mol]
+inline static const double kB   = 1.380649e-23;          // boltzmann constant [J/K]
+inline static const double pi   = 3.1415926535897932385;
+inline static const double eps0 = 8.854187817e-12 /*[F/m] == [C^2/J/m]*/ * 1.0e3 /*[/J]->[/KJ]*/ * 1.0e-9 /*[/m]->[/nm]*/ / Na; // vacuum permittivity [C^2 mol/KJ/nm]
+inline static const double elementary_charge = 1.6021766208e-19; // [C]
 
 // prepare fundamental constant for calculation
-static const double cafetime = std::sqrt(1.0/OpenMM::KJPerKcal)*0.1; // Ps
+inline static const double cafetime = std::sqrt(1.0/OpenMM::KJPerKcal)*0.1; // Ps
 
 // prepare parameter table for cubic spline of flexible local angle
-static const double fla_spline_min_theta = 1.30900;
-static const double fla_spline_max_theta = 2.87979;
-static const std::map<std::string, std::array<double, 10>> fla_spline_table =
+inline static const double fla_spline_min_theta = 1.30900;
+inline static const double fla_spline_max_theta = 2.87979;
+inline static const std::map<std::string, std::array<double, 10>> fla_spline_table =
     {
         {"ALA", {5.00, 1.34, 0.84, 1.17, 0.82, 1.00, 1.27, 1.52, 3.20, 10.00}},
         {"ARG", {5.00, 1.43, 0.84, 1.09, 0.88, 1.01, 1.11, 1.60, 3.26, 10.00}},
@@ -41,7 +41,7 @@ static const std::map<std::string, std::array<double, 10>> fla_spline_table =
         {"TYR", {5.00, 1.71, 0.91, 1.02, 0.90, 0.98, 0.98, 1.43, 3.26, 10.00}},
         {"VAL", {5.00, 1.75, 1.19, 0.95, 0.72, 0.87, 1.01, 1.91, 3.59, 10.00}}
     };
-static const std::map<std::string, std::array<double, 10>> fla_spline_second_derivative_table =
+inline static const std::map<std::string, std::array<double, 10>> fla_spline_second_derivative_table =
     {
         {"ALA", {0.00, 151.96, 14.61, -46.89, 39.04,  -4.86, -1.86,   8.38, 250.03, 0.00}},
         {"ARG", {0.00, 143.28, 13.88, -33.34, 28.88, -15.21, 26.06, -12.20, 253.21, 0.00}},
@@ -66,8 +66,8 @@ static const std::map<std::string, std::array<double, 10>> fla_spline_second_der
     };
 
 // prepare parameter table for fourier series of flexible local dihedral
-static const std::map<std::pair<std::string, std::string>,
-                      std::array<double, 7>               > fld_fourier_table =
+inline static const std::map<std::pair<std::string, std::string>,
+                             std::array<double, 7>               > fld_fourier_table =
     {
         {{"R1" , "GLY"}, {2.2468, -0.1646,  0.1122,  0.0379, -0.3547, -0.1660, -0.1395}},
         {{"R2" , "PRO"}, {2.7098,  0.4850,  0.7700,  0.0948, -0.7474,  0.1875, -0.3699}},
