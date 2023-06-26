@@ -36,7 +36,7 @@ class HarmonicCoMPullingForceFieldGenerator : public ForceFieldGeneratorBase
         return com_ff;
     }
 
-    const std::string name() const noexcept { return "HamonicCoMPulling"; }
+    std::string name() const noexcept { return "HamonicCoMPulling"; }
 
   private:
     const double           k_;

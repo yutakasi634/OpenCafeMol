@@ -116,7 +116,7 @@ class FlexibleLocalAngleForceFieldGenerator final : public ForceFieldGeneratorBa
         return e1 + e2;
    }
 
-    const std::string name() const noexcept
+    std::string name() const noexcept
     {
         return "FlexibleLocalAngle (" + aa_name_ + ")";
     }

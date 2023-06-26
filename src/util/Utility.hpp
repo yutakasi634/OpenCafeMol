@@ -18,7 +18,7 @@ void write_as_bytes(std::ostream& os, const T& v) noexcept
     return;
 }
 
-const std::string get_file_suffix(const std::string& filename)
+std::string get_file_suffix(const std::string& filename)
 {
     const std::size_t file_suffix_from = filename.rfind(".");
     if(file_suffix_from == std::string::npos)

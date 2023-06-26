@@ -14,7 +14,7 @@ class ObserverBase
     virtual void initialize(const std::unique_ptr<OpenMM::System>&) = 0;
     virtual void output(const std::size_t /*step*/, const OpenMM::Context& /*context*/) = 0;
     virtual void finalize() const = 0;
-    virtual const std::string name() const = 0;
+    virtual std::string name() const = 0;
 };
 
 class PDBObserver final : public ObserverBase
@@ -52,7 +52,7 @@ class PDBObserver final : public ObserverBase
     }
 
     void finalize() const override { return; }
-    const std::string name() const { return "PDBObserver"; }
+    std::string name() const { return "PDBObserver"; }
 
   private:
     const std::string        pos_filename_;
@@ -127,7 +127,7 @@ class DCDObserver final : public ObserverBase
     }
 
     void finalize() const override { return; }
-    const std::string name() const { return "DCDObserver"; }
+    std::string name() const { return "DCDObserver"; }
 
   private:
     const std::string  dcd_filename_;
@@ -316,7 +316,7 @@ class EnergyObserver final : public ObserverBase
     }
 
     void finalize() const override { return; }
-    const std::string name() const { return "EnergyObserver"; }
+    std::string name() const { return "EnergyObserver"; }
 
   private:
     void write_energy(std::ofstream& fp, int frame_num,

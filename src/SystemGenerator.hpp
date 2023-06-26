@@ -146,7 +146,7 @@ class SystemGenerator
         return system_ptr;
     }
 
-    const std::map<std::string, std::size_t> ffname_groupid_map() const
+    std::map<std::string, std::size_t> ffname_groupid_map() const
     {
         return ffname_groupid_map_;
     }

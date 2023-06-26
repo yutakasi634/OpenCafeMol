@@ -185,7 +185,7 @@ class DebyeHuckelForceFieldGenerator final : public ForceFieldGeneratorBase
         return dh_ff;
     }
 
-    const std::string name() const noexcept { return "DebyeHuckel"; }
+    std::string name() const noexcept { return "DebyeHuckel"; }
 
   private:
     double calc_dielectric_water(const double T, const double C) const noexcept

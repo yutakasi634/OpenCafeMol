@@ -21,7 +21,7 @@
 // -----------------------------------------------------------------------------
 // read local force field
 
-const HarmonicBondForceFieldGenerator
+HarmonicBondForceFieldGenerator
 read_toml_harmonic_bond_ff_generator(
         const toml::value& local_ff_data, Topology& topology, const bool use_periodic)
 {
@@ -72,7 +72,7 @@ read_toml_harmonic_bond_ff_generator(
     return HarmonicBondForceFieldGenerator(indices_vec, v0s, ks, use_periodic);
 }
 
-const GaussianBondForceFieldGenerator
+GaussianBondForceFieldGenerator
 read_toml_gaussian_bond_ff_generator(
         const toml::value& local_ff_data, Topology& topology,
         const bool use_periodic, const std::size_t ffgen_id)
@@ -125,7 +125,7 @@ read_toml_gaussian_bond_ff_generator(
     return GaussianBondForceFieldGenerator(indices_vec, ks, v0s, sigmas, use_periodic, ffgen_id);
 }
 
-const GoContactForceFieldGenerator
+GoContactForceFieldGenerator
 read_toml_go_contact_ff_generator(
         const toml::value& local_ff_data, Topology& topology,
         const bool use_periodic, const std::size_t ffgen_id)
@@ -174,7 +174,7 @@ read_toml_go_contact_ff_generator(
     return GoContactForceFieldGenerator(indices_vec, ks, r0s, use_periodic, ffgen_id);
 }
 
-const HarmonicAngleForceFieldGenerator
+HarmonicAngleForceFieldGenerator
 read_toml_harmonic_angle_ff_generator(
         const toml::value& local_ff_data, Topology& topology, const bool use_periodic)
 {
@@ -234,7 +234,7 @@ read_toml_harmonic_angle_ff_generator(
     return HarmonicAngleForceFieldGenerator(indices_vec, v0s, ks, use_periodic);
 }
 
-const FlexibleLocalAngleForceFieldGenerator
+FlexibleLocalAngleForceFieldGenerator
 read_toml_flexible_local_angle_ff_generator(
         const toml::value& local_ff_data, const std::string& aa_type,
         const std::array<double, 10> spline_table, Topology& topology,
@@ -284,7 +284,7 @@ read_toml_flexible_local_angle_ff_generator(
                indices_vec, ks, spline_table, aa_type, use_periodic, ffgen_id);
 }
 
-const GaussianDihedralForceFieldGenerator
+GaussianDihedralForceFieldGenerator
 read_toml_gaussian_dihedral_ff_generator(
         const toml::value& local_ff_data, Topology& topology,
         const bool use_periodic, const std::size_t ffgen_id)
@@ -336,7 +336,7 @@ read_toml_gaussian_dihedral_ff_generator(
             indices_vec, ks, theta0s, sigmas, use_periodic, ffgen_id);
 }
 
-const FlexibleLocalDihedralForceFieldGenerator
+FlexibleLocalDihedralForceFieldGenerator
 read_toml_flexible_local_dihedral_ff_generator(
         const toml::value& local_ff_data, const std::pair<std::string, std::string> aa_pair_type,
         const std::array<double, 7> fourier_table, Topology& topology,
@@ -863,7 +863,7 @@ read_toml_uniform_lennard_jones_attractive_ff_generator(
 // -----------------------------------------------------------------------------
 // read external force field
 
-const HarmonicCoMPullingForceFieldGenerator
+HarmonicCoMPullingForceFieldGenerator
 read_toml_harmonic_com_pulling_ff_generator(
         const toml::value& external_ff_param, const bool use_periodic,
         const toml::value& env, const std::size_t ffgen_id)

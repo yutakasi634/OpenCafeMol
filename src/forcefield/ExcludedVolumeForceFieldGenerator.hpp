@@ -177,7 +177,7 @@ class ExcludedVolumeForceFieldGenerator final: public ForceFieldGeneratorBase
         return exv_ff;
     }
 
-    const std::string name() const noexcept { return "ExcludedVolume"; }
+    std::string name() const noexcept { return "ExcludedVolume"; }
 
   private:
     double                              eps_;

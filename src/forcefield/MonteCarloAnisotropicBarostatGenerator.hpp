@@ -23,10 +23,11 @@ class MonteCarloAnisotropicBarostatGenerator
         return barostat;
     }
 
-    const std::array<bool, 3> scale_axis()         const noexcept { return scale_axis_; }
-    const double              temperature()        const noexcept { return temperature_; }
-    const std::array<double, 3> default_pressure() const noexcept { return default_pressure_; }
-    const std::size_t         frequency()        const noexcept { return frequency_; }
+    const std::array<bool, 3>&   scale_axis()       const noexcept { return scale_axis_; }
+    const std::array<double, 3>& default_pressure() const noexcept { return default_pressure_; }
+
+    double      temperature() const noexcept { return temperature_; }
+    std::size_t frequency()   const noexcept { return frequency_; }
 
   private:
     std::array<bool, 3>   scale_axis_;
