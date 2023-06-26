@@ -59,8 +59,8 @@ class GoContactForceFieldGenerator final : public ForceFieldGeneratorBase
     std::vector<indices_type> indices_vec_;
     std::vector<double>       ks_;
     std::vector<double>       r0s_;
-    const bool                use_periodic_;
-    const std::string         ffgen_id_str_;
+    bool                      use_periodic_;
+    std::string               ffgen_id_str_;
 };
 
 #endif // OPEN_AICG2_PLUS_GOCONTACT_FORCE_FIELD_GENERATOR_HPP

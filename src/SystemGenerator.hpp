@@ -152,7 +152,7 @@ class SystemGenerator
     }
 
   private:
-    const std::vector<double>                             mass_vec_;
+    std::vector<double>                                   mass_vec_;
     std::vector<std::unique_ptr<ForceFieldGeneratorBase>> ff_gen_ptrs_;
 
     // for periodic boundary condition

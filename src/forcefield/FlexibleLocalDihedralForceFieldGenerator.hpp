@@ -77,8 +77,8 @@ class FlexibleLocalDihedralForceFieldGenerator final : public ForceFieldGenerato
     std::vector<double>       ks_;
     std::array<double, 7>     fourier_table_;
     std::string               aa_pair_name_;
-    const bool                use_periodic_;
-    const std::string         ffgen_id_str_;
+    bool                      use_periodic_;
+    std::string               ffgen_id_str_;
 };
 
 #endif // OPEN_AICG2_PLUS_FLEXIBLE_LOCAL_DIHEDRAL_FORCE_FIELD_GENERATOR_HPP

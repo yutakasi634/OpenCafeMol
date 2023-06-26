@@ -55,7 +55,7 @@ class HarmonicAngleForceFieldGenerator final : public ForceFieldGeneratorBase
     std::vector<indices_type> indices_vec_;
     std::vector<double>       v0s_;
     std::vector<double>       ks_;
-    const bool                use_periodic_;
+    bool                      use_periodic_;
 };
 
 

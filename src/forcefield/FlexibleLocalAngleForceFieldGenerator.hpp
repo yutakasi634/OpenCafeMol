@@ -134,8 +134,8 @@ class FlexibleLocalAngleForceFieldGenerator final : public ForceFieldGeneratorBa
     std::array<double, 10>    spline_table_;
     std::array<double, 10>    spline_second_deriv_table_;
     std::array<double, 10>    thetas_;
-    const bool                use_periodic_;
-    const std::string         ffgen_id_str_;
+    bool                      use_periodic_;
+    std::string               ffgen_id_str_;
 };
 
 #endif // OPEN_AICG2_PLUS_FLEXIBLE_LOCAL_ANGLE_FORCE_FIELD_GENERATOR_HPP

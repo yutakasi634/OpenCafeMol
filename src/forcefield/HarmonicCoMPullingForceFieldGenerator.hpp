@@ -39,12 +39,12 @@ class HarmonicCoMPullingForceFieldGenerator : public ForceFieldGeneratorBase
     std::string name() const noexcept { return "HamonicCoMPulling"; }
 
   private:
-    const double           k_;
-    const double           v0_;
-    const std::vector<int> first_group_;
-    const std::vector<int> second_group_;
-    const bool             use_periodic_;
-    const std::string      ffgen_id_str_;
+    double           k_;
+    double           v0_;
+    std::vector<int> first_group_;
+    std::vector<int> second_group_;
+    bool             use_periodic_;
+    std::string      ffgen_id_str_;
 };
 
 #endif // OPEN_AICG2_PLUS_HARMONIC_COM_PULLING_FORCE_FIELD_GENERATOR_HPP

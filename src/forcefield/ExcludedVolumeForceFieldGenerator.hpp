@@ -185,8 +185,8 @@ class ExcludedVolumeForceFieldGenerator final: public ForceFieldGeneratorBase
     std::vector<std::optional<double>>  radiuses_;
     index_pairs_type                    ignore_list_;
     std::vector<interaction_group_type> interaction_groups_;
-    const bool                          use_periodic_;
-    const std::string                   ffgen_id_str_;
+    bool                                use_periodic_;
+    std::string                         ffgen_id_str_;
 };
 
 #endif // OPEN_AICG2_PLUS_EXCLUDED_VOLUME_FORCE_FIELD_GENERATOR_HPP

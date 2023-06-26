@@ -55,7 +55,7 @@ class HarmonicBondForceFieldGenerator final : public ForceFieldGeneratorBase
     std::vector<indices_type> indices_vec_;
     std::vector<double>       v0s_;
     std::vector<double>       ks_;
-    const bool                use_periodic_;
+    bool                      use_periodic_;
 };
 
 #endif // OPEN_AICG2_PLUS_HARMONIC_BOND_FORCE_FIELD_GENERATOR_HPP

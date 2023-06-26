@@ -195,12 +195,12 @@ class WeeksChandlerAndersenForceFieldGenerator final : public ForceFieldGenerato
     std::string name() const noexcept { return "WeeksChandlerAndersen"; }
 
   private:
-    const std::vector<std::optional<double>> sigmas_;
-    const std::vector<std::optional<double>> epsilons_;
-    index_pairs_type                         ignore_list_;
-    std::vector<interaction_group_type>      interaction_groups_;
-    const bool                               use_periodic_;
-    const std::string                        ffgen_id_str_;
+    std::vector<std::optional<double>>  sigmas_;
+    std::vector<std::optional<double>>  epsilons_;
+    index_pairs_type                    ignore_list_;
+    std::vector<interaction_group_type> interaction_groups_;
+    bool                                use_periodic_;
+    std::string                         ffgen_id_str_;
 };
 
 #endif // OPEN_AICG2_PLUS_WEEKS_CHANDLER_ANDERSEN_FORCE_FIELD_GENERATOR_HPP

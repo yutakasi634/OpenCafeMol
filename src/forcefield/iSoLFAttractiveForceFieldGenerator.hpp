@@ -222,13 +222,13 @@ class iSoLFAttractiveForceFieldGenerator final : public ForceFieldGeneratorBase
     std::string name() const noexcept { return "iSoLFAttractive"; }
 
   private:
-    const std::vector<std::optional<double>> sigmas_;
-    const std::vector<std::optional<double>> epsilons_;
-    const std::vector<std::optional<double>> omegas_;
-    index_pairs_type                         ignore_list_;
-    std::vector<interaction_group_type>      interaction_groups_;
-    const bool                               use_periodic_;
-    const std::string                        ffgen_id_str_;
+    std::vector<std::optional<double>>  sigmas_;
+    std::vector<std::optional<double>>  epsilons_;
+    std::vector<std::optional<double>>  omegas_;
+    index_pairs_type                    ignore_list_;
+    std::vector<interaction_group_type> interaction_groups_;
+    bool                                use_periodic_;
+    std::string                         ffgen_id_str_;
 };
 
 #endif // OPEN_AICG2_PLUS_ISOLF_ATTRACTIVE_FORCE_FIELD_GENERATOR_HPP

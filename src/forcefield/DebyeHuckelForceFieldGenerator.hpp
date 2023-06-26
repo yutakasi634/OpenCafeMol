@@ -196,14 +196,14 @@ class DebyeHuckelForceFieldGenerator final : public ForceFieldGeneratorBase
     }
 
   private:
-    const double                             ionic_strength_; // [M]
-    const double                             temperature_;    // [K]
-    const double                             cutoff_ratio_;   // relative to the debye length
-    const std::vector<std::optional<double>> charges_;
-    index_pairs_type                         ignore_list_;
-    std::vector<interaction_group_type>      interaction_groups_;
-    const bool                               use_periodic_;
-    const std::string                        ffgen_id_str_;
+    double                              ionic_strength_; // [M]
+    double                              temperature_;    // [K]
+    double                              cutoff_ratio_;   // relative to the debye length
+    std::vector<std::optional<double>>  charges_;
+    index_pairs_type                    ignore_list_;
+    std::vector<interaction_group_type> interaction_groups_;
+    bool                                use_periodic_;
+    std::string                         ffgen_id_str_;
 
     double debye_length_;
     double inv_4_pi_eps0_epsk_;

@@ -55,9 +55,9 @@ class PDBObserver final : public ObserverBase
     std::string name() const { return "PDBObserver"; }
 
   private:
-    const std::string        pos_filename_;
-    const std::size_t        total_step_;
-    const bool               use_periodic_;
+    std::string              pos_filename_;
+    std::size_t              total_step_;
+    bool                     use_periodic_;
     std::vector<std::string> name_vec_;
 
   private:
@@ -130,11 +130,11 @@ class DCDObserver final : public ObserverBase
     std::string name() const { return "DCDObserver"; }
 
   private:
-    const std::string  dcd_filename_;
-    const std::size_t  total_step_;
-    const float        delta_t_;
-    const std::size_t  save_interval_;
-    const bool         use_periodic_;
+    std::string        dcd_filename_;
+    std::size_t        total_step_;
+    float              delta_t_;
+    std::size_t        save_interval_;
+    bool               use_periodic_;
     std::vector<float> buffer_x_;
     std::vector<float> buffer_y_;
     std::vector<float> buffer_z_;
@@ -337,8 +337,8 @@ class EnergyObserver final : public ObserverBase
     }
 
   private:
-    std::string ene_filename_;
-    const std::map<std::string, std::size_t> ffname_groupid_map_;
+    std::string                        ene_filename_;
+    std::map<std::string, std::size_t> ffname_groupid_map_;
 };
 
 #endif // OPEN_AICG2_PLUS_OBSERVER_HPP
