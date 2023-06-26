@@ -16,6 +16,7 @@
 #include "src/forcefield/FlexibleLocalDihedralForceFieldGenerator.hpp"
 #include "src/forcefield/ThreeSPN2BaseStackingForceFieldGenerator.hpp"
 #include "src/forcefield/ExcludedVolumeForceFieldGenerator.hpp"
+#include "src/forcefield/ThreeSPN2ExcludedVolumeForceFieldGenerator.hpp"
 #include "src/forcefield/WeeksChandlerAndersenForceFieldGenerator.hpp"
 #include "src/forcefield/DebyeHuckelForceFieldGenerator.hpp"
 #include "src/forcefield/iSoLFAttractiveForceFieldGenerator.hpp"
@@ -973,6 +974,86 @@ read_toml_excluded_volume_ff_generator(
     return ExcludedVolumeForceFieldGenerator(
             eps, cutoff, radius_vec, ignore_list, use_periodic, ffgen_id,
             ignore_group_pairs, group_vec);
+}
+
+const ThreeSPN2ExcludedVolumeForceFieldGenerator
+read_toml_3spn2_excluded_volume_ff_generator(
+    const toml::value& global_ff_data, const std::size_t system_size, const Topology& topology,
+    const bool use_periodic, const std::size_t ffgen_id)
+{
+    using index_pairs_type = std::vector<std::pair<std::size_t, std::size_t>>;
+
+    const auto&  params = toml::find<toml::array>(global_ff_data, "parameters");
+    const auto&  env    = global_ff_data.contains("env") ? global_ff_data.at("env") : toml::value{};
+
+    const ThreeSPN2ExcludedVolumePotentialParameter<double> param_exv;
+    const auto   eps    = param_exv.epsilon;
+    const auto   cutoff = toml::find_or(global_ff_data, "cutoff", 2.0);
+
+    // Parse parameters
+    //  parameters = [ # {{{
+    //   {index =   0, kind = "S"},
+    //   {index =   1, kind = "A"},
+
+    std::vector<std::optional<double>> radius_vec(system_size, std::nullopt);
+    for(const auto& param : params)
+    {
+        const auto index  = Utility::find_parameter   <std::size_t>(param, env, "index") +
+                            Utility::find_parameter_or<std::size_t>(param, env, "offset", 0);
+        const auto kind   = toml::find<std::string>(param, "kind");
+        radius_vec[index] = param_exv.sigma.at(kind);
+    }
+
+    std::cerr << "    Global        : ExcludedVolume 3SPN2 (" << params.size()
+               << " found)" << std::endl;
+
+    // ignore list generation for bonded interactions and neighboring nucleotides
+    index_pairs_type ignore_list;
+    std::vector<std::pair<std::string, std::string>> ignore_group_pairs;
+    if(global_ff_data.contains("ignore"))
+    {
+        const auto& ignore = toml::find(global_ff_data, "ignore");
+        ignore_list        = read_ignore_molecule_and_particles_within(ignore, topology);
+        ignore_group_pairs = read_ignore_group(ignore);
+    }
+
+    // ignore list generation for base pairing interaction
+    for(size_t idx=0; idx<params.size()-1; ++idx)
+    {
+        for(size_t jdx=idx+1; jdx<params.size(); ++jdx)
+        {
+            const auto kind_i = toml::find<std::string>(params[idx], "kind");
+            const auto kind_j = toml::find<std::string>(params[jdx], "kind");
+
+            // complement
+            if ((kind_i == "A" && kind_j == "T") || (kind_i == "T" && kind_j == "A") ||
+                (kind_i == "G" && kind_j == "C") || (kind_i == "C" && kind_j == "G"))
+            {
+                const auto index_i =
+                    Utility::find_parameter   <std::size_t>(params[idx], env, "index") +
+                    Utility::find_parameter_or<std::size_t>(params[idx], env, "offset", 0);
+                const auto index_j =
+                    Utility::find_parameter   <std::size_t>(params[jdx], env, "index") +
+                    Utility::find_parameter_or<std::size_t>(params[jdx], env, "offset", 0);
+
+                if (index_i < index_j)
+                {
+                    ignore_list.push_back(std::make_pair(index_i, index_j));
+                }
+                else
+                {
+                    ignore_list.push_back(std::make_pair(index_j, index_i));
+                }
+            }
+        }
+    }
+
+    // remove duplication
+    std::sort(ignore_list.begin(), ignore_list.end());
+    ignore_list.erase(std::unique(ignore_list.begin(), ignore_list.end()), ignore_list.end());
+
+    return ThreeSPN2ExcludedVolumeForceFieldGenerator(
+            eps, cutoff, radius_vec, ignore_list, use_periodic, ffgen_id);
 }
 
 const WeeksChandlerAndersenForceFieldGenerator

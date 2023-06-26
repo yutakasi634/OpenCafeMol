@@ -232,6 +232,15 @@ const SystemGenerator read_toml_system(const toml::value& data)
                         std::make_unique<ExcludedVolumeForceFieldGenerator>(ff_gen));
                 ++ffgen_count;
             }
+            if (potential == "3SPN2ExcludedVolume")
+            {
+                ThreeSPN2ExcludedVolumeForceFieldGenerator ff_gen =
+                    read_toml_3spn2_excluded_volume_ff_generator(
+                        global_ff, system_size, topology, use_periodic, ffgen_count);
+                system_gen.add_ff_generator(
+                        std::make_unique<ThreeSPN2ExcludedVolumeForceFieldGenerator>(ff_gen));
+                ++ffgen_count;
+            }
             if(potential == "WCA")
             {
                 if(global_ff.contains("table"))
