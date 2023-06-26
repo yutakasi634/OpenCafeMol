@@ -21,6 +21,7 @@
 #include "src/forcefield/iSoLFAttractiveForceFieldGenerator.hpp"
 #include "src/forcefield/UniformLennardJonesAttractiveForceFieldGenerator.hpp"
 #include "src/forcefield/UniformWeeksChandlerAndersenForceFieldGenerator.hpp"
+#include "src/forcefield/ThreeSPN2BasePairForceFieldGenerator.hpp"
 #include "src/forcefield/HarmonicCoMPullingForceFieldGenerator.hpp"
 
 // -----------------------------------------------------------------------------
@@ -1232,6 +1233,162 @@ read_toml_uniform_lennard_jones_attractive_ff_generator(
     return UniformLennardJonesAttractiveForceFieldGenerator(
         system_size, epsilon, sigma, cutoff, former_participants, latter_participants,
         ignore_list, use_periodic, ffgen_id, ignore_group_pairs, group_vec);
+}
+
+const ThreeSPN2BasePairForceFieldGenerator
+read_toml_3spn2_base_pair_ff_generator(
+        const toml::value& global_ff_data, Topology& topology,
+        const std::pair<std::string, std::string> base_pair,
+        const bool use_periodic, const std::size_t ffgen_id
+)
+{
+    using index_pairs_type = std::vector<std::pair<std::size_t, std::size_t>>;
+
+    const std::string donor    = base_pair.first;
+    const std::string acceptor = base_pair.second;
+    const std::string bp_kind  = base_pair.first + base_pair.second;
+
+    if (! ((donor == "A" && acceptor == "T") || (donor == "T" && acceptor == "A") ||
+           (donor == "G" && acceptor == "C") || (donor == "C" && acceptor == "G")))
+    {
+        throw std::runtime_error(
+            "[error] invalid base pair type " + donor + "-" + acceptor + " here. " +
+            "One of the A-T, T-A, G-C, C-G is expected.");
+    }
+
+    // [[forcefields.global]]
+    // interaction = "3SPN2BasePair"
+    // potential   = "3SPN2"
+    // ignore.particles_within.nucleotide = 3
+    // parameters = [
+    //     {strand = 0,          S =   0, B =   1, Base = "A"},
+    //     {strand = 0, P =   2, S =   3, B =   4, Base = "T"},
+    //     # ...
+    // ]
+
+    const auto  pot    = toml::find<std::string>(global_ff_data, "potential");
+    const auto& params = toml::find<toml::array>(global_ff_data, "parameters");
+    const auto& env    = global_ff_data.contains("env") ? global_ff_data.at("env") : toml::value{};
+
+    struct Nucleotide
+    {
+        static constexpr std::size_t nil() noexcept
+        {
+            return std::numeric_limits<std::size_t>::max();
+        }
+
+        Nucleotide() noexcept
+            : strand(nil()), P(nil()), S(nil()), B(nil()), base("X")
+        {}
+        ~Nucleotide() noexcept = default;
+        Nucleotide(Nucleotide const&) = default;
+        Nucleotide(Nucleotide &&)     = default;
+        Nucleotide& operator=(Nucleotide const&) = default;
+        Nucleotide& operator=(Nucleotide &&)     = default;
+
+        std::size_t strand;
+        std::size_t P, S, B;
+        std::string base;
+    };
+
+    // parameters = [
+    //     {strand = 0,          S =   0, B =   1, Base = "A"},
+    //     {strand = 0, P =   2, S =   3, B =   4, Base = "T"},
+    //     # ...
+    // ]
+
+    std::vector<Nucleotide> nucleotide_idxs;
+    for(const auto& param: params)
+    {
+        Nucleotide nucleotide;
+
+        if(param.as_table().count("P") != 0)
+        {
+            nucleotide.P  = Utility::find_parameter<size_t>(param, env, "P");
+        }
+        nucleotide.S      = Utility::find_parameter<size_t>(param, env, "S");
+        nucleotide.B      = Utility::find_parameter<size_t>(param, env, "B");
+        nucleotide.strand = Utility::find_parameter<size_t>(param, env, "strand");
+
+        const auto base = toml::find<std::string>(param, "Base");
+        if (base=="A" || base == "T" || base == "G" || base == "C")
+        {
+            nucleotide.base = base;
+        }
+        else
+        {
+            throw std::runtime_error(
+                "[error] invalid base type " + base + " here. "
+                "One of the \"A\", \"T\", \"C\", \"G\" is expected."
+            );
+        }
+
+        nucleotide_idxs.push_back(nucleotide);
+    }
+
+    // Create base-pairing list
+    std::vector<std::array<std::size_t, 2>> indices_donor;     // 0: base, 1: sugar
+    std::vector<std::array<std::size_t, 2>> indices_acceptor;  // 0: base, 1: sugar
+
+    for(const auto& nuc: nucleotide_idxs)
+    {
+        if (nuc.base == donor)
+        {
+            indices_donor.push_back({nuc.B, nuc.S});
+        }
+        else if (nuc.base == acceptor)
+        {
+            indices_acceptor.push_back({nuc.B, nuc.S});
+        }
+    }
+
+    // ignore list generation
+    index_pairs_type ignore_list;
+    if(global_ff_data.contains("ignore"))
+    {
+        const auto& ignore = toml::find(global_ff_data, "ignore");
+        ignore_list = read_ignore_molecule_and_particles_within(ignore, topology);
+    }
+
+    if (pot == "3SPN2")
+    {
+        std::cerr << "    Global        : 3SPN2 BasePair "
+              << donor << "-" << acceptor << " ("
+              << indices_donor.size()    << donor << " and "
+              << indices_acceptor.size() << acceptor
+              << " found)" << std::endl;
+
+        const ThreeSPN2BasePairPotentialParameter<double> params_3spn_bp;
+        const ThreeSPN2BasePairParameterList<double> param_list(params_3spn_bp, bp_kind);
+
+        return ThreeSPN2BasePairForceFieldGenerator(
+            indices_donor, indices_acceptor, ignore_list, param_list,
+            use_periodic, ffgen_id);
+    }
+    else if (pot == "3SPN2C")
+    {
+        std::cerr << "    Global        : 3SPN2C BasePair "
+              << donor << "-" << acceptor << " ("
+              << indices_donor.size()    << donor << " and "
+              << indices_acceptor.size() << acceptor
+              << " found)" << std::endl;
+
+        const ThreeSPN2CBasePairPotentialParameter<double> params_3spnc_bp;
+        const ThreeSPN2BasePairParameterList<double> param_list(params_3spnc_bp, bp_kind);
+
+        return ThreeSPN2BasePairForceFieldGenerator(
+            indices_donor, indices_acceptor, ignore_list, param_list,
+            use_periodic, ffgen_id);
+    }
+    else
+    {
+        throw std::runtime_error(
+            "[error] invalid potential " + pot + " fond."
+            "Expected value is one of the following."
+            "- \"3SPN2\" : The general 3SPN2 parameter set."
+            "- \"3SPN2C\": The parameter set optimized to reproduce sequence-dependent curveture of dsDNA."
+        );
+    }
 }
 
 // -----------------------------------------------------------------------------

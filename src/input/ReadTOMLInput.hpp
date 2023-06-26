@@ -378,6 +378,25 @@ const SystemGenerator read_toml_system(const toml::value& data)
                         "table mode for providing pair-paramters.");
                 }
             }
+            if (potential == "3SPN2" || potential == "3SPN2C")
+            {
+                const std::string interaction = toml::find<std::string>(global_ff, "interaction");
+
+                if (interaction == "3SPN2BasePair")
+                {
+                    const std::vector<std::pair<std::string, std::string>> base_pairs = {
+                            {"A", "T"}, {"G", "C"}};
+                    for (const auto &pair : base_pairs)
+                    {
+                        ThreeSPN2BasePairForceFieldGenerator ff_gen =
+                            read_toml_3spn2_base_pair_ff_generator(
+                                global_ff, topology, pair, use_periodic, ffgen_count);
+                        system_gen.add_ff_generator(
+                            std::make_unique<ThreeSPN2BasePairForceFieldGenerator>(ff_gen));
+                        ++ffgen_count;
+                    }
+                }
+            }
         }
     }
 
