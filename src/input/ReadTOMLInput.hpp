@@ -8,6 +8,7 @@
 #include "src/Topology.hpp"
 #include "ReadTOMLForceFieldGenerator.hpp"
 #include "src/forcefield/MonteCarloAnisotropicBarostatGenerator.hpp"
+#include "src/forcefield/MonteCarloMembraneBarostatGenerator.hpp"
 
 SystemGenerator read_toml_system(const toml::value& data)
 {
@@ -89,6 +90,70 @@ SystemGenerator read_toml_system(const toml::value& data)
                         scale_axis, temperature, default_pressure, frequency);
             system_gen.set_barostat(
                     std::make_unique<MonteCarloAnisotropicBarostatGenerator>(barostat_gen));
+        }
+        else if(type == "NPgammaT" || type == "NPγT")
+        {
+            const auto& default_pressure = toml::find<double>(ensemble, "pressure");
+            const auto& default_surface_tension =
+                toml::find<double>(ensemble, "surface_tension");
+            const auto frequency = toml::find_or<std::size_t>(ensemble, "frequency", 25);
+            if(!attr.contains("temperature"))
+            {
+                throw std::runtime_error(
+                        "[error] attributes table must contains temperature in NPγT"
+                        " ensemble case.");
+            }
+            const double temperature = toml::find<double>(attr, "temperature");
+
+            // XYMode parameter
+            MonteCarloMembraneBarostatGenerator::xymode_type xymode;
+            const std::string xymode_str = toml::find<std::string>(ensemble, "xymode");
+            if(xymode_str == "Isotropic")
+            {
+                xymode = MonteCarloMembraneBarostatGenerator::xymode_type::XYIsotropic;
+            }
+            else if(xymode_str == "Anisotropic")
+            {
+                xymode = MonteCarloMembraneBarostatGenerator::xymode_type::XYAnisotropic;
+            }
+            else
+            {
+                throw std::runtime_error(
+                     "[error] unknown xymode "+xymode_str+" was specified.");
+            }
+
+            // ZMode parameter
+            MonteCarloMembraneBarostatGenerator::zmode_type zmode;
+            const std::string zmode_str = toml::find<std::string>(ensemble, "zmode");
+            if(zmode_str == "Free")
+            {
+                zmode = MonteCarloMembraneBarostatGenerator::zmode_type::ZFree;
+            }
+            else if(zmode_str == "Fixed")
+            {
+                zmode = MonteCarloMembraneBarostatGenerator::zmode_type::ZFixed;
+            }
+            else if(zmode_str == "ConstantVolume")
+            {
+                zmode = MonteCarloMembraneBarostatGenerator::zmode_type::ConstantVolume;
+            }
+            else
+            {
+                throw std::runtime_error(
+                     "[error] unknown zmode "+xymode_str+" was specified.");
+            }
+
+            auto barostat_gen =
+                MonteCarloMembraneBarostatGenerator(
+                        default_pressure, default_surface_tension,
+                        temperature, xymode, zmode, frequency);
+            system_gen.set_barostat(
+                    std::make_unique<MonteCarloMembraneBarostatGenerator>(barostat_gen));
+        }
+        else
+        {
+            throw std::runtime_error(
+                    "[error] unknown ensemble type "+type+" was specified.");
         }
     }
 

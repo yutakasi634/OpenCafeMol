@@ -38,7 +38,7 @@ class MonteCarloAnisotropicBarostatGenerator final : public BarostatGeneratorBas
         if(scale_axis_[0]){ scaling_axis << "X"; }
         if(scale_axis_[1]){ scaling_axis << "Y"; }
         if(scale_axis_[2]){ scaling_axis << "Z"; }
-        std::cerr << std::setw(7) << scaling_axis.str() << std::endl;
+        std::cerr << std::setw(14) << scaling_axis.str() << std::endl;
 
         std::cerr << "        default pressure"
             << std::fixed << std::setprecision(2) << std::endl;

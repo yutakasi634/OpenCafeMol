@@ -120,11 +120,11 @@ class SystemGenerator
             std::cerr << "    barostat is " << barostat_gen_ptr->name() << std::endl;
             const std::size_t frequency = barostat_gen_ptr->frequency();
             std::cerr << "        pressure change frequency : "
-                      << std::setw(7) << frequency << std::endl;
+                      << std::setw(14) << frequency << std::endl;
 
             const double temperature = barostat_gen_ptr->temperature();
             std::cerr << "        barostat temperature      : "
-                      << std::setw(7) << std::fixed << temperature << std::endl;
+                      << std::setw(14) << std::fixed << temperature  << " K" << std::endl;
 
             barostat_gen_ptr->dump_info();
 
