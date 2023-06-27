@@ -181,7 +181,7 @@ class ThreeSPN2BasePairForceFieldGenerator final : public ForceFieldGeneratorBas
         return chbond_ff;
     }
 
-    const std::string name() const noexcept {return "3SPN2BasePair";};
+    std::string name() const noexcept {return "3SPN2BasePair";};
 
   private:
     std::vector<indices_type> donor_indices_vec_;

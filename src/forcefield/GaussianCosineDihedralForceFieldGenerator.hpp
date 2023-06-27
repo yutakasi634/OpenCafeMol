@@ -107,7 +107,7 @@ class GaussianCosineDihedralForceFieldGenerator final : public ForceFieldGenerat
     }
 
     const std::vector<indices_type>& indices() const noexcept { return indices_vec_; }
-    const std::string name() const noexcept { return "PeriodicGaussianCosineDihedral"; }
+    std::string name() const noexcept { return "PeriodicGaussianCosineDihedral"; }
 
   private:
     std::vector<indices_type> indices_vec_;

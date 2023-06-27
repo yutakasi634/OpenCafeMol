@@ -146,13 +146,13 @@ class SystemGenerator
         return system_ptr;
     }
 
-    const std::map<std::string, std::size_t> ffname_groupid_map() const
+    std::map<std::string, std::size_t> ffname_groupid_map() const
     {
         return ffname_groupid_map_;
     }
 
   private:
-    const std::vector<double>                             mass_vec_;
+    std::vector<double>                                   mass_vec_;
     std::vector<std::unique_ptr<ForceFieldGeneratorBase>> ff_gen_ptrs_;
 
     // for periodic boundary condition

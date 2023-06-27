@@ -125,7 +125,7 @@ class Topology
     }
 
     // This function return the vector of index pair in which first < second.
-    const index_pairs_type ignore_list_within_edge(
+    index_pairs_type ignore_list_within_edge(
             const std::size_t dist, const std::string& edge_type) const
     {
 
@@ -164,7 +164,7 @@ class Topology
         return ignore_list;
     }
 
-    const std::size_t size()              const { return nodes_.size(); }
+    std::size_t                   size()  const { return nodes_.size(); }
     const std::vector<node_type>& nodes() const { return nodes_; }
 
   private:

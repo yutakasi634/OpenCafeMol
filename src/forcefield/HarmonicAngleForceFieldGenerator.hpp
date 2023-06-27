@@ -49,13 +49,13 @@ class HarmonicAngleForceFieldGenerator final : public ForceFieldGeneratorBase
     }
 
     const std::vector<indices_type>& indices() const noexcept { return indices_vec_; }
-    const std::string name() const noexcept { return "HarmonicAngle"; }
+    std::string name() const noexcept { return "HarmonicAngle"; }
 
   private:
     std::vector<indices_type> indices_vec_;
     std::vector<double>       v0s_;
     std::vector<double>       ks_;
-    const bool                use_periodic_;
+    bool                      use_periodic_;
 };
 
 

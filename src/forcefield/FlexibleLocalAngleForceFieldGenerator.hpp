@@ -90,18 +90,6 @@ class FlexibleLocalAngleForceFieldGenerator final : public ForceFieldGeneratorBa
         return angle_ff;
     }
 
-    void add_exclusion(std::vector<std::pair<std::size_t, std::size_t>>& exclusion_pairs) const noexcept
-    {
-        for(const auto& indices : indices_vec_)
-        {
-            // TODO
-            // dupulication in exclusion list make error.
-            // all exclusion shoul be specified in HarmonicBond and GoContact
-
-            exclusion_pairs.push_back(std::make_pair(indices[0], indices[2]));
-        }
-    }
-
     const std::vector<indices_type>& indices() const noexcept { return indices_vec_; }
 
   private:
@@ -128,7 +116,7 @@ class FlexibleLocalAngleForceFieldGenerator final : public ForceFieldGeneratorBa
         return e1 + e2;
    }
 
-    const std::string name() const noexcept
+    std::string name() const noexcept
     {
         return "FlexibleLocalAngle (" + aa_name_ + ")";
     }
@@ -146,8 +134,8 @@ class FlexibleLocalAngleForceFieldGenerator final : public ForceFieldGeneratorBa
     std::array<double, 10>    spline_table_;
     std::array<double, 10>    spline_second_deriv_table_;
     std::array<double, 10>    thetas_;
-    const bool                use_periodic_;
-    const std::string         ffgen_id_str_;
+    bool                      use_periodic_;
+    std::string               ffgen_id_str_;
 };
 
 #endif // OPEN_AICG2_PLUS_FLEXIBLE_LOCAL_ANGLE_FORCE_FIELD_GENERATOR_HPP

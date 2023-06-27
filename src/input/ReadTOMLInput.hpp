@@ -9,7 +9,7 @@
 #include "ReadTOMLForceFieldGenerator.hpp"
 #include "src/forcefield/MonteCarloAnisotropicBarostatGenerator.hpp"
 
-const SystemGenerator read_toml_system(const toml::value& data)
+SystemGenerator read_toml_system(const toml::value& data)
 {
     // read systems table
     const auto& systems   = toml::find(data, "systems");

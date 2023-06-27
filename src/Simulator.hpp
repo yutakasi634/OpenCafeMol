@@ -86,8 +86,8 @@ class Simulator
         }
     }
 
-    const std::size_t total_step() const noexcept { return total_step_; }
-    const std::size_t save_step()  const noexcept { return save_step_; }
+    std::size_t total_step() const noexcept { return total_step_; }
+    std::size_t save_step()  const noexcept { return save_step_; }
 
   private:
     std::unique_ptr<OpenMM::System>            system_ptr_;

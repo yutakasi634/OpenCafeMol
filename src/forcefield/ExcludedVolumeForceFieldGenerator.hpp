@@ -177,32 +177,7 @@ class ExcludedVolumeForceFieldGenerator final: public ForceFieldGeneratorBase
         return exv_ff;
     }
 
-    void add_exclusion(index_pairs_type exclusion_pairs) noexcept
-    {
-
-        for(auto& pair : exclusion_pairs)
-        {
-            if(pair.first > pair.second)
-            {
-                const std::size_t first  = pair.first;
-                const std::size_t second = pair.second;
-                pair.first = second;
-                pair.second = first;
-            }
-        }
-
-        for(const auto& pair : exclusion_pairs)
-        {
-            const auto result =
-                std::find(ignore_list_.begin(), ignore_list_.end(), pair);
-            if(result == ignore_list_.end())
-            {
-                ignore_list_.push_back(std::make_pair(pair.first, pair.second));
-            }
-        }
-    }
-
-    const std::string name() const noexcept { return "ExcludedVolume"; }
+    std::string name() const noexcept { return "ExcludedVolume"; }
 
   private:
     double                              eps_;
@@ -210,8 +185,8 @@ class ExcludedVolumeForceFieldGenerator final: public ForceFieldGeneratorBase
     std::vector<std::optional<double>>  radiuses_;
     index_pairs_type                    ignore_list_;
     std::vector<interaction_group_type> interaction_groups_;
-    const bool                          use_periodic_;
-    const std::string                   ffgen_id_str_;
+    bool                                use_periodic_;
+    std::string                         ffgen_id_str_;
 };
 
 #endif // OPEN_AICG2_PLUS_EXCLUDED_VOLUME_FORCE_FIELD_GENERATOR_HPP

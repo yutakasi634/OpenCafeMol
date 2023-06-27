@@ -202,7 +202,7 @@ class ThreeSPN2CrossStackingForceFieldGenerator final : public ForceFieldGenerat
         return chbond_ff;
     }
 
-    const std::string name() const noexcept {return "3SPN2CrossStacking";};
+    std::string name() const noexcept {return "3SPN2CrossStacking";};
 
   private:
     std::vector<indices_type>   donor_indices_vec_;

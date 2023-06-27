@@ -76,7 +76,7 @@ class ThreeSPN2BondForceFieldGenerator final : public ForceFieldGeneratorBase
     }
 
     const std::vector<indices_type>& indices() const noexcept {return indices_vec_; }
-    const std::string name() const noexcept {return "3SPN2Bond";};
+    std::string name() const noexcept {return "3SPN2Bond";};
 
   private:
     std::vector<indices_type> indices_vec_;

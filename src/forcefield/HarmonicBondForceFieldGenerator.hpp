@@ -49,13 +49,13 @@ class HarmonicBondForceFieldGenerator final : public ForceFieldGeneratorBase
     }
 
     const std::vector<indices_type>& indices() const noexcept { return indices_vec_; }
-    const std::string name() const noexcept { return "HarmonicBond"; }
+    std::string name() const noexcept { return "HarmonicBond"; }
 
   private:
     std::vector<indices_type> indices_vec_;
     std::vector<double>       v0s_;
     std::vector<double>       ks_;
-    const bool                use_periodic_;
+    bool                      use_periodic_;
 };
 
 #endif // OPEN_AICG2_PLUS_HARMONIC_BOND_FORCE_FIELD_GENERATOR_HPP

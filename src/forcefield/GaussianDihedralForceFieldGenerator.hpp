@@ -35,8 +35,10 @@ class GaussianDihedralForceFieldGenerator final : public ForceFieldGeneratorBase
     {
         const std::string potential_formula =
             "GD"+ffgen_id_str_+"_k *"
-            "exp(-(theta-GD"+ffgen_id_str_+"_theta0)^2 /"
-            "     (2*GD"+ffgen_id_str_+"_sigma^2))";
+            "exp(-(dt_periodic)^2 /(2*GD"+ffgen_id_str_+"_sigma^2));"
+            "dt_periodic = dt - floor((dt + pi)/(2*pi))*(2*pi);"
+            "dt = theta-GD"+ffgen_id_str_+"_theta0;"
+            "pi = 3.1415926535897932385";
         auto torsion_ff = std::make_unique<OpenMM::CustomTorsionForce>(potential_formula);
         torsion_ff->setUsesPeriodicBoundaryConditions(use_periodic_);
         torsion_ff->addPerTorsionParameter("GD"+ffgen_id_str_+"_k");
@@ -54,24 +56,16 @@ class GaussianDihedralForceFieldGenerator final : public ForceFieldGeneratorBase
         return torsion_ff;
     }
 
-    void add_exclusion(std::vector<index_pair_type>& exclusion_pairs) const noexcept
-    {
-        for(const auto& indices : indices_vec_)
-        {
-            exclusion_pairs.push_back(std::make_pair(indices[0], indices[3]));
-        }
-    }
-
     const std::vector<indices_type>& indices() const noexcept { return indices_vec_; }
-    const std::string name() const noexcept { return "GaussianDihedral"; }
+    std::string name() const noexcept { return "GaussianDihedral"; }
 
   private:
     std::vector<indices_type> indices_vec_;
     std::vector<double>       ks_;
     std::vector<double>       theta0s_;
     std::vector<double>       sigmas_;
-    const bool                use_periodic_;
-    const std::string         ffgen_id_str_;
+    bool                      use_periodic_;
+    std::string               ffgen_id_str_;
 };
 
 #endif // OPEN_AICG2_PLUS_GAUSSIAN_DIHEDRAL_FORCE_FIELD_GENERATOR_HPP

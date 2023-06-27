@@ -66,17 +66,8 @@ class FlexibleLocalDihedralForceFieldGenerator final : public ForceFieldGenerato
         return torsion_ff;
     }
 
-    void add_exclusion(std::vector<std::pair<std::size_t, std::size_t>>& exclusion_pairs) const noexcept
-    {
-        // TODO
-        // duplication in exclusion list make error
-        // all exclusion should be specified in HarnomicBond and GoContact
-
-        // exclusion_pairs.push_back(std::make_pair(indices[0], indices[3]));
-    }
-
     const std::vector<indices_type>& indices() const noexcept { return indices_vec_; }
-    const std::string name() const noexcept
+    std::string name() const noexcept
     {
         return "FlexibleLocalDihedral (" + aa_pair_name_ + ")";
     }
@@ -86,8 +77,8 @@ class FlexibleLocalDihedralForceFieldGenerator final : public ForceFieldGenerato
     std::vector<double>       ks_;
     std::array<double, 7>     fourier_table_;
     std::string               aa_pair_name_;
-    const bool                use_periodic_;
-    const std::string         ffgen_id_str_;
+    bool                      use_periodic_;
+    std::string               ffgen_id_str_;
 };
 
 #endif // OPEN_AICG2_PLUS_FLEXIBLE_LOCAL_DIHEDRAL_FORCE_FIELD_GENERATOR_HPP

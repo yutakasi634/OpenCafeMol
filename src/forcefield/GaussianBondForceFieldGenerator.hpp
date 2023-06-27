@@ -55,24 +55,16 @@ class GaussianBondForceFieldGenerator final : public ForceFieldGeneratorBase
         return bond_ff;
     }
 
-    void add_exclusion(std::vector<indices_type>& exclusion_pairs) const noexcept
-    {
-        for(const auto& indices : indices_vec_)
-        {
-            exclusion_pairs.push_back(indices);
-        }
-    }
-
     const std::vector<indices_type>& indices() const noexcept { return indices_vec_; }
-    const std::string name() const noexcept { return "GaussianBond"; }
+    std::string name() const noexcept { return "GaussianBond"; }
 
   private:
     std::vector<indices_type> indices_vec_;
     std::vector<double>       ks_;
     std::vector<double>       v0s_;
     std::vector<double>       sigmas_;
-    const bool                use_periodic_;
-    const std::string         ffgen_id_str_;
+    bool                      use_periodic_;
+    std::string               ffgen_id_str_;
 };
 
 #endif // OPEN_AICG2_PLUS_GAUSSIAN_BOND_FORCE_FIELD_GENERATOR_HPP
