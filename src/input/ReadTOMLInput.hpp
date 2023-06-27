@@ -427,10 +427,10 @@ Simulator read_toml_input(const std::string& toml_file_name)
     const std::size_t  total_step      = toml::find<std::size_t>(simulator_table, "total_step");
     const std::size_t  save_step       = toml::find<std::size_t>(simulator_table, "save_step");
     const double       delta_t         = toml::find<double>(simulator_table, "delta_t");
-    int seed = 0;
+    std::size_t seed = 0;
     if(simulator_table.contains("seed"))
     {
-        seed = toml::find<int>(simulator_table, "seed");
+        seed = toml::find<std::size_t>(simulator_table, "seed");
     }
 
     // read system table

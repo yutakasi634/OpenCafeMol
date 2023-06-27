@@ -361,7 +361,7 @@ Simulator make_simulator_from_genesis_inputs(
     const std::size_t nsteps        = std::stoi(dynamics_section.at("nsteps"));
     const double      timestep      = std::stof(dynamics_section.at("timestep")); // ps
     const std::size_t crdout_period = std::stoi(dynamics_section.at("crdout_period"));
-    int seed = 0;
+    std::size_t seed = 0;
     if(dynamics_section.find("iseed") != dynamics_section.end())
     {
         seed = std::stoi(dynamics_section.at("iseed"));
