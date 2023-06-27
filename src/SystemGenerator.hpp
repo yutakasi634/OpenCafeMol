@@ -106,9 +106,9 @@ class SystemGenerator
         }
 
         // set barostat
-        std::cerr << "generating barostat..." << std::endl;
         if(barostat_gen_opt_)
         {
+            std::cerr << "generating barostat..." << std::endl;
             const auto& barostat_gen = barostat_gen_opt_.value();
             std::cerr << "    ensemble type is NPT with anisotropic barostat" << std::endl;
             if(!edge_lengthes_opt_)
