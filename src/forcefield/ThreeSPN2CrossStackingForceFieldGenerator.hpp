@@ -110,7 +110,8 @@ class ThreeSPN2CrossStackingForceFieldGenerator final : public ForceFieldGenerat
             "cost3    = sin(t1)*sin(t2)*cos(phi) - cos(t1)*cos(t2);"
             "t1       = angle(d2, d1, a1);"
             "t2       = angle(d1, a1, a2);"
-            "phi      = dihedral(d2, d1, a1, a2);";
+            "phi      = dihedral(d2, d1, a1, a2);"
+            "pi       = 3.1415926535897932385;";
 
         const std::map<std::string, std::string> ff_params =
         {
@@ -153,7 +154,6 @@ class ThreeSPN2CrossStackingForceFieldGenerator final : public ForceFieldGenerat
         chbond_ff->addPerAcceptorParameter(ff_params.at("K_BP"));
         chbond_ff->addPerAcceptorParameter(ff_params.at("K_CS"));
         chbond_ff->addPerAcceptorParameter(ff_params.at("alpha_CS"));
-        chbond_ff->addGlobalParameter("pi", Constant::pi);
 
         for (size_t i=0; i < donor_indices_vec_.size(); ++i)
         {

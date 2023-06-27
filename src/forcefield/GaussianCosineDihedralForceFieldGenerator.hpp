@@ -51,7 +51,8 @@ class GaussianCosineDihedralForceFieldGenerator final : public ForceFieldGenerat
             "cs          = cos(n0 * dt_cos);"
             "dt_periodic = dt_gaussian - floor((dt_gaussian + pi)/(2*pi))*(2*pi);"
             "dt_gaussian = theta - t0_gaussian;"
-            "dt_cos      = theta - t0_cos;";
+            "dt_cos      = theta - t0_cos;"
+            "pi          = 3.1415926535897932385;";
 
         // The 3SPN2C DNA model paper (Freeman et al., JCP, 2014) shows cosine term as k*(1 + cos x).
         // However, we should note that this is a misprint of k*(1 - cos x).
@@ -84,7 +85,6 @@ class GaussianCosineDihedralForceFieldGenerator final : public ForceFieldGenerat
         torsion_ff->addPerTorsionParameter(ff_params.at("t0_cos"));
         torsion_ff->addPerTorsionParameter(ff_params.at("sigma"));
         torsion_ff->addPerTorsionParameter(ff_params.at("n0"));
-        torsion_ff->addGlobalParameter    ("pi", Constant::pi);
 
         for(std::size_t idx=0; idx<indices_vec_.size(); ++idx)
         {
@@ -107,7 +107,7 @@ class GaussianCosineDihedralForceFieldGenerator final : public ForceFieldGenerat
     }
 
     const std::vector<indices_type>& indices() const noexcept { return indices_vec_; }
-    std::string name() const noexcept { return "PeriodicGaussianCosineDihedral"; }
+    std::string name() const noexcept { return "GaussianCosineDihedral"; }
 
   private:
     std::vector<indices_type> indices_vec_;

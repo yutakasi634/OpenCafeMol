@@ -89,7 +89,8 @@ class ThreeSPN2BasePairForceFieldGenerator final : public ForceFieldGeneratorBas
             "dphi    = dihedral(d2, d1, a1, a2) - phi0;"
             "dr      = distance(d1, a1) - r0;"
             "dt1     = K_BP * (angle(d2, d1, a1) - t01);"
-            "dt2     = K_BP * (angle(a2, a1, d1) - t02);";
+            "dt2     = K_BP * (angle(a2, a1, d1) - t02);"
+            "pi      = 3.1415926535897932385;";
 
         const std::map<std::string, std::string> ff_params =
         {
@@ -130,7 +131,6 @@ class ThreeSPN2BasePairForceFieldGenerator final : public ForceFieldGeneratorBas
         chbond_ff->addPerDonorParameter(ff_params.at("phi0"));
         chbond_ff->addPerDonorParameter(ff_params.at("alpha_BP"));
         chbond_ff->addPerDonorParameter(ff_params.at("K_BP"));
-        chbond_ff->addGlobalParameter("pi", Constant::pi);
 
         const std::vector<double> parameters = {
             param_list_.epsilon(),
