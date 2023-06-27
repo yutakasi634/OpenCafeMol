@@ -1,6 +1,9 @@
 #ifndef OPEN_AICG2_PLUS_ISOLF_ATTRACTIVE_FORCE_FIELD_GENERATOR_HPP
 #define OPEN_AICG2_PLUS_ISOLF_ATTRACTIVE_FORCE_FIELD_GENERATOR_HPP
 
+#include <OpenMM.h>
+#include "ForceFieldGeneratorBase.hpp"
+
 class iSoLFAttractiveForceFieldGenerator final : public ForceFieldGeneratorBase
 {
   public:

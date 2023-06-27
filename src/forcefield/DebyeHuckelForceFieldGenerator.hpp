@@ -3,6 +3,7 @@
 
 #include <OpenMM.h>
 #include "src/util/Constants.hpp"
+#include "ForceFieldGeneratorBase.hpp"
 
 class DebyeHuckelForceFieldGenerator final : public ForceFieldGeneratorBase
 {

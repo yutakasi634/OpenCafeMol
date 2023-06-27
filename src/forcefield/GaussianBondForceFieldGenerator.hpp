@@ -5,6 +5,7 @@
 #include <sstream>
 #include <string>
 #include <OpenMM.h>
+#include "ForceFieldGeneratorBase.hpp"
 
 class GaussianBondForceFieldGenerator final : public ForceFieldGeneratorBase
 {

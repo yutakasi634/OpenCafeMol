@@ -6,6 +6,7 @@
 #include <set>
 #include <optional>
 #include <OpenMM.h>
+#include "ForceFieldGeneratorBase.hpp"
 
 class HarmonicCoMPullingForceFieldGenerator : public ForceFieldGeneratorBase
 {

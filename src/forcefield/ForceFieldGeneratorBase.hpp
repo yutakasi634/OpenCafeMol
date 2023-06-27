@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <OpenMM.h>
+#include "ForceFieldGeneratorBase.hpp"
 
 class ForceFieldGeneratorBase
 {

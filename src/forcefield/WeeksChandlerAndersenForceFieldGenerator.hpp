@@ -2,6 +2,7 @@
 #define OPEN_AICG2_PLUS_WEEKS_CHANDLER_ANDERSEN_FORCE_FIELD_GENERATOR_HPP
 
 #include <OpenMM.h>
+#include "ForceFieldGeneratorBase.hpp"
 
 class WeeksChandlerAndersenForceFieldGenerator final : public ForceFieldGeneratorBase
 {

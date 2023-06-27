@@ -5,7 +5,8 @@
 #include <sstream>
 #include <string>
 #include <OpenMM.h>
-#include "../util/Constants.hpp"
+#include "src/util/Constants.hpp"
+#include "ForceFieldGeneratorBase.hpp"
 
 class FlexibleLocalAngleForceFieldGenerator final : public ForceFieldGeneratorBase
 {

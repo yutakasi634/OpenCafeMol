@@ -1,6 +1,9 @@
 #ifndef OPEN_AICG2_PLUS_UNIFORM_LENNARD_JONES_ATTRACTIVE_FORCE_FIELD_GENERATOR_HPP
 #define OPEN_AICG2_PLUS_UNIFORM_LENNARD_JONES_ATTRACTIVE_FORCE_FIELD_GENERATOR_HPP
 
+#include <OpenMM.h>
+#include "ForceFieldGeneratorBase.hpp"
+
 class UniformLennardJonesAttractiveForceFieldGenerator final : public ForceFieldGeneratorBase
 {
   public:
