@@ -20,6 +20,7 @@ eneout_period       = 1000        # energy output interval
 crdout_period       = 1000        # trajectory output interval
 rstout_period       = 1000        # restart output interval
 nbupdate_period     = 20          # pairlist update interval
+iseed               = 12345
 
 [CONSTRAINTS]
 rigid_bond          = NO          # don't apply constraints

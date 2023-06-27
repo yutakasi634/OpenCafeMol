@@ -427,6 +427,11 @@ Simulator read_toml_input(const std::string& toml_file_name)
     const std::size_t  total_step      = toml::find<std::size_t>(simulator_table, "total_step");
     const std::size_t  save_step       = toml::find<std::size_t>(simulator_table, "save_step");
     const double       delta_t         = toml::find<double>(simulator_table, "delta_t");
+    int seed = 0;
+    if(simulator_table.contains("seed"))
+    {
+        seed = toml::find<int>(simulator_table, "seed");
+    }
 
     // read system table
     const auto& systems     = toml::find(data, "systems");
@@ -434,6 +439,19 @@ Simulator read_toml_input(const std::string& toml_file_name)
     const auto  temperature = toml::find<double>(attr, "temperature");
     const std::vector<OpenMM::Vec3> initial_position_in_nm(read_toml_initial_conf(data));
     SystemGenerator system_gen = read_toml_system(data);
+
+    // setup OpenMM integrator
+    // In OpenMM, we cannot use different friction coefficiet, gamma, for
+    // different molecules. However, cafemol use different gamma depends on the
+    // mass of each particle, and the product of mass and gamma is constant in
+    // there. So in this implementation, we fix the gamma to 0.2 ps^-1 temporary,
+    // correspond to approximatry 0.01 in cafemol friction coefficient. We need
+    // to implement new LangevinIntegrator which can use different gamma for
+    // different particles.
+    auto integrator = OpenMM::LangevinIntegrator(temperature,
+                                                 0.2/*friction coef ps^-1*/,
+                                                 delta_t*Constant::cafetime);
+    integrator.setRandomNumberSeed(seed);
 
     // construct observers
     const bool use_periodic =
@@ -471,17 +489,7 @@ Simulator read_toml_input(const std::string& toml_file_name)
     }
     observers.push_back(std::make_unique<EnergyObserver>(output_path+output_prefix, system_gen));
 
-    // setup OpenMM simulator
-    // In OpenMM, we cannot use different friction coefficiet, gamma, for different molecules.
-    // However, cafemol use different gamma depends on the mass of each particle, and the
-    // product of mass and gamma is constant in there.
-    // So in this implementation, we fix the gamma to 0.2 ps^-1 temporary, correspond to
-    // approximatry 0.01 in cafemol friction coefficient. We need to implement new
-    // LangevinIntegrator which can use different gamma for different particles.
-    return Simulator(system_gen,
-               OpenMM::LangevinIntegrator(temperature,
-                                          0.2/*friction coef ps^-1*/,
-                                          delta_t*Constant::cafetime),
+    return Simulator(system_gen, integrator,
                initial_position_in_nm, total_step, save_step,
                observers, dump_progress_bar);
 }

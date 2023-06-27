@@ -8,7 +8,7 @@ boundary_type = "Unlimited"
 delta_t       = 0.01
 total_step    = 100_000
 save_step     = 100
-seed          = 12374
+seed          = 12345
 
 [[systems]]
 attributes.temperature = 300.0

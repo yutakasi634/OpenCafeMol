@@ -361,12 +361,27 @@ Simulator make_simulator_from_genesis_inputs(
     const std::size_t nsteps        = std::stoi(dynamics_section.at("nsteps"));
     const double      timestep      = std::stof(dynamics_section.at("timestep")); // ps
     const std::size_t crdout_period = std::stoi(dynamics_section.at("crdout_period"));
+    int seed = 0;
+    if(dynamics_section.find("iseed") != dynamics_section.end())
+    {
+        seed = std::stoi(dynamics_section.at("iseed"));
+    }
 
     // read [EMSEMBLE] section
     const std::map<std::string, std::string> emsemble_section = inpfile_data.at("ENSEMBLE");
     const double temperature = std::stof(emsemble_section.at("temperature"));
-    const double gamma_t     = std::stof(emsemble_section.at("gamma_t"));
+    const double gamma_t     = std::stof(emsemble_section.at("gamma_t")); // GENESIS gamma_t unit is ps^-1
 
+    // setup OpenMM integrator
+    // In OpenMM, we cannot use different friction coefficiet, gamma, for
+    // different molecules. However, cafemol use different gamma depends on the
+    // mass of each particle, and the product of mass and gamma is constant in
+    // there. We need to implement new LangevinIntegrator which can use different
+    // gamma for different particles.
+    auto integrator = OpenMM::LangevinIntegrator(temperature,
+                                                 gamma_t/*friction coef ps^-1*/,
+                                                 timestep/* delta t */);
+    integrator.setRandomNumberSeed(seed);
 
     // construct observers
     std::vector<std::unique_ptr<ObserverBase>> observers;
@@ -396,18 +411,8 @@ Simulator make_simulator_from_genesis_inputs(
     ofs << "ENDMDL" << std::endl; // end of frame
     ofs.close();
 
-    // setup OpenMM simulator
-    // In OpenMM, we cannot use different friction coefficiet, gamma, for different molecules.
-    // However, cafemol use different gamma depends on the mass of each particle, and the
-    // product of mass and gamma is constant in there.
-    // So in this implementation, we fix the gamma to 0.2 ps^-1 temporary, correspond to
-    // approximatry 0.01 in cafemol friction coefficient. We need to implement new
-    // LangevinIntegrator which can use different gamma for different particles.
-    return Simulator(system_gen,
-                   OpenMM::LangevinIntegrator(temperature,
-                                              gamma_t/*friction coef ps^-1*/,
-                                              timestep/* delta t */),
-                   initial_position_in_nm, nsteps, crdout_period, observers);
+    return Simulator(system_gen, integrator,
+                     initial_position_in_nm, nsteps, crdout_period, observers);
 }
 
 Simulator read_genesis_input(const std::string& inp_file_name)

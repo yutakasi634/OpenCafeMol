@@ -9,7 +9,7 @@ class Simulator
 {
   public:
     Simulator(
-        const SystemGenerator& system_gen, OpenMM::LangevinIntegrator&& integrator,
+        const SystemGenerator& system_gen, OpenMM::LangevinIntegrator& integrator,
         const std::vector<OpenMM::Vec3>& initial_position,
         const std::size_t total_step, const std::size_t save_step,
         std::vector<std::unique_ptr<ObserverBase>>& observers, bool output_progress = true)
@@ -42,6 +42,17 @@ class Simulator
         std::cerr << "    gamma       : "
             << std::setw(7) << std::fixed << std::setprecision(3)
             << integrator_.getFriction() << " ps^-1" << std::endl;
+        const int seed = integrator_.getRandomNumberSeed();
+        if(seed == 0)
+        {
+            std::cerr << "    seed        : "
+                << "not specified or 0. random seed will be chosen." << std::endl;
+        }
+        else
+        {
+            std::cerr << "    seed        : "
+                << std::setw(7) <<  seed << std::endl;
+        }
 
         std::cerr << "initializing observers..." << std::endl;
         for(auto& observer : observers)
