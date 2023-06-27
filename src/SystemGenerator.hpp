@@ -41,9 +41,9 @@ class SystemGenerator
         ff_gen_ptrs_.push_back(std::move(ff_gen_ptr));
     }
 
-    void set_barostat(MonteCarloAnisotropicBarostatGenerator& baro_gen)
+    void set_barostat(std::unique_ptr<BarostatGeneratorBase>&& baro_gen)
     {
-        barostat_gen_opt_ = baro_gen;
+        barostat_gen_opt_ = std::move(baro_gen);
     }
 
     void set_pbc(const double xlength, const double ylength, const double zlength)
@@ -109,7 +109,7 @@ class SystemGenerator
         if(barostat_gen_opt_)
         {
             std::cerr << "generating barostat..." << std::endl;
-            const auto& barostat_gen = barostat_gen_opt_.value();
+            const auto& barostat_gen_ptr = barostat_gen_opt_.value();
             std::cerr << "    ensemble type is NPT with anisotropic barostat" << std::endl;
             if(!edge_lengthes_opt_)
             {
@@ -117,30 +117,18 @@ class SystemGenerator
                         "[error] ensemble type \"NPT\" should be used with periodic boundary condition.");
             }
 
-            std::cerr << "        scaling axis is ";
-            const std::array<bool, 3>& scale_axis = barostat_gen.scale_axis();
-            if(scale_axis[0]){ std::cerr << "X"; }
-            if(scale_axis[1]){ std::cerr << "Y"; }
-            if(scale_axis[2]){ std::cerr << "Z"; }
-            std::cerr << std::endl;
+            std::cerr << "    barostat is " << barostat_gen_ptr->name() << std::endl;
+            const std::size_t frequency = barostat_gen_ptr->frequency();
+            std::cerr << "        pressure change frequency : "
+                      << std::setw(7) << frequency << std::endl;
 
-            std::cerr << "        default pressure is"
-                      << std::fixed << std::setprecision(2);
-            const std::array<double, 3>& default_pressure = barostat_gen.default_pressure();
-            if(scale_axis[0]){ std::cerr << " X: " << std::setw(7) << default_pressure[0]; }
-            if(scale_axis[1]){ std::cerr << " Y: " << std::setw(7) << default_pressure[1]; }
-            if(scale_axis[2]){ std::cerr << " Z: " << std::setw(7) << default_pressure[2]; }
-            std::cerr << std::endl;
-
-            const std::size_t frequency = barostat_gen.frequency();
-            std::cerr << "        Monte Carlo pressure change frequency is "
-                      << frequency << std::endl;
-
-            const double temperature = barostat_gen.temperature();
-            std::cerr << "        barostat temperature is "
+            const double temperature = barostat_gen_ptr->temperature();
+            std::cerr << "        barostat temperature      : "
                       << std::setw(7) << std::fixed << temperature << std::endl;
 
-            system_ptr->addForce(barostat_gen.generate().release());
+            barostat_gen_ptr->dump_info();
+
+            system_ptr->addForce(barostat_gen_ptr->generate().release());
         }
 
         return system_ptr;
@@ -159,7 +147,7 @@ class SystemGenerator
     std::optional<std::array<double, 3>>                  edge_lengthes_opt_;
 
     // for barostat
-    std::optional<MonteCarloAnisotropicBarostatGenerator> barostat_gen_opt_;
+    std::optional<std::unique_ptr<BarostatGeneratorBase>> barostat_gen_opt_;
 
     // for EnergyObserver
     std::map<std::string, std::size_t>                    ffname_groupid_map_;

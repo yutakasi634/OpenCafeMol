@@ -1,7 +1,7 @@
 [files]
-output.prefix = "flat_memebrane_128"
+output.prefix = "flat_membrane128"
 output.path   = "./output/"
-output.format = "dcd"
+output.format = "pdb"
 
 [simulator]
 precision     = "float"

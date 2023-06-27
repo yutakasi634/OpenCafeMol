@@ -87,7 +87,8 @@ SystemGenerator read_toml_system(const toml::value& data)
             auto barostat_gen =
                 MonteCarloAnisotropicBarostatGenerator(
                         scale_axis, temperature, default_pressure, frequency);
-            system_gen.set_barostat(barostat_gen);
+            system_gen.set_barostat(
+                    std::make_unique<MonteCarloAnisotropicBarostatGenerator>(barostat_gen));
         }
     }
 

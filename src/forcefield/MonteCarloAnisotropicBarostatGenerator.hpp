@@ -2,8 +2,9 @@
 #define OPEN_AICG2_PLUS_MONTE_CARLO_ANISOTROPIC_BAROSTAT_GENERATOR_HPP
 
 #include <OpenMM.h>
+#include "BarostatGeneratorBase.hpp"
 
-class MonteCarloAnisotropicBarostatGenerator
+class MonteCarloAnisotropicBarostatGenerator final : public BarostatGeneratorBase
 {
   public:
     MonteCarloAnisotropicBarostatGenerator(
@@ -13,7 +14,7 @@ class MonteCarloAnisotropicBarostatGenerator
           frequency_(frequency)
     {}
 
-    std::unique_ptr<OpenMM::Force> generate() const noexcept
+    std::unique_ptr<OpenMM::Force> generate() const noexcept override
     {
         auto barostat =
             std::make_unique<OpenMM::MonteCarloAnisotropicBarostat>(
@@ -26,8 +27,28 @@ class MonteCarloAnisotropicBarostatGenerator
     const std::array<bool, 3>&   scale_axis()       const noexcept { return scale_axis_; }
     const std::array<double, 3>& default_pressure() const noexcept { return default_pressure_; }
 
-    double      temperature() const noexcept { return temperature_; }
-    std::size_t frequency()   const noexcept { return frequency_; }
+    double      temperature() const noexcept override { return temperature_; }
+    std::size_t frequency()   const noexcept override { return frequency_; }
+    std::string name()        const noexcept override { return "MonteCarloAnisotropicBarostat"; }
+
+    void dump_info() const noexcept override
+    {
+        std::cerr << "        scaling axis              : ";
+        std::stringstream scaling_axis;
+        if(scale_axis_[0]){ scaling_axis << "X"; }
+        if(scale_axis_[1]){ scaling_axis << "Y"; }
+        if(scale_axis_[2]){ scaling_axis << "Z"; }
+        std::cerr << std::setw(7) << scaling_axis.str() << std::endl;
+
+        std::cerr << "        default pressure"
+            << std::fixed << std::setprecision(2) << std::endl;
+        if(scale_axis_[0]){ std::cerr << "            X: "
+            << std::setw(7) << default_pressure_[0] << std::endl; }
+        if(scale_axis_[1]){ std::cerr << "            Y: "
+            << std::setw(7) << default_pressure_[1] << std::endl; }
+        if(scale_axis_[2]){ std::cerr << "            Z: "
+            << std::setw(7) << default_pressure_[2] << std::endl; }
+    }
 
   private:
     std::array<bool, 3>   scale_axis_;
