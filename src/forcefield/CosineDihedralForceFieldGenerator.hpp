@@ -90,8 +90,8 @@ class CosineDihedralForceFieldGenerator final : public ForceFieldGeneratorBase
     std::vector<double>       ks_;
     std::vector<double>       theta0s_;
     std::vector<double>       ns_;
-    const bool                use_periodic_;
-    const std::string         ffgen_id_str_;
+    bool                      use_periodic_;
+    std::string               ffgen_id_str_;
 };
 
 #endif // OPEN_AICG2_PLUS_COSINE_DIHEDRAL_FORCE_FIELD_GENERATOR_HPP

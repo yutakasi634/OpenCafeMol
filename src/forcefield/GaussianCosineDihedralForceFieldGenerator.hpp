@@ -117,8 +117,8 @@ class GaussianCosineDihedralForceFieldGenerator final : public ForceFieldGenerat
     std::vector<double>       theta0s_cos_;
     std::vector<double>       sigmas_;
     std::vector<double>       ns_;
-    const bool                use_periodic_;
-    const std::string         ffgen_id_str_;
+    bool                      use_periodic_;
+    std::string               ffgen_id_str_;
 };
 
 #endif // OPEN_AICG2_PLUS_GAUSSIAN_COSINE_DIHEDRAL_FORCE_FIELD_GENERATOR_HPP

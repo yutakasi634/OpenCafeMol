@@ -188,8 +188,8 @@ class ThreeSPN2BasePairForceFieldGenerator final : public ForceFieldGeneratorBas
     std::vector<indices_type> acceptor_indices_vec_;
     index_pairs_type          ignore_list_;
     parameter_list            param_list_;
-    const bool                use_periodic_;
-    const std::string         ffgen_id_str_;
+    bool                      use_periodic_;
+    std::string               ffgen_id_str_;
 };
 
 

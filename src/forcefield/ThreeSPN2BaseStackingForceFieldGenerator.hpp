@@ -108,10 +108,10 @@ class ThreeSPN2BaseStackingForceFieldGenerator final : public ForceFieldGenerato
     std::vector<double>       eps_vec_;
     std::vector<double>       r0s_;
     std::vector<double>       theta0s_;
-    const double              alpha_;
-    const double              K_BS_;
-    const bool                use_periodic_;
-    const std::string         ffgen_id_str_;
+    double                    alpha_;
+    double                    K_BS_;
+    bool                      use_periodic_;
+    std::string               ffgen_id_str_;
 };
 
 // ----------------------------------------------------------------------------

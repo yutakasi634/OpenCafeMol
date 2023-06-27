@@ -83,8 +83,8 @@ class ThreeSPN2BondForceFieldGenerator final : public ForceFieldGeneratorBase
     std::vector<double>       k2s_;
     std::vector<double>       k4s_;
     std::vector<double>       v0s_;
-    const bool                use_periodic_;
-    const std::string         ffgen_id_str_;
+    bool                      use_periodic_;
+    std::string               ffgen_id_str_;
 };
 
 #endif // OPEN_AICG2_PLUS_3SPN2_BOND_FORCE_FIELD_GENERATOR_HPP
