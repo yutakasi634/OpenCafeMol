@@ -66,12 +66,14 @@ SystemGenerator read_toml_system(const toml::value& data)
 
     // read ensemble condition
     const auto& attr = toml::find(systems[0], "attributes");
+    std::cerr << "reading ensemble condition..." << std::endl;
     if(attr.contains("ensemble"))
     {
         const auto& ensemble = toml::find(attr, "ensemble");
         const auto& type     = toml::find<std::string>(ensemble, "type");
         if(type == "NPT")
         {
+            std::cerr << "    ensemble type is NPT with anisotropic barostat" << std::endl;
             const auto& default_pressure =
                 toml::find<std::array<double, 3>>(ensemble, "pressure");
             const auto& scale_axis =
@@ -93,6 +95,7 @@ SystemGenerator read_toml_system(const toml::value& data)
         }
         else if(type == "NPgammaT" || type == "NPγT")
         {
+            std::cerr << "    ensemble type is NPγT" << std::endl;
             const auto& default_pressure = toml::find<double>(ensemble, "pressure");
             const auto& default_surface_tension =
                 toml::find<double>(ensemble, "surface_tension");
