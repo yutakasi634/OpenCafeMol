@@ -32,14 +32,11 @@ jobs:
           cmake .. -DPYTHON_EXECUTABLE=$(which python3) -DCMAKE_INSTALL_PREFIX=${GITHUB_WORKSPACE}/extlib/openmm-8/
           make
           make install
-          ls -l ${GITHUB_WORKSPACE}/
-          ls -l ${GITHUB_WORKSPACE}/extlib/
-          ls -l ${GITHUB_WORKSPACE}/extlib/openmm-8/
     - name: Save OpenMM Library
       id: cache-openmm-save
       uses: actions/cache/save@v3
       with:
-        path: ${GITHUB_WORKSPACE}/extlib/openmm-8/
+        path: ${{ github.workspace }}/extlib/openmm-8/
         key: ${{ steps.cache-openmm-restore.outputs.cache-primary-key }}
     - name: Configure
       run: |
