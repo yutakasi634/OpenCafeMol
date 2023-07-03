@@ -15,8 +15,7 @@ jobs:
       id: cache-openmm-restore
       uses: actions/cache/restore@v3
       with:
-        path: |
-          $HOME/.local/openmm-8
+        path: ${GITHUB_WORKSPACE}/extlib/openmm-8/
         key: ${{ runner.os }}-openmm
     - name: Install OpenMM dependencies
       if: steps.cache-openmm-restore.outputs.cache-hit != 'true'
@@ -24,26 +23,24 @@ jobs:
           sudo apt-get update
           sudo apt-get install python3-dev cython3 doxygen # swig is installed by default
           git clone --depth 1 --branch 8.0.0 https://github.com/openmm/openmm.git ./extlib/openmm
-          mkdir extlib/openmm/build/
+          mkdir ./extlib/openmm/build/
+          mkdir ${GITHUB_WORKSPACE}/extlib/openmm-8/
     - name: Build and Install OpenMM
       working-directory: ./extlib/openmm/build
       if: steps.cache-openmm-restore.outputs.cache-hit != 'true'
       run: |
-          pwd
-          mkdir -p ~/.local/openmm-8
-          cmake .. -DPYTHON_EXECUTABLE=$(which python3) -DCMAKE_INSTALL_PREFIX=$HOME/.local/openmm-8/
+          cmake .. -DPYTHON_EXECUTABLE=$(which python3) -DCMAKE_INSTALL_PREFIX=${GITHUB_WORKSPACE}/extlib/openmm-8/
           make
           make install
     - name: Save OpenMM Library
       id: cache-openmm-save
       uses: actions/cache/save@v3
       with:
-        path: |
-          $HOME/.local/openmm-8
+        path: ${GITHUB_WORKSPACE}/extlib/openmm-8/
         key: ${{ steps.cache-openmm-restore.outputs.cache-primary-key }}
     - name: Configure
       run: |
-          mkdir build/ && cmake .. -DOPENMM_ROOT=$HOME/.local/openmm-8
+          mkdir build/ && cd build/ && cmake .. -DOPENMM_ROOT=${GITHUB_WORKSPACE}/extlib/openmm-8/
     - name: Build
       working-directory: ./build/
       run: |
