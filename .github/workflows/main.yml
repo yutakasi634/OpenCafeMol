@@ -26,13 +26,14 @@ jobs:
           mkdir ./extlib/openmm/build/
           mkdir ${GITHUB_WORKSPACE}/extlib/openmm-8/
     - name: Build and Install OpenMM
-      working-directory: ./extlib/openmm/build
       if: steps.cache-openmm-restore.outputs.cache-hit != 'true'
+      working-directory: ./extlib/openmm/build
       run: |
           cmake .. -DPYTHON_EXECUTABLE=$(which python3) -DCMAKE_INSTALL_PREFIX=${GITHUB_WORKSPACE}/extlib/openmm-8/
           make
           make install
     - name: Save OpenMM Library
+      if: steps.cache-openmm-restore.outputs.cache-hit != 'true'
       id: cache-openmm-save
       uses: actions/cache/save@v3
       with:
