@@ -35,11 +35,10 @@ jobs:
           make
           make install
     - name: Configure
-      working-directory: build/
       run: |
-          cmake .. -DOPENMM_ROOT=$HOME/.local/openmm-8
+          mkdir build/ && cmake .. -DOPENMM_ROOT=$HOME/.local/openmm-8
     - name: Build
-      working-directory: build/
+      working-directory: ./build/
       run: |
           cmake --build .
 #     - name: Run
