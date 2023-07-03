@@ -1,0 +1,50 @@
+name: build
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout OpenAICG2Plus
+      uses: actions/checkout@v3
+      with:
+        submodules: true
+    - name: Restore OpenMM library
+      id: cache-openmm-restore
+      uses: actions/cache/restore@v3
+      with:
+        path: |
+          $HOME/.local/openmm-8
+        key: ${{ runner.os }}-openmm
+    - name: Install OpenMM dependencies
+      working-directory: ./extlib/openmm
+      if: steps.cache-openmm-restore.outputs.cache-hit != 'true'
+      run: |
+          pwd
+          sudo apt-get update
+          sudo apt-get install python3-dev cython3 doxygen # swig is installed by default
+          git clone https://github.com/openmm/openmm.git .
+          git checkout 8.0.0
+          mkdir build
+    - name: Build and Install OpenMM
+      working-directory: ./extlib/openmm/build
+      if: steps.cache-openmm-restore.outputs.cache-hit != 'true'
+      run: |
+          pwd
+          mkdir -p ~/.local/openmm-8
+          cmake .. -DPYTHON_EXECUTABLE=$(/usr/bin/env python3) -DCMAKE_INSTALL_PREFIX=$HOME/.local/openmm-8/
+          make
+          make install
+    - name: Configure
+      working-directory: build/
+      run: |
+          cmake .. -DOPENMM_ROOT=$HOME/.local/openmm-8
+    - name: Build
+      working-directory: build/
+      run: |
+          cmake --build .
+#     - name: Run
+#       run: |
+#           ./bin/open_aicg2plus sample/toml_input/sh3_AICG2+.toml
