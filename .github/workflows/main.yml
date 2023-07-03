@@ -19,15 +19,12 @@ jobs:
           $HOME/.local/openmm-8
         key: ${{ runner.os }}-openmm
     - name: Install OpenMM dependencies
-      working-directory: ./extlib/openmm
       if: steps.cache-openmm-restore.outputs.cache-hit != 'true'
       run: |
-          pwd
           sudo apt-get update
           sudo apt-get install python3-dev cython3 doxygen # swig is installed by default
-          git clone https://github.com/openmm/openmm.git .
-          git checkout 8.0.0
-          mkdir build
+          git clone --depth 1 --branch 8.0.0 https://github.com/openmm/openmm.git ./extlib/openmm
+          mkdir extlib/openmm/build/
     - name: Build and Install OpenMM
       working-directory: ./extlib/openmm/build
       if: steps.cache-openmm-restore.outputs.cache-hit != 'true'
