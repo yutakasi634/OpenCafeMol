@@ -15,7 +15,7 @@ jobs:
       id: cache-openmm-restore
       uses: actions/cache/restore@v3
       with:
-        path: ${GITHUB_WORKSPACE}/extlib/openmm-8/
+        path: ${{ github.workspace }}/extlib/openmm-8/
         key: ${{ runner.os }}-openmm
     - name: Install OpenMM dependencies
       if: steps.cache-openmm-restore.outputs.cache-hit != 'true'
