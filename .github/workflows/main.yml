@@ -11,7 +11,7 @@ jobs:
       uses: actions/checkout@v3
       with:
         submodules: true
-    - name: Restore OpenMM library
+    - name: Restore OpenMM Library
       id: cache-openmm-restore
       uses: actions/cache/restore@v3
       with:
@@ -34,6 +34,13 @@ jobs:
           cmake .. -DPYTHON_EXECUTABLE=$(which python3) -DCMAKE_INSTALL_PREFIX=$HOME/.local/openmm-8/
           make
           make install
+    - name: Save OpenMM Library
+      id: cache-openmm-save
+      uses: actions/cache/save@v3
+      with:
+        path: |
+          $HOME/.local/openmm-8
+        key: ${{ steps.cache-openmm-restore.outputs.cache-primary-key }}
     - name: Configure
       run: |
           mkdir build/ && cmake .. -DOPENMM_ROOT=$HOME/.local/openmm-8
