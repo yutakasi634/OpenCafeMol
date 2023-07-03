@@ -31,8 +31,7 @@ jobs:
       run: |
           pwd
           mkdir -p ~/.local/openmm-8
-          echo $(/usr/bin/env python3)
-          cmake .. -DPYTHON_EXECUTABLE=$(/usr/bin/env python3) -DCMAKE_INSTALL_PREFIX=$HOME/.local/openmm-8/
+          cmake .. -DPYTHON_EXECUTABLE=$(which python3) -DCMAKE_INSTALL_PREFIX=$HOME/.local/openmm-8/
           make
           make install
     - name: Configure
