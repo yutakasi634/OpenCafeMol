@@ -23,13 +23,12 @@ class ThreeSPN2ExcludedVolumeForceFieldGenerator final : public ForceFieldGenera
         const std::size_t ffgen_count = 0)
         : eps_(eps), cutoff_(cutoff), radiuses_(radiuses), ignore_list_(ignore_list),
           use_periodic_(use_periodic), ffgen_id_str_(std::to_string(ffgen_count))
-    {
-    }
+    {}
 
     std::unique_ptr<OpenMM::Force> generate() const noexcept override
     {
-        std::string potential_formula = "energy;"
-            "energy  = (epsilon*((sigma/r)^12 - 2*(sigma/r)^6) + epsilon) * step(sigma - r);"
+        std::string potential_formula =
+            "(epsilon*((sigma/r)^12 - 2*(sigma/r)^6) + epsilon) * step(sigma - r);"
             "epsilon = sqrt(epsilon1 * epsilon2);"
             "sigma   = 0.5*(  sigma1 +   sigma2);";
 

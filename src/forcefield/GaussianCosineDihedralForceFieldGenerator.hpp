@@ -50,8 +50,8 @@ class GaussianCosineDihedralForceFieldGenerator final : public ForceFieldGenerat
 
     std::unique_ptr<OpenMM::Force> generate() const noexcept override
     {
-        std::string potential_formula = "energy;"
-            "energy      = k_gaussian*exp(-dt_periodic^2/(2*sigma^2)) + k_cos*(1 - cs);"
+        std::string potential_formula =
+            "k_gaussian*exp(-dt_periodic^2/(2*sigma^2)) + k_cos*(1 - cs);"
             "cs          = cos(n0 * dt_cos);"
             "dt_periodic = dt_gaussian - floor((dt_gaussian + pi)/(2*pi))*(2*pi);"
             "dt_gaussian = theta - t0_gaussian;"

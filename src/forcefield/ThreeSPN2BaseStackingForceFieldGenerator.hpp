@@ -44,17 +44,16 @@ class ThreeSPN2BaseStackingForceFieldGenerator final : public ForceFieldGenerato
     std::unique_ptr<OpenMM::Force> generate() const noexcept override
     {
         // Hinckley et al., J. Chem. Phys. (2013)
-        std::string potential_formula = "energy;"
-            " energy = rep + f2*attr;"                                          // Eq. (8)
-            " rep    = epsilon*(1 - exp(-alpha*(dr)))^2 * step(-dr);"           // Eq. (6)
-            " attr   = epsilon*(1 - exp(-alpha*(dr)))^2 * step( dr) - epsilon;" // Eq. (7)
-            " dr     = distance(p2, p3) - r0;"
-            " f2     = max(f*rect2, rect1);"               // Eq. (4)
-            " rect1  = step(dt + pi/2) * step(pi/2 - dt);" // 1 when -pi/2 < dt < pi/2, else 0
-            " rect2  = step(dt + pi)   * step(pi   - dt);" // 1 when -pi   < dt < pi,   else 0
-            " f      = 1 - cos(dt)^2;"
-            " dt     = K_BS * (angle(p1, p2, p3) - t0);"
-            " pi     = 3.1415926535897932385;";
+        std::string potential_formula = "rep + f2*attr;"                       // Eq. (8)
+            " rep   = epsilon*(1 - exp(-alpha*(dr)))^2 * step(-dr);"           // Eq. (6)
+            " attr  = epsilon*(1 - exp(-alpha*(dr)))^2 * step( dr) - epsilon;" // Eq. (7)
+            " dr    = distance(p2, p3) - r0;"
+            " f2    = max(f*rect2, rect1);"               // Eq. (4)
+            " rect1 = step(dt + pi/2) * step(pi/2 - dt);" // 1 when -pi/2 < dt < pi/2, else 0
+            " rect2 = step(dt + pi)   * step(pi   - dt);" // 1 when -pi   < dt < pi,   else 0
+            " f     = 1 - cos(dt)^2;"
+            " dt    = K_BS * (angle(p1, p2, p3) - t0);"
+            " pi    = 3.1415926535897932385;";
 
         const std::map<std::string, std::string> ff_params =
         {
