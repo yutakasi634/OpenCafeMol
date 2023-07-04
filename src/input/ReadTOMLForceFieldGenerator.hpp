@@ -1705,7 +1705,7 @@ read_toml_3spn2_cross_stacking_ff_generator(
     else
     {
         throw std::runtime_error(
-            "[error] invalid potential " + pot + " fond."
+            "[error] invalid potential " + pot + " found."
             "Expected value is one of the following."
             "- \"3SPN2\" : The general 3SPN2 parameter set."
             "- \"3SPN2C\": The parameter set optimized to reproduce sequence-dependent curveture of dsDNA."

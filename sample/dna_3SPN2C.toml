@@ -1,9 +1,10 @@
 [files]
 output.prefix = "dna_3SPN2C" # output file prefix
-output.path   = "./output/"        # output path
-output.format = "pdb"       # output format
+output.path   = "./output/"  # output path
+output.format = "pdb"        # output format
 
 [simulator]
+boundary_type = "Unlimited"
 delta_t       = 0.3
 seed          = 12345
 total_step    = 50000

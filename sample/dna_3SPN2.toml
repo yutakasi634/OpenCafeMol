@@ -1,6 +1,6 @@
 [files]
 output.prefix = "dna_3SPN2" # output file prefix
-output.path   = "./output/"        # output path
+output.path   = "./output/" # output path
 output.format = "pdb"       # output format
 
 [simulator]
