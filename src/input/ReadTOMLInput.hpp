@@ -5,6 +5,7 @@
 #include <OpenMM.h>
 #include "src/Simulator.hpp"
 #include "src/SystemGenerator.hpp"
+#include "src/IntegratorGenerator.hpp"
 #include "src/Topology.hpp"
 #include "ReadTOMLForceFieldGenerator.hpp"
 #include "src/forcefield/MonteCarloAnisotropicBarostatGenerator.hpp"
@@ -440,6 +441,34 @@ SystemGenerator read_toml_system(const toml::value& data)
     return system_gen;
 }
 
+std::unique_ptr<IntegratorGeneratorBase>
+read_toml_integrator_gen(const toml::value& root)
+{
+    // setup OpenMM integrator
+
+    const auto& systems     = toml::find(root, "systems");
+    const auto& attr        = toml::find(systems[0], "attributes");
+    const auto  temperature = toml::find<double>(attr, "temperature");
+
+    const auto& simulator   = toml::find(root, "simulator");
+    const auto  delta_t     = toml::find<double>(simulator, "delta_t");
+
+    const auto  seed = toml::find_or<int>(simulator, "seed", 0);
+
+    // In OpenMM, we cannot use different friction coefficiet, gamma, for
+    // different molecules. However, cafemol use different gamma depends on the
+    // mass of each particle, and the product of mass and gamma is constant in
+    // there. So in this implementation, we fix the gamma to 0.2 ps^-1 temporary,
+    // correspond to approximatry 0.01 in cafemol friction coefficient. We need
+    // to implement new LangevinIntegrator which can use different gamma for
+    // different particles.
+
+    const double friction_coeff = 0.2; // [1/ps]
+
+    return std::make_unique<LangevinIntegratorGenerator>(
+            temperature, friction_coeff, delta_t, seed);
+}
+
 std::vector<OpenMM::Vec3> read_toml_initial_conf(const toml::value& data)
 {
     const auto& systems     = toml::find(data, "systems");
@@ -496,31 +525,13 @@ Simulator read_toml_input(const std::string& toml_file_name)
     const std::size_t  total_step      = toml::find<std::size_t>(simulator_table, "total_step");
     const std::size_t  save_step       = toml::find<std::size_t>(simulator_table, "save_step");
     const double       delta_t         = toml::find<double>(simulator_table, "delta_t");
-    std::size_t seed = 0;
-    if(simulator_table.contains("seed"))
-    {
-        seed = toml::find<std::size_t>(simulator_table, "seed");
-    }
 
     // read system table
     const auto& systems     = toml::find(data, "systems");
-    const auto& attr        = toml::find(systems[0], "attributes");
-    const auto  temperature = toml::find<double>(attr, "temperature");
     const std::vector<OpenMM::Vec3> initial_position_in_nm(read_toml_initial_conf(data));
     SystemGenerator system_gen = read_toml_system(data);
 
-    // setup OpenMM integrator
-    // In OpenMM, we cannot use different friction coefficiet, gamma, for
-    // different molecules. However, cafemol use different gamma depends on the
-    // mass of each particle, and the product of mass and gamma is constant in
-    // there. So in this implementation, we fix the gamma to 0.2 ps^-1 temporary,
-    // correspond to approximatry 0.01 in cafemol friction coefficient. We need
-    // to implement new LangevinIntegrator which can use different gamma for
-    // different particles.
-    auto integrator = OpenMM::LangevinIntegrator(temperature,
-                                                 0.2/*friction coef ps^-1*/,
-                                                 delta_t*Constant::cafetime);
-    integrator.setRandomNumberSeed(seed);
+    const auto integrator_gen = read_toml_integrator_gen(data);
 
     // construct observers
     const bool use_periodic =
@@ -558,7 +569,7 @@ Simulator read_toml_input(const std::string& toml_file_name)
     }
     observers.push_back(std::make_unique<EnergyObserver>(output_path+output_prefix, system_gen));
 
-    return Simulator(system_gen, integrator,
+    return Simulator(system_gen, *integrator_gen,
                initial_position_in_nm, total_step, save_step,
                observers, dump_progress_bar);
 }

@@ -5,6 +5,7 @@
 #include <OpenMM.h>
 #include "src/Simulator.hpp"
 #include "src/SystemGenerator.hpp"
+#include "src/IntegratorGenerator.hpp"
 #include "src/Topology.hpp"
 #include "ReadGenesisForceFieldGenerator.hpp"
 
@@ -150,6 +151,27 @@ read_top_file(const std::string& topfile_name, const std::string& file_path)
     }
 
     return top_data;
+}
+
+std::unique_ptr<IntegratorGeneratorBase>
+read_genesis_integrator_gen(
+        const std::map<std::string, std::string>& dynamics,
+        const std::map<std::string, std::string>& ensemble
+    )
+{
+    const double delta_t = std::stod(dynamics.at("timestep")); // [ps]
+
+    int seed = 0;
+    if(const auto found = dynamics.find("iseed"); found != dynamics.end())
+    {
+        seed = std::stoi(found->second);
+    }
+
+    const double temperature    = std::stod(ensemble.at("temperature"));
+    const double friction_coeff = std::stod(ensemble.at("gamma_t")); // [ps^-1]
+
+    return std::make_unique<LangevinIntegratorGenerator>(
+            temperature, friction_coeff, delta_t, seed);
 }
 
 std::vector<OpenMM::Vec3> read_genesis_initial_conf(
@@ -361,27 +383,10 @@ Simulator make_simulator_from_genesis_inputs(
     const std::size_t nsteps        = std::stoi(dynamics_section.at("nsteps"));
     const double      timestep      = std::stod(dynamics_section.at("timestep")); // ps
     const std::size_t crdout_period = std::stoi(dynamics_section.at("crdout_period"));
-    std::size_t seed = 0;
-    if(dynamics_section.find("iseed") != dynamics_section.end())
-    {
-        seed = std::stoi(dynamics_section.at("iseed"));
-    }
 
-    // read [EMSEMBLE] section
-    const std::map<std::string, std::string> emsemble_section = inpfile_data.at("ENSEMBLE");
-    const double temperature = std::stod(emsemble_section.at("temperature"));
-    const double gamma_t     = std::stod(emsemble_section.at("gamma_t")); // GENESIS gamma_t unit is ps^-1
-
-    // setup OpenMM integrator
-    // In OpenMM, we cannot use different friction coefficiet, gamma, for
-    // different molecules. However, cafemol use different gamma depends on the
-    // mass of each particle, and the product of mass and gamma is constant in
-    // there. We need to implement new LangevinIntegrator which can use different
-    // gamma for different particles.
-    auto integrator = OpenMM::LangevinIntegrator(temperature,
-                                                 gamma_t/*friction coef ps^-1*/,
-                                                 timestep/* delta t */);
-    integrator.setRandomNumberSeed(seed);
+    // read [ENSEMBLE] section
+    const std::map<std::string, std::string> ensemble_section = inpfile_data.at("ENSEMBLE");
+    const auto integrator_gen = read_genesis_integrator_gen(dynamics_section, ensemble_section);
 
     // construct observers
     std::vector<std::unique_ptr<ObserverBase>> observers;
@@ -411,7 +416,7 @@ Simulator make_simulator_from_genesis_inputs(
     ofs << "ENDMDL" << std::endl; // end of frame
     ofs.close();
 
-    return Simulator(system_gen, integrator,
+    return Simulator(system_gen, *integrator_gen,
                      initial_position_in_nm, nsteps, crdout_period, observers);
 }
 
