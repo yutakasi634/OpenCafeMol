@@ -1,6 +1,6 @@
 # OpenAICG2plus
 
-![Build Status](https://github.com/github/docs/actions/workflows/main.yml/badge.svg)
+![Build Status](https://github.com/yutakasi634/OpenAICG2plus/actions/workflows/main.yml/badge.svg)
 
 ## Requirement
 - OpenMM
