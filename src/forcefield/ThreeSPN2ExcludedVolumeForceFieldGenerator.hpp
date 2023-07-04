@@ -39,10 +39,10 @@ class ThreeSPN2ExcludedVolumeForceFieldGenerator final : public ForceFieldGenera
             {"sigma",    "TSPN2_EXV" + ffgen_id_str_ + "_sigma"},
         };
 
-        for (auto itr=ff_params.begin(); itr!=ff_params.end(); ++itr)
+        for(const auto& param : ff_params)
         {
             potential_formula = std::regex_replace(
-                potential_formula, std::regex(itr->first), itr->second);
+                potential_formula, std::regex(param.first), param.second);
         }
 
         auto exv_ff = std::make_unique<OpenMM::CustomNonbondedForce>(potential_formula);

@@ -124,10 +124,10 @@ class ThreeSPN2CrossStackingForceFieldGenerator final : public ForceFieldGenerat
             {"alpha_CS", "TSPN2_CS" + ffgen_id_str_ + "_alpha_CS"}
         };
 
-        for (auto itr=ff_params.begin(); itr!=ff_params.end(); ++itr)
+        for(const auto& param : ff_params)
         {
             potential_formula = std::regex_replace(
-                potential_formula, std::regex(itr->first), itr->second);
+                potential_formula, std::regex(param.first), param.second);
         }
 
         auto chbond_ff = std::make_unique<OpenMM::CustomHbondForce>(potential_formula);

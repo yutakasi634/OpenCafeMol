@@ -65,10 +65,10 @@ class ThreeSPN2BaseStackingForceFieldGenerator final : public ForceFieldGenerato
             {"K_BS",    "TSPN2BS" + ffgen_id_str_ + "_K_BS"},
         };
 
-        for (auto itr=ff_params.begin(); itr!=ff_params.end(); ++itr)
+        for(const auto& param : ff_params)
         {
             potential_formula = std::regex_replace(
-                potential_formula, std::regex(itr->first), itr->second);
+                potential_formula, std::regex(param.first), param.second);
         }
         auto ccbond_ff = std::make_unique<OpenMM::CustomCompoundBondForce>(3, potential_formula);
 
