@@ -4,27 +4,28 @@
 #include <OpenMM.h>
 #include "util/Constants.hpp"
 #include "Observer.hpp"
+#include "IntegratorGenerator.hpp"
 
 class Simulator
 {
   public:
     Simulator(
-        const SystemGenerator& system_gen, OpenMM::LangevinIntegrator& integrator,
+        const SystemGenerator& system_gen, const IntegratorGeneratorBase& integrator_gen,
         const std::vector<OpenMM::Vec3>& initial_position,
         const std::size_t total_step, const std::size_t save_step,
         std::vector<std::unique_ptr<ObserverBase>>& observers, bool output_progress = true)
-        : Simulator(system_gen, std::move(integrator),
+        : Simulator(system_gen, integrator_gen,
                     total_step, save_step, observers, output_progress)
     {
         this->initialize(initial_position);
     }
 
     Simulator(
-        const SystemGenerator& system_gen, OpenMM::LangevinIntegrator&& integrator,
+        const SystemGenerator& system_gen, const IntegratorGeneratorBase& integrator_gen,
         const std::size_t total_step, const std::size_t save_step,
         std::vector<std::unique_ptr<ObserverBase>>& observers, bool output_progress = true)
-        : system_ptr_(system_gen.generate().release()), integrator_(std::move(integrator)),
-          context_(*system_ptr_, integrator_, OpenMM::Platform::getPlatformByName("CUDA")),
+        : system_ptr_(system_gen.generate().release()), integrator_ptr_(integrator_gen.generate()),
+          context_(*system_ptr_, *integrator_ptr_, OpenMM::Platform::getPlatformByName("CUDA")),
           total_step_(total_step), save_step_(save_step), output_progress_(output_progress),
           progress_bar_(/* width of bar = */ 50)
     {
@@ -32,27 +33,7 @@ class Simulator
         std::cerr << "    total step : " << total_step_ << " step" << std::endl;
         std::cerr << "    save step  : " << save_step_  << " step" << std::endl;
         std::cerr << "integrator information" << std::endl;
-        std::cerr << "    temperature : "
-            << std::setw(7) << std::fixed << std::setprecision(2)
-            << integrator_.getTemperature() << " K" << std::endl;
-        std::cerr << "    delta t     : "
-            << std::setw(7) << std::fixed << std::setprecision(3)
-            << integrator_.getStepSize() / Constant::cafetime << " cafetime"
-            << std::endl;
-        std::cerr << "    gamma       : "
-            << std::setw(7) << std::fixed << std::setprecision(3)
-            << integrator_.getFriction() << " ps^-1" << std::endl;
-        const int seed = integrator_.getRandomNumberSeed();
-        if(seed == 0)
-        {
-            std::cerr << "    seed        : "
-                << "not specified or 0. random seed will be chosen." << std::endl;
-        }
-        else
-        {
-            std::cerr << "    seed        : "
-                << std::setw(7) <<  seed << std::endl;
-        }
+        std::cerr << integrator_gen.dump_info();
 
         std::cerr << "initializing observers..." << std::endl;
         for(auto& observer : observers)
@@ -79,7 +60,7 @@ class Simulator
                 observer->output(frame_num*save_step_, context_);
             }
 
-            integrator_.step(save_step_);
+            integrator_ptr_->step(save_step_);
 
             if(output_progress_)
             {
@@ -102,7 +83,7 @@ class Simulator
 
   private:
     std::unique_ptr<OpenMM::System>            system_ptr_;
-    OpenMM::LangevinIntegrator                 integrator_;
+    std::unique_ptr<OpenMM::Integrator>        integrator_ptr_;
     OpenMM::Context                            context_;
     std::size_t                                total_step_;
     std::size_t                                save_step_;
