@@ -57,12 +57,17 @@ class ThreeSPN2ExcludedVolumeForceFieldGenerator final : public ForceFieldGenera
             const std::optional<double>& radius = radiuses_[idx];
             if(radius)
             {
-                exv_ff->addParticle({eps_, radius.value()});
+                double radius_val = radius.value();
+                exv_ff->addParticle({eps_, radius_val});
 
-                if(max_radius < radius.value())
+                if(max_radius < radius_val)
                 {
                     second_max_radius = max_radius;
-                    max_radius        = radius.value();
+                    max_radius        = radius_val;
+                }
+                else if(second_max_radius <= radius_val)
+                {
+                    second_max_radius = radius_val;
                 }
             }
             else
