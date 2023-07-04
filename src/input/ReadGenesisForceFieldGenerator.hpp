@@ -22,8 +22,8 @@ read_genesis_harmonic_bond_ff_generator(
         {
             const std::size_t idx_i = std::stoi(bonds_line.substr( 0, 10)) - 1;
             const std::size_t idx_j = std::stoi(bonds_line.substr(10, 10)) - 1;
-            const double      v0    = std::stof(bonds_line.substr(25, 42));
-            const double      k     = std::stof(bonds_line.substr(43, 60)) * 0.5; // KJ/(mol nm^2)
+            const double      v0    = std::stod(bonds_line.substr(25, 42));
+            const double      k     = std::stod(bonds_line.substr(43, 60)) * 0.5; // KJ/(mol nm^2)
             indices_vec.push_back(std::make_pair(idx_i, idx_j));
             v0s        .push_back(v0);
             ks         .push_back(k);
@@ -50,9 +50,9 @@ read_genesis_gaussian_bond_ff_generator(
         {
             const std::size_t idx_i = std::stoi(angles_line.substr(0,  10)) - 1;
             const std::size_t idx_k = std::stoi(angles_line.substr(20, 10)) - 1;
-            const double      v0    = std::stof(angles_line.substr(35, 15)); // nm
-            const double      k     = -std::stof(angles_line.substr(50, 15)); // KJ/mol
-            const double      sigma = std::stof(angles_line.substr(65, 15)); // nm
+            const double      v0    = std::stod(angles_line.substr(35, 15)); // nm
+            const double      k     = -std::stod(angles_line.substr(50, 15)); // KJ/mol
+            const double      sigma = std::stod(angles_line.substr(65, 15)); // nm
 
             indices_vec.push_back(std::make_pair(idx_i, idx_k));
             v0s        .push_back(v0);
@@ -77,8 +77,8 @@ read_genesis_go_contact_ff_generator(
     {
         const std::size_t idx_i = std::stoi(pairs_line.substr(0,  10)) - 1;
         const std::size_t idx_k = std::stoi(pairs_line.substr(10, 10)) - 1;
-        const double      r0    = std::stof(pairs_line.substr(30, 15)); // nm
-        const double      k     = std::stof(pairs_line.substr(45, 15)); // KJ/mol
+        const double      r0    = std::stod(pairs_line.substr(30, 15)); // nm
+        const double      k     = std::stod(pairs_line.substr(45, 15)); // KJ/mol
 
         indices_vec.push_back(std::make_pair(idx_i, idx_k));
         ks         .push_back(k);
@@ -143,9 +143,9 @@ read_genesis_gaussian_dihedral_ff_generator(
             const std::size_t  idx_j  = std::stoi(dihedrals_line.substr(10, 10)) - 1;
             const std::size_t  idx_k  = std::stoi(dihedrals_line.substr(20, 10)) - 1;
             const std::size_t  idx_l  = std::stoi(dihedrals_line.substr(30, 10)) - 1;
-            const double       theta0 = std::stof(dihedrals_line.substr(45, 15)) / 180.0 * Constant::pi; // radiuns
-            const double       k      = -std::stof(dihedrals_line.substr(60, 15)); // KJ/mol
-            const double       sigma  = std::stof(dihedrals_line.substr(75, 15)); // radiuns
+            const double       theta0 = std::stod(dihedrals_line.substr(45, 15)) / 180.0 * Constant::pi; // radiuns
+            const double       k      = -std::stod(dihedrals_line.substr(60, 15)); // KJ/mol
+            const double       sigma  = std::stod(dihedrals_line.substr(75, 15)); // radiuns
 
             indices_vec.push_back({idx_i, idx_j, idx_k, idx_l});
             ks         .push_back(k);
@@ -243,7 +243,7 @@ read_genesis_exv_ff_generator(const std::vector<std::string>& atomtypes_data,
         const std::string name = Utility::erase_space(atomtypes_line.substr(0, 5));
         if(name_rmin_map.find(name) == name_rmin_map.end())
         {
-            const double rmin = std::stof(atomtypes_line.substr(30, 10)) * 0.5;
+            const double rmin = std::stod(atomtypes_line.substr(30, 10)) * 0.5;
             name_rmin_map.insert(std::make_pair(name, rmin));
         }
         else
@@ -261,7 +261,7 @@ read_genesis_exv_ff_generator(const std::vector<std::string>& atomtypes_data,
             throw std::runtime_error("[error] ExcludedVolumeForceField only support uniform eps for all particle case. Some different value were defined in `[ atomtypes ]` table.");
         }
     }
-    const double eps = std::stof(eps_str);
+    const double eps = std::stod(eps_str);
 
     std::vector<std::optional<double>> radius_vec;
     for(auto& atoms_line : atoms_data)
