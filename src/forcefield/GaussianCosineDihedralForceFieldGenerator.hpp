@@ -1,9 +1,13 @@
 #ifndef OPEN_AICG2_PLUS_GAUSSIAN_COSINE_DIHEDRAL_FORCE_FIELD_GENERATOR_HPP
 #define OPEN_AICG2_PLUS_GAUSSIAN_COSINE_DIHEDRAL_FORCE_FIELD_GENERATOR_HPP
 
+#include <memory>
+#include <sstream>
+#include <string>
 #include <regex>
-#include <iostream> // debug
-
+#include <sstream>
+#include <OpenMM.h>
+#include "ForceFieldGeneratorBase.hpp"
 #include "src/util/Constants.hpp"
 
 class GaussianCosineDihedralForceFieldGenerator final : public ForceFieldGeneratorBase

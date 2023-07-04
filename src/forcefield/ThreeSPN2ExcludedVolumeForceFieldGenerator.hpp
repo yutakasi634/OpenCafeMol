@@ -7,7 +7,7 @@
 #include <sstream>
 #include <string>
 #include <OpenMM.h>
-
+#include "ForceFieldGeneratorBase.hpp"
 #include "src/util/Constants.hpp"
 
 class ThreeSPN2ExcludedVolumeForceFieldGenerator final : public ForceFieldGeneratorBase

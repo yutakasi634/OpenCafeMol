@@ -7,6 +7,7 @@
 #include <sstream>
 #include <string>
 #include <OpenMM.h>
+#include "ForceFieldGeneratorBase.hpp"
 
 class ThreeSPN2BondForceFieldGenerator final : public ForceFieldGeneratorBase
 {
