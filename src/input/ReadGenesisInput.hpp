@@ -169,9 +169,9 @@ std::vector<OpenMM::Vec3> read_genesis_initial_conf(
     for(std::size_t idx=0; idx<system_size; ++idx)
     {
         std::getline(ifs, line);
-        initPosInNm[idx] = OpenMM::Vec3(std::stof(line.substr(20, 9)),
-                                        std::stof(line.substr(29, 9)),
-                                        std::stof(line.substr(38, 9))); // location, nm
+        initPosInNm[idx] = OpenMM::Vec3(std::stod(line.substr(20, 9)),
+                                        std::stod(line.substr(29, 9)),
+                                        std::stod(line.substr(38, 9))); // location, nm
     }
 
     return initPosInNm;
@@ -195,7 +195,7 @@ Simulator make_simulator_from_genesis_inputs(
     std::vector<std::string> res_name_vec, atom_name_vec;
     for(auto& atoms_line : top_data.at("atoms"))
     {
-        mass_vec.push_back(std::stof(atoms_line.substr(49, 9))); // amu
+        mass_vec.push_back(std::stod(atoms_line.substr(49, 9))); // amu
         res_name_vec .push_back(atoms_line.substr(27, 3));
         atom_name_vec.push_back(atoms_line.substr(31, 4));
     }
@@ -359,7 +359,7 @@ Simulator make_simulator_from_genesis_inputs(
     // read [DYNAMICS] section
     const std::map<std::string, std::string> dynamics_section = inpfile_data.at("DYNAMICS");
     const std::size_t nsteps        = std::stoi(dynamics_section.at("nsteps"));
-    const double      timestep      = std::stof(dynamics_section.at("timestep")); // ps
+    const double      timestep      = std::stod(dynamics_section.at("timestep")); // ps
     const std::size_t crdout_period = std::stoi(dynamics_section.at("crdout_period"));
     std::size_t seed = 0;
     if(dynamics_section.find("iseed") != dynamics_section.end())
@@ -369,8 +369,8 @@ Simulator make_simulator_from_genesis_inputs(
 
     // read [EMSEMBLE] section
     const std::map<std::string, std::string> emsemble_section = inpfile_data.at("ENSEMBLE");
-    const double temperature = std::stof(emsemble_section.at("temperature"));
-    const double gamma_t     = std::stof(emsemble_section.at("gamma_t")); // GENESIS gamma_t unit is ps^-1
+    const double temperature = std::stod(emsemble_section.at("temperature"));
+    const double gamma_t     = std::stod(emsemble_section.at("gamma_t")); // GENESIS gamma_t unit is ps^-1
 
     // setup OpenMM integrator
     // In OpenMM, we cannot use different friction coefficiet, gamma, for
