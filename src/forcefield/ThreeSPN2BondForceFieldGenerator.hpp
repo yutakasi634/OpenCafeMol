@@ -69,16 +69,8 @@ class ThreeSPN2BondForceFieldGenerator final : public ForceFieldGeneratorBase
         return bond_ff;
     }
 
-    void add_exclusion(std::vector<indices_type>& exclusion_pairs) const noexcept
-    {
-        for(const auto& indices : indices_vec_)
-        {
-            exclusion_pairs.push_back(indices);
-        }
-    }
-
-    const std::vector<indices_type>& indices() const noexcept {return indices_vec_; }
-    std::string name() const noexcept {return "3SPN2Bond";};
+    const std::vector<indices_type>& indices() const noexcept { return indices_vec_; }
+    std::string                      name()    const noexcept { return "3SPN2Bond"; }
 
   private:
     std::vector<indices_type> indices_vec_;
