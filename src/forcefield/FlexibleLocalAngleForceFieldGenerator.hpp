@@ -75,7 +75,7 @@ class FlexibleLocalAngleForceFieldGenerator final : public ForceFieldGeneratorBa
         angle_ff->setUsesPeriodicBoundaryConditions(use_periodic_);
         angle_ff->addTabulatedFunction("spline", spline_func.release());
         angle_ff->addPerBondParameter("FLA"+ffgen_id_str_+"_k");
-        angle_ff->addGlobalParameter("FLA"+ffgen_id_str_+"_min_energy",  min_energy);
+        angle_ff->addPerBondParameter("FLA"+ffgen_id_str_+"_min_energy");
         angle_ff->addGlobalParameter("FLA"+ffgen_id_str_+"_min_theta",   min_theta_);
         angle_ff->addGlobalParameter("FLA"+ffgen_id_str_+"_max_theta",   max_theta_);
         angle_ff->addGlobalParameter("FLA"+ffgen_id_str_+"_min_theta_y", min_theta_y);
@@ -85,7 +85,7 @@ class FlexibleLocalAngleForceFieldGenerator final : public ForceFieldGeneratorBa
         for(std::size_t idx=0; idx<indices_vec_.size(); ++idx)
         {
             const std::array<std::size_t, 3>& triplet = indices_vec_[idx];
-            angle_ff->addBond({triplet.begin(), triplet.end()}, {ks_[idx]});
+            angle_ff->addBond({triplet.begin(), triplet.end()}, {ks_[idx], min_energy});
         }
 
         return angle_ff;
