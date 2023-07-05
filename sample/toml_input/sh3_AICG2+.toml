@@ -3,6 +3,17 @@ output.prefix = "sh3_unlim2" # output file prefix
 output.path   = "."
 output.format = "pdb"       # output format
 
+# optional. By default, "CUDA" platform is used.
+[platform]
+name = "CUDA"
+properties.Precision = "single"
+properties.UseCpuPme = "false"
+properties.DeviceIndex = "0"
+
+# [platform]
+# name = "CPU"
+# properties.Threads = "4"
+
 [simulator]
 boundary_type = "Unlimited"
 delta_t       = 0.01
