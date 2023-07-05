@@ -558,7 +558,11 @@ Simulator read_toml_input(const std::string& toml_file_name)
     }
     observers.push_back(std::make_unique<EnergyObserver>(output_path+output_prefix, system_gen));
 
-    return Simulator(system_gen, integrator,
+    // read platform
+    OpenMM::Platform& platform = OpenMM::Platform::getPlatformByName("CUDA");
+    std::map<std::string, std::string> platform_properties = {};
+
+    return Simulator(system_gen, integrator, platform, platform_properties,
                initial_position_in_nm, total_step, save_step,
                observers, dump_progress_bar);
 }

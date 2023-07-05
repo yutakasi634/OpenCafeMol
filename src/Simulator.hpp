@@ -10,10 +10,11 @@ class Simulator
   public:
     Simulator(
         const SystemGenerator& system_gen, OpenMM::LangevinIntegrator& integrator,
+        OpenMM::Platform& platform, const std::map<std::string, std::string>& platform_properties,
         const std::vector<OpenMM::Vec3>& initial_position,
         const std::size_t total_step, const std::size_t save_step,
         std::vector<std::unique_ptr<ObserverBase>>& observers, bool output_progress = true)
-        : Simulator(system_gen, std::move(integrator),
+        : Simulator(system_gen, std::move(integrator), platform, platform_properties,
                     total_step, save_step, observers, output_progress)
     {
         this->initialize(initial_position);
@@ -21,10 +22,11 @@ class Simulator
 
     Simulator(
         const SystemGenerator& system_gen, OpenMM::LangevinIntegrator&& integrator,
+        OpenMM::Platform& platform, const std::map<std::string, std::string>& platform_properties,
         const std::size_t total_step, const std::size_t save_step,
         std::vector<std::unique_ptr<ObserverBase>>& observers, bool output_progress = true)
         : system_ptr_(system_gen.generate().release()), integrator_(std::move(integrator)),
-          context_(*system_ptr_, integrator_, OpenMM::Platform::getPlatformByName("CUDA")),
+          context_(*system_ptr_, integrator_, platform, platform_properties),
           total_step_(total_step), save_step_(save_step), output_progress_(output_progress),
           progress_bar_(/* width of bar = */ 50)
     {

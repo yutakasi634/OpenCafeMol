@@ -411,7 +411,11 @@ Simulator make_simulator_from_genesis_inputs(
     ofs << "ENDMDL" << std::endl; // end of frame
     ofs.close();
 
-    return Simulator(system_gen, integrator,
+    // read platform
+    OpenMM::Platform& platform = OpenMM::Platform::getPlatformByName("CUDA");
+    std::map<std::string, std::string> platform_properties = {};
+
+    return Simulator(system_gen, integrator, platform, platform_properties,
                      initial_position_in_nm, nsteps, crdout_period, observers);
 }
 
