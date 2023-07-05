@@ -411,9 +411,25 @@ Simulator make_simulator_from_genesis_inputs(
     ofs << "ENDMDL" << std::endl; // end of frame
     ofs.close();
 
-    // read platform
-    OpenMM::Platform& platform = OpenMM::Platform::getPlatformByName("CUDA");
+    // read [PLATFORM] section (set `CUDA` if it does not exist)
+    std::string platform_name = "CUDA";
     std::map<std::string, std::string> platform_properties = {};
+    if(inpfile_data.count("PLATFORM") != 0)
+    {
+        const auto& platform_section = inpfile_data.at("PLATFORM");
+
+        platform_name = platform_section.at("name");
+        // key-value pairs other than `name = CUDA` is considered properties
+        for(const auto& [k, v] : platform_section)
+        {
+            if(k != "name")
+            {
+                platform_properties[k] = v;
+            }
+        }
+    }
+
+    OpenMM::Platform& platform = OpenMM::Platform::getPlatformByName(platform_name);
 
     return Simulator(system_gen, integrator, platform, platform_properties,
                      initial_position_in_nm, nsteps, crdout_period, observers);
