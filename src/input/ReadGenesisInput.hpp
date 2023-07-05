@@ -429,6 +429,24 @@ Simulator make_simulator_from_genesis_inputs(
         }
     }
 
+    // check if the platform is available
+
+    bool platform_found = false;
+    for(int i=0; i<OpenMM::Platform::getNumPlatforms(); ++i)
+    {
+        if(OpenMM::Platform::getPlatform(i).getName() == platform_name)
+        {
+            platform_found = true;
+            break;
+        }
+    }
+    if(!platform_found)
+    {
+        throw std::runtime_error("[error] platform \"" +
+            platform_name + "\" not found. You need to set the correct OpenMM "
+            "plugins directory path to the CMake option -DOPENMM_PLUGIN_DIR.");
+    }
+
     OpenMM::Platform& platform = OpenMM::Platform::getPlatformByName(platform_name);
 
     return Simulator(system_gen, integrator, platform, platform_properties,

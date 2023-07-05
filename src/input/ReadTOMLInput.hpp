@@ -564,6 +564,34 @@ Simulator read_toml_input(const std::string& toml_file_name)
     const auto platform_properties =
         toml::find_or<std::map<std::string, std::string>>(platform_table, "properties", {/*no properties*/});
 
+    // check if the platform is available
+
+    bool platform_found = false;
+    for(int i=0; i<OpenMM::Platform::getNumPlatforms(); ++i)
+    {
+        if(OpenMM::Platform::getPlatform(i).getName() == platform_name)
+        {
+            platform_found = true;
+            break;
+        }
+    }
+    if(!platform_found)
+    {
+        if(platform_table.contains("name"))
+        {
+            throw std::runtime_error(toml::format_error("[error] platform \"" +
+                platform_name + "\" not found. You need to set the correct OpenMM "
+                "plugins directory path to the CMake option -DOPENMM_PLUGIN_DIR.",
+                platform_table.at("name"), "defined here"));
+        }
+        else
+        {
+            throw std::runtime_error("[error] platform \"" +
+                platform_name + "\" not found. You need to set the correct OpenMM "
+                "plugins directory path to the CMake option -DOPENMM_PLUGIN_DIR.");
+        }
+    }
+
     OpenMM::Platform& platform = OpenMM::Platform::getPlatformByName(platform_name);
 
     return Simulator(system_gen, integrator, platform, platform_properties,
