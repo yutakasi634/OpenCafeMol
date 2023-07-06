@@ -1,6 +1,6 @@
 [files]
 output.prefix = "sh3_unlim2" # output file prefix
-output.path   = "."
+output.path   = "./output/"
 output.format = "pdb"       # output format
 
 [simulator]
