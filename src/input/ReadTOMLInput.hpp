@@ -485,10 +485,14 @@ Simulator read_toml_input(const std::string& toml_file_name)
     const auto&        files         = toml::find(data, "files");
     const auto&        output        = toml::find(files, "output");
     const std::string& output_prefix = toml::find<std::string>(output, "prefix");
-    const std::string& output_path   = toml::find<std::string>(output, "path");
     const std::string& output_format = toml::find<std::string>(output, "format");
     const bool         dump_progress_bar =
         toml::find_or<bool>(output, "progress_bar", true);
+    std::string output_path   = toml::find<std::string>(output, "path");
+    if(output_path.back() != '/')
+    {
+        output_path += '/';
+    }
 
     // read simulator table
     const auto&        simulator_table = toml::find(data, "simulator");
