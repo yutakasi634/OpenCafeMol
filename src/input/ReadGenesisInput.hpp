@@ -411,7 +411,45 @@ Simulator make_simulator_from_genesis_inputs(
     ofs << "ENDMDL" << std::endl; // end of frame
     ofs.close();
 
-    return Simulator(system_gen, integrator,
+    // read [PLATFORM] section (set `CUDA` if it does not exist)
+    std::string platform_name = "CUDA";
+    std::map<std::string, std::string> platform_properties = {};
+    if(inpfile_data.count("PLATFORM") != 0)
+    {
+        const auto& platform_section = inpfile_data.at("PLATFORM");
+
+        platform_name = platform_section.at("name");
+        // key-value pairs other than `name = CUDA` is considered properties
+        for(const auto& [k, v] : platform_section)
+        {
+            if(k != "name")
+            {
+                platform_properties[k] = v;
+            }
+        }
+    }
+
+    // check if the platform is available
+
+    bool platform_found = false;
+    for(int i=0; i<OpenMM::Platform::getNumPlatforms(); ++i)
+    {
+        if(OpenMM::Platform::getPlatform(i).getName() == platform_name)
+        {
+            platform_found = true;
+            break;
+        }
+    }
+    if(!platform_found)
+    {
+        throw std::runtime_error("[error] platform \"" +
+            platform_name + "\" not found. You need to set the correct OpenMM "
+            "plugins directory path to the CMake option -DOPENMM_PLUGIN_DIR.");
+    }
+
+    OpenMM::Platform& platform = OpenMM::Platform::getPlatformByName(platform_name);
+
+    return Simulator(system_gen, integrator, platform, platform_properties,
                      initial_position_in_nm, nsteps, crdout_period, observers);
 }
 

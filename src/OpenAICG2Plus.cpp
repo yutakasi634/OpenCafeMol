@@ -85,24 +85,6 @@ int main(int argc, char** argv)
     OpenMM::Platform::loadPluginsFromDirectory(
             OPENAICG2PLUS_EXPAND_OPTION_STR(OPENMM_PLUGIN_DIR));
 
-    // check CUDA platform existance
-    bool cuda_platform_found = false;
-    const std::size_t platform_num = OpenMM::Platform::getNumPlatforms();
-    for(std::size_t idx=0; idx<platform_num; ++idx)
-    {
-        if(OpenMM::Platform::getPlatform(idx).getName() == "CUDA")
-        {
-            cuda_platform_found = true;
-        }
-    }
-    if(!cuda_platform_found)
-    {
-        throw std::runtime_error(
-            "[error] There is no CUDA platform loaded. "
-            "You need to set the correct OpenMM plugins directory path "
-            "to the CMake option -DOPENMM_PLUGIN_DIR.");
-    }
-
     try {
         Simulator simulator(read_input(argc, argv));
         simulate(simulator);
