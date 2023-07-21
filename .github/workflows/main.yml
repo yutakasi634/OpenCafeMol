@@ -47,6 +47,8 @@ jobs:
       run: |
           cmake --build .
 
-#     - name: Run
-#       run: |
-#           ./bin/open_aicg2plus sample/toml_input/sh3_AICG2+.toml
+    - name: Run
+      run: |
+          ./bin/open_aicg2plus sample/toml_input/sh3_AICG2+.toml
+          ./bin/open_aicg2plus sample/toml_input/POPC_flat_membrane_128_MembraneBarostat+.toml
+          ./bin/open_aicg2plus sample/toml_input/1SRL_cg.inp
