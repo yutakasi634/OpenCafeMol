@@ -514,10 +514,14 @@ Simulator read_toml_input(const std::string& toml_file_name)
     const auto&        files         = toml::find(data, "files");
     const auto&        output        = toml::find(files, "output");
     const std::string& output_prefix = toml::find<std::string>(output, "prefix");
-    const std::string& output_path   = toml::find<std::string>(output, "path");
     const std::string& output_format = toml::find<std::string>(output, "format");
     const bool         dump_progress_bar =
         toml::find_or<bool>(output, "progress_bar", true);
+    std::string output_path   = toml::find<std::string>(output, "path");
+    if(output_path.back() != '/')
+    {
+        output_path += '/';
+    }
 
     // read simulator table
     const auto&        simulator_table = toml::find(data, "simulator");
@@ -569,7 +573,43 @@ Simulator read_toml_input(const std::string& toml_file_name)
     }
     observers.push_back(std::make_unique<EnergyObserver>(output_path+output_prefix, system_gen));
 
-    return Simulator(system_gen, *integrator_gen,
+    // read platform
+    const auto platform_table = toml::find_or(data, "platform", {});
+    const auto platform_name  = toml::find_or<std::string>(platform_table, "name", std::string("CUDA"));
+    const auto platform_properties =
+        toml::find_or<std::map<std::string, std::string>>(platform_table, "properties", {/*no properties*/});
+
+    // check if the platform is available
+
+    bool platform_found = false;
+    for(int i=0; i<OpenMM::Platform::getNumPlatforms(); ++i)
+    {
+        if(OpenMM::Platform::getPlatform(i).getName() == platform_name)
+        {
+            platform_found = true;
+            break;
+        }
+    }
+    if(!platform_found)
+    {
+        if(platform_table.contains("name"))
+        {
+            throw std::runtime_error(toml::format_error("[error] platform \"" +
+                platform_name + "\" not found. You need to set the correct OpenMM "
+                "plugins directory path to the CMake option -DOPENMM_PLUGIN_DIR.",
+                platform_table.at("name"), "defined here"));
+        }
+        else
+        {
+            throw std::runtime_error("[error] platform \"" +
+                platform_name + "\" not found. You need to set the correct OpenMM "
+                "plugins directory path to the CMake option -DOPENMM_PLUGIN_DIR.");
+        }
+    }
+
+    OpenMM::Platform& platform = OpenMM::Platform::getPlatformByName(platform_name);
+
+    return Simulator(system_gen, *integrator_gen, platform, platform_properties,
                initial_position_in_nm, total_step, save_step,
                observers, dump_progress_bar);
 }

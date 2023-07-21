@@ -33,3 +33,15 @@ gamma_t             = 0.01        # thermostat friction parameter
 
 [BOUNDARY]
 type                = NOBC
+
+# optional table. By default, use "CUDA" platform with default properties.
+[PLATFORM]
+name = CUDA
+# values other than `name` are considered as properties
+Precision = single
+UseCpuPme = false
+DeviceIndex = 0
+
+# [PLATFORM]
+# name = CPU
+# Threads = 4
