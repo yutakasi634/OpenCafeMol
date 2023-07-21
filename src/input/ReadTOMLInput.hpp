@@ -218,8 +218,8 @@ SystemGenerator read_toml_system(const toml::value& data)
                             local_ff, aa_type, spline_table, topology, use_periodic, ffgen_count);
                     system_gen.add_ff_generator(
                             std::make_unique<FlexibleLocalAngleForceFieldGenerator>(ff_gen));
+                    ++ffgen_count;
                 }
-                ++ffgen_count;
             }
             else if(interaction == "DihedralAngle" && potential == "Gaussian")
             {
