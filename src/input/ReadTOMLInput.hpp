@@ -565,11 +565,11 @@ Simulator read_toml_input(const std::string& toml_file_name)
     // read platform
     const auto platform_table = toml::find_or(data, "platform", {});
     const auto platform_name  = toml::find_or<std::string>(platform_table, "name", std::string("CUDA"));
+    std::cerr << "    OpenMM platform : " << platform_name << std::endl;
     const auto platform_properties =
         toml::find_or<std::map<std::string, std::string>>(platform_table, "properties", {/*no properties*/});
 
     // check if the platform is available
-
     bool platform_found = false;
     for(int i=0; i<OpenMM::Platform::getNumPlatforms(); ++i)
     {
