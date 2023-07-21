@@ -14,11 +14,11 @@ cg_pairlistdist_exv = 15.0        # Neighbor-list distance
 
 [DYNAMICS]
 integrator          = VVER_CG     # velocity-verlet propagation
-nsteps              = 1000000     # number of MD steps
+nsteps              = 1000        # number of MD steps
 timestep            = 0.010       # timestep size (ps)
-eneout_period       = 1000        # energy output interval
-crdout_period       = 1000        # trajectory output interval
-rstout_period       = 1000        # restart output interval
+eneout_period       = 100         # energy output interval
+crdout_period       = 100         # trajectory output interval
+rstout_period       = 100         # restart output interval
 nbupdate_period     = 20          # pairlist update interval
 iseed               = 12345
 
