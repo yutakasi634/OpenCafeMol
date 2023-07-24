@@ -49,6 +49,7 @@ jobs:
 
     - name: Run
       run: |
+          mkdir -p ./output/
           ./bin/open_aicg2plus sample/toml_input/sh3_AICG2+.toml
           cat ./output/sh3_unilm2.ene
           ./bin/open_aicg2plus sample/toml_input/POPC_flat_membrane_128_MembraneBarostat+.toml
