@@ -5,14 +5,14 @@ output.format = "pdb"       # output format
 
 # optional. By default, "CUDA" platform is used.
 [platform]
-name = "CUDA"
-properties.Precision = "single"
-properties.UseCpuPme = "false"
-properties.DeviceIndex = "0"
+name = "CPU"
+properties.Threads = "1"
 
 # [platform]
-# name = "CPU"
-# properties.Threads = "4"
+# name = "CUDA"
+# properties.Precision = "single"
+# properties.UseCpuPme = "false"
+# properties.DeviceIndex = "0"
 
 [simulator]
 boundary_type = "Unlimited"

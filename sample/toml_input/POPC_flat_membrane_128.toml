@@ -3,6 +3,17 @@ output.prefix = "flat_membrane128"
 output.path   = "./output/"
 output.format = "pdb"
 
+# optional. By default, "CUDA" platform is used.
+[platform]
+name = "CPU"
+properties.Threads = "1"
+
+# [platform]
+# name = "CUDA"
+# properties.Precision = "single"
+# properties.UseCpuPme = "false"
+# properties.DeviceIndex = "0"
+
 [simulator]
 precision     = "float"
 boundary_type = "PeriodicCuboid"
