@@ -11,78 +11,36 @@
 #include "ForceFieldGeneratorBase.hpp"
 #include "src/util/Constants.hpp"
 
-template<typename realT>
-class ThreeSPN2CrossStackingParameterList
-{
-  using real_type = realT;
-
-  public:
-    template<typename ParameterSet>
-    ThreeSPN2CrossStackingParameterList(ParameterSet param_set,
-        const std::string& b0bp, const std::string& bpbc)
-    : cutoff_    (param_set.cutoff),
-      alpha_CS_  (param_set.alpha_CS),
-      K_CS_      (param_set.K_CS),
-      K_BP_      (param_set.K_BP),
-      epsilon_CS_(param_set.epsilon_CS.at(bpbc)),
-      r0_CS_     (param_set.r0_CS     .at(bpbc)),
-      theta3_0_  (param_set.theta3_0  .at(b0bp)),
-      theta_CS_0_(param_set.theta_CS_0.at(bpbc)),
-      b0bp_  (b0bp),
-      bpbc_  (bpbc)
-    {}
-
-    real_type cutoff()     const noexcept {return cutoff_;}
-    real_type alpha_CS()   const noexcept {return alpha_CS_;}
-    real_type K_CS()       const noexcept {return K_CS_;}
-    real_type K_BP()       const noexcept {return K_BP_;}
-    real_type epsilon_CS() const noexcept {return epsilon_CS_;}
-    real_type r0_CS()      const noexcept {return r0_CS_;}
-    real_type theta3_0()   const noexcept {return theta3_0_;}
-    real_type theta_CS_0() const noexcept {return theta_CS_0_;}
-    std::string getBasePairBases()      const noexcept {return b0bp_;}
-    std::string getCrossStackingBases() const noexcept {return bpbc_;}
-
-  private:
-    const real_type  cutoff_;
-    const real_type  alpha_CS_;
-    const real_type  K_CS_;
-    const real_type  K_BP_;
-    const real_type  epsilon_CS_;
-    const real_type  r0_CS_;
-    const real_type  theta3_0_;
-    const real_type  theta_CS_0_;
-    const std::string b0bp_;
-    const std::string bpbc_;
-};
-
-
+template<typename PotentialParameterType>
 class ThreeSPN2CrossStackingForceFieldGenerator final : public ForceFieldGeneratorBase
 {
   public:
     using indices_type     = std::array<std::size_t, 3>;
     using index_pairs_type = std::vector<std::pair<std::size_t, std::size_t>>;
-    using parameter_list   = ThreeSPN2CrossStackingParameterList<double>;
 
   public:
     ThreeSPN2CrossStackingForceFieldGenerator(
         const std::vector<indices_type>& donor_indices_vec,
         const std::vector<indices_type>& acceptor_indices_vec,
+        const std::vector<std::string>&  base_kind_acceptors_vec,
+        const std::pair<std::string, std::string>& base_pair,
         const index_pairs_type& ignore_list,
-        const std::vector<parameter_list>& parameters_vec,
         const bool use_periodic, const std::size_t ffgen_id = 0)
-        : donor_indices_vec_(donor_indices_vec), acceptor_indices_vec_(acceptor_indices_vec),
-          ignore_list_(ignore_list), parameters_vec_(parameters_vec),
+        : donor_indices_vec_(donor_indices_vec),
+          acceptor_indices_vec_(acceptor_indices_vec),
+          base_kind_acceptors_vec_(base_kind_acceptors_vec), base_pair_(base_pair),
+          ignore_list_(ignore_list),
           use_periodic_(use_periodic), ffgen_id_str_(std::to_string(ffgen_id))
     {
-        if(!(acceptor_indices_vec.size() == parameters_vec.size()))
+        if(!(acceptor_indices_vec.size() == base_kind_acceptors_vec.size()))
         {
             std::ostringstream oss;
             oss << "[error] ThreeSPN2CrossStackingForceFieldGenerator: "
                    "parameter number of "
                    "acceptor_indices_vec (" << acceptor_indices_vec.size() << "), "
-                   "parameters_vec (" << parameters_vec.size() << ") is not matched "
-               << "The number of these parameters must be same.";
+                   "base_kind_acceptors_vec (" << base_kind_acceptors_vec.size() << ")"
+                   " is not matched "
+                   "The number of these parameters must be same.";
             throw std::runtime_error(oss.str());
         }
     }
@@ -90,8 +48,8 @@ class ThreeSPN2CrossStackingForceFieldGenerator final : public ForceFieldGenerat
     std::unique_ptr<OpenMM::Force> generate() const noexcept override
     {
         // Hinckley et al., J. Chem. Phys. (2013)
-        std::string potential_formula ="energy;"
-            "energy   = fdt3*fdtCS*attr/2;"  // Eq. (10)
+        std::string potential_formula =
+            "fdt3*fdtCS*attr/2;"  // Eq. (10)
             "attr     = epsilon*(1 - exp(-alpha_CS*dr))^2 * step(dr) - epsilon;"
             "fdt3     = max(f1*rect0t3,  rect1t3);"
             "fdtCS    = max(f2*rect0tCS, rect1tCS);"
@@ -142,10 +100,7 @@ class ThreeSPN2CrossStackingForceFieldGenerator final : public ForceFieldGenerat
             chbond_ff->setNonbondedMethod(OpenMM::CustomHbondForce::CutoffNonPeriodic);
         }
 
-        if (0 < parameters_vec_.size())
-        {
-            chbond_ff->setCutoffDistance(parameters_vec_.at(0).cutoff());
-        }
+        chbond_ff->setCutoffDistance(PotentialParameterType::cutoff);
 
         chbond_ff->addPerAcceptorParameter(ff_params.at("epsilon"));
         chbond_ff->addPerAcceptorParameter(ff_params.at("r0"));
@@ -163,20 +118,23 @@ class ThreeSPN2CrossStackingForceFieldGenerator final : public ForceFieldGenerat
             chbond_ff->addDonor(d1_base_0, d2_sugar, d3_base_n);
         }
 
+        const std::string b0bp = base_pair_.first + base_pair_.second;
         for (size_t i=0; i < acceptor_indices_vec_.size(); ++i)
         {
             const size_t a1_base_p = acceptor_indices_vec_.at(i).at(0);
             const size_t a2_sugar  = acceptor_indices_vec_.at(i).at(1);
             const size_t a3_base_c = acceptor_indices_vec_.at(i).at(2);
 
+            const auto& bpbc = base_kind_acceptors_vec_[i];
+
             const std::vector<double> parameters = {
-                parameters_vec_.at(i).epsilon_CS(),
-                parameters_vec_.at(i).r0_CS(),
-                parameters_vec_.at(i).theta3_0(),
-                parameters_vec_.at(i).theta_CS_0(),
-                parameters_vec_.at(i).K_BP(),
-                parameters_vec_.at(i).K_CS(),
-                parameters_vec_.at(i).alpha_CS()
+                PotentialParameterType::epsilon_CS.at(bpbc),
+                PotentialParameterType::r0_CS     .at(bpbc),
+                PotentialParameterType::theta3_0  .at(b0bp),
+                PotentialParameterType::theta_CS_0.at(bpbc),
+                PotentialParameterType::K_BP,
+                PotentialParameterType::K_CS,
+                PotentialParameterType::alpha_CS
             };
             chbond_ff->addAcceptor(a1_base_p, a2_sugar, a3_base_c, parameters);
         }
@@ -202,15 +160,20 @@ class ThreeSPN2CrossStackingForceFieldGenerator final : public ForceFieldGenerat
         return chbond_ff;
     }
 
-    std::string name() const noexcept {return "3SPN2CrossStacking";};
+    std::string name() const noexcept
+    {
+        return PotentialParameterType::name + "CrossStacking "
+               "(" + base_pair_.first + "-" + base_pair_.second + ")";
+    }
 
   private:
-    std::vector<indices_type>   donor_indices_vec_;
-    std::vector<indices_type>   acceptor_indices_vec_;
-    index_pairs_type            ignore_list_;
-    std::vector<parameter_list> parameters_vec_;
-    bool                        use_periodic_;
-    std::string                 ffgen_id_str_;
+    std::vector<indices_type>           donor_indices_vec_;
+    std::vector<indices_type>           acceptor_indices_vec_;
+    std::vector<std::string>            base_kind_acceptors_vec_;
+    std::pair<std::string, std::string> base_pair_;
+    index_pairs_type                    ignore_list_;
+    bool                                use_periodic_;
+    std::string                         ffgen_id_str_;
 };
 
 // ----------------------------------------------------------------------------
@@ -230,23 +193,22 @@ class ThreeSPN2CrossStackingForceFieldGenerator final : public ForceFieldGenerat
 //   J. Chem. Phys. (2014)
 
 // Parameter for 3SPN2
-template<typename realT>
 struct ThreeSPN2CrossStackingPotentialParameter
 {
-    using real_type = realT;
-    real_type cutoff       = 18.0 * OpenMM::NmPerAngstrom; // [nm]
-    real_type alpha_CS     =  4.0 / OpenMM::NmPerAngstrom;
-    real_type K_CS         =  8.0;
-    real_type K_BP         = 12.0;
+    inline static const std::string name = "3SPN2";
+    inline static const double cutoff   = 18.0 * OpenMM::NmPerAngstrom; // [nm]
+    inline static const double alpha_CS =  4.0 / OpenMM::NmPerAngstrom;
+    inline static const double K_CS     =  8.0;
+    inline static const double K_BP     = 12.0;
 
-    const std::map<std::string, real_type> theta3_0 = { // [radian]
+    inline static const std::map<std::string, double> theta3_0 = { // [radian]
         {"AT", 116.09 * OpenMM::RadiansPerDegree},
         {"TA", 116.09 * OpenMM::RadiansPerDegree},
         {"GC", 124.94 * OpenMM::RadiansPerDegree},
         {"CG", 124.94 * OpenMM::RadiansPerDegree}
     };
 
-    const std::map<std::string, real_type> epsilon_CS = { //[kJ/mol]
+    inline static const std::map<std::string, double> epsilon_CS = { //[kJ/mol]
         // sense strand
         {"AA5", 2.186}, {"AT5", 2.774}, {"AG5", 2.833}, {"AC5", 1.951},
         {"TA5", 2.774}, {"TT5", 2.186}, {"TG5", 2.539}, {"TC5", 2.980},
@@ -259,7 +221,7 @@ struct ThreeSPN2CrossStackingPotentialParameter
         {"CA3", 2.539}, {"CT3", 2.833}, {"CG3", 1.129}, {"CC3", 3.774}
     };
 
-    const std::map<std::string, real_type> r0_CS = { // [nm]
+    inline static const std::map<std::string, double> r0_CS = { // [nm]
         // sense strand
         {"AA5", 6.208 * OpenMM::NmPerAngstrom},
         {"AT5", 6.876 * OpenMM::NmPerAngstrom},
@@ -296,7 +258,7 @@ struct ThreeSPN2CrossStackingPotentialParameter
         {"CC3", 6.757 * OpenMM::NmPerAngstrom}
     };
 
-    const std::map<std::string, real_type> theta_CS_0 = { // [degree]
+    inline static const std::map<std::string, double> theta_CS_0 = { // [degree]
         // sense strand ("XY5" X=B0, Y=Bc)
         {"AA5", 154.38 * OpenMM::RadiansPerDegree},
         {"AT5", 159.10 * OpenMM::RadiansPerDegree},
@@ -335,23 +297,22 @@ struct ThreeSPN2CrossStackingPotentialParameter
 };
 
 // parameter for 3SPN2C
-template<typename realT>
 struct ThreeSPN2CCrossStackingPotentialParameter
 {
-    using real_type = realT;
-    real_type cutoff       = 18.0 * OpenMM::NmPerAngstrom; // [nm]
-    real_type alpha_CS     =  4.0 / OpenMM::NmPerAngstrom;
-    real_type K_CS         =  8.0;
-    real_type K_BP         = 12.0;
+    inline static const std::string name = "3SPN2C";
+    inline static const double cutoff   = 18.0 * OpenMM::NmPerAngstrom; // [nm]
+    inline static const double alpha_CS =  4.0 / OpenMM::NmPerAngstrom;
+    inline static const double K_CS     =  8.0;
+    inline static const double K_BP     = 12.0;
 
-    const std::map<std::string, real_type> theta3_0 = { // [radian]
+    inline static const std::map<std::string, double> theta3_0 = { // [radian]
         {"AT", 110.92 * OpenMM::RadiansPerDegree},
         {"TA", 110.92 * OpenMM::RadiansPerDegree},
         {"GC", 120.45 * OpenMM::RadiansPerDegree},
         {"CG", 120.45 * OpenMM::RadiansPerDegree},
     };
 
-    const std::map<std::string, real_type> epsilon_CS = { // [kJ/mol]
+    inline static const std::map<std::string, double> epsilon_CS = { // [kJ/mol]
         // sense strand
         {"AA5", 1.882},  {"AT5", 2.388},  {"AG5", 2.439},  {"AC5", 1.680},
         {"TA5", 2.388},  {"TT5", 1.882},  {"TG5", 2.187},  {"TC5", 2.566},
@@ -364,7 +325,7 @@ struct ThreeSPN2CCrossStackingPotentialParameter
         {"CA3", 2.187},  {"CT3", 2.439},  {"CG3", 0.972},  {"CC3", 3.250}
     };
 
-    const std::map<std::string, real_type> r0_CS = { // [nm]
+    inline static const std::map<std::string, double> r0_CS = { // [nm]
         // sense strand
         {"AA5", 6.420 * OpenMM::NmPerAngstrom},
         {"AT5", 6.770 * OpenMM::NmPerAngstrom},
@@ -401,7 +362,7 @@ struct ThreeSPN2CCrossStackingPotentialParameter
         {"CC3", 6.800 * OpenMM::NmPerAngstrom}
     };
 
-    const std::map<std::string, real_type> theta_CS_0 = {
+    inline static const std::map<std::string, double> theta_CS_0 = {
         // sense strand ("XY5", X=B0, Y=Bc)
         {"AA5", 154.04 * OpenMM::RadiansPerDegree},
         {"AT5", 158.77 * OpenMM::RadiansPerDegree},

@@ -33,8 +33,8 @@ class ThreeSPN2BasePairForceFieldGenerator final : public ForceFieldGeneratorBas
     std::unique_ptr<OpenMM::Force> generate() const override
     {
         // Hinckley et al., J. Chem. Phys. (2013)
-        std::string potential_formula = "energy;"
-            "energy  = rep + 1/2*(1 + cos(dphi))*fdt1*fdt2*attr;" // Eq. (9)
+        std::string potential_formula =
+            "rep + 1/2*(1 + cos(dphi))*fdt1*fdt2*attr;" // Eq. (9)
             "rep     = epsilon*(1 - exp(-alpha_BP*dr))^2 * (1 - step(dr));"  // (1-step(dr)) = step(-dr)
             "attr    = epsilon*(1 - exp(-alpha_BP*dr))^2 * step(dr) - epsilon;"
             "fdt1    = max(f1*rect0t1, rect1t1);"
@@ -145,7 +145,7 @@ class ThreeSPN2BasePairForceFieldGenerator final : public ForceFieldGeneratorBas
     {
         return PotentialParameterType::name+"BasePair "
                "(" + base_pair_.first + "-" + base_pair_.second + ")";
-    };
+    }
 
   private:
     std::vector<indices_type> donor_indices_vec_;

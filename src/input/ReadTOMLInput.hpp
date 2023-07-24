@@ -399,25 +399,66 @@ SystemGenerator read_toml_system(const toml::value& data)
                 const std::vector<std::pair<std::string, std::string>> base_pairs = {
                     {"A", "T"}, {"T", "A"}, {"G", "C"}, {"C", "G"}
                 };
-                for (const auto& bp_kind: base_pairs) {
 
-                    // Cross stacking of sense-strand
-                    ThreeSPN2CrossStackingForceFieldGenerator ff_gen_sense =
-                        read_toml_3spn2_cross_stacking_ff_generator(
-                            global_ff, topology, bp_kind, "sense", use_periodic, ffgen_count);
-                    system_gen.add_ff_generator(
-                        std::make_unique<ThreeSPN2CrossStackingForceFieldGenerator>(
-                            ff_gen_sense));
-                    ++ffgen_count;
+                if(potential == "3SPN2")
+                {
+                    using parameter_type = ThreeSPN2CrossStackingPotentialParameter;
+                    using potential_type =
+                        ThreeSPN2CrossStackingForceFieldGenerator<parameter_type>;
+                    for (const auto& bp_kind: base_pairs) {
 
-                    // Cross stacking of antisense-strand
-                    ThreeSPN2CrossStackingForceFieldGenerator ff_gen_antisense =
-                        read_toml_3spn2_cross_stacking_ff_generator(
-                            global_ff, topology, bp_kind, "antisense", use_periodic, ffgen_count);
-                    system_gen.add_ff_generator(
-                        std::make_unique<ThreeSPN2CrossStackingForceFieldGenerator>(
-                            ff_gen_antisense));
-                    ++ffgen_count;
+                        // Cross stacking of sense-strand
+                        potential_type ff_gen_sense =
+                            read_toml_3spn2_cross_stacking_ff_generator<parameter_type>(
+                                global_ff, topology, bp_kind, "sense", use_periodic,
+                                ffgen_count);
+                        system_gen.add_ff_generator(
+                            std::make_unique<potential_type>(ff_gen_sense));
+                        ++ffgen_count;
+
+                        // Cross stacking of antisense-strand
+                        potential_type ff_gen_antisense =
+                            read_toml_3spn2_cross_stacking_ff_generator<parameter_type>(
+                                global_ff, topology, bp_kind, "antisense", use_periodic,
+                                ffgen_count);
+                        system_gen.add_ff_generator(
+                            std::make_unique<potential_type>(ff_gen_antisense));
+                        ++ffgen_count;
+                    }
+                }
+                else if(potential == "3SPN2C")
+                {
+                    using parameter_type = ThreeSPN2CCrossStackingPotentialParameter;
+                    using potential_type =
+                        ThreeSPN2CrossStackingForceFieldGenerator<parameter_type>;
+                    for (const auto& bp_kind: base_pairs) {
+
+                        // Cross stacking of sense-strand
+                        potential_type ff_gen_sense =
+                            read_toml_3spn2_cross_stacking_ff_generator<parameter_type>(
+                                global_ff, topology, bp_kind, "sense", use_periodic,
+                                ffgen_count);
+                        system_gen.add_ff_generator(
+                            std::make_unique<potential_type>(ff_gen_sense));
+                        ++ffgen_count;
+
+                        // Cross stacking of antisense-strand
+                        potential_type ff_gen_antisense =
+                            read_toml_3spn2_cross_stacking_ff_generator<parameter_type>(
+                                global_ff, topology, bp_kind, "antisense", use_periodic,
+                                ffgen_count);
+                        system_gen.add_ff_generator(
+                            std::make_unique<potential_type>(ff_gen_antisense));
+                        ++ffgen_count;
+                    }
+                }
+                else
+                {
+                    throw std::runtime_error(
+                        "[error] invalid potential " + potential + " found."
+                        "Expected value is one of the following."
+                        "- \"3SPN2\" : The general 3SPN2 parameter set."
+                        "- \"3SPN2C\": The parameter set optimized to reproduce sequence-dependent curveture of dsDNA.");
                 }
             }
             if(interaction == "3SPN2BasePair")

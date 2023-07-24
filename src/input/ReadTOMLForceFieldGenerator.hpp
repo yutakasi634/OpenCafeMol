@@ -1443,7 +1443,8 @@ read_toml_3spn2_base_pair_ff_generator(
         use_periodic, ffgen_id);
 }
 
-const ThreeSPN2CrossStackingForceFieldGenerator
+template<typename PotentialParameterType>
+const ThreeSPN2CrossStackingForceFieldGenerator<PotentialParameterType>
 read_toml_3spn2_cross_stacking_ff_generator(
         const toml::value& global_ff_data, Topology& topology,
         const std::pair<std::string, std::string> bp_kind, const std::string& strand_kind,
@@ -1451,7 +1452,6 @@ read_toml_3spn2_cross_stacking_ff_generator(
 )
 {
     using index_pairs_type = std::vector<std::pair<std::size_t, std::size_t>>;
-    using parameter_list   = ThreeSPN2CrossStackingParameterList<double>;
 
     if (! ((bp_kind.first == "A" && bp_kind.second == "T" )||
            (bp_kind.first == "T" && bp_kind.second == "A" )||
@@ -1629,58 +1629,15 @@ read_toml_3spn2_cross_stacking_ff_generator(
         ignore_list = read_ignore_molecule_and_particles_within(ignore, topology);
     }
 
-    std::vector<parameter_list> parameters_vec;
-    if (pot == "3SPN2")
-    {
-        std::cerr << "    Global        : 3SPN2C CrossStacking "
-                  << bp_kind.first << "-" << bp_kind.second << " in "
-                  << strand_kind << " strand ("
-                  << indices_donor.size()    << " x "
-                  << indices_acceptor.size() << " pairs found)" << std::endl;
+    std::cerr << "    Global        : " + PotentialParameterType::name + " CrossStacking "
+              << bp_kind.first << "-" << bp_kind.second << " in "
+              << strand_kind << " strand ("
+              << indices_donor.size()    << " x "
+              << indices_acceptor.size() << " pairs found)" << std::endl;
 
-        for(const auto& bpbc: base_kind_acceptor)
-        {
-            const std::string b0bp = bp_kind.first + bp_kind.second;
-            parameters_vec.push_back(
-                parameter_list(
-                    ThreeSPN2CrossStackingPotentialParameter<double>{}, b0bp, bpbc
-                )
-            );
-        }
-        return ThreeSPN2CrossStackingForceFieldGenerator(
-            indices_donor, indices_acceptor, ignore_list, parameters_vec,
-            use_periodic, ffgen_id);
-    }
-    else if (pot == "3SPN2C")
-    {
-        std::cerr << "    Global        : 3SPN2C CrossStacking "
-                  << bp_kind.first << "-" << bp_kind.second << " in "
-                  << strand_kind << " strand ("
-                  << indices_donor.size()    << " x "
-                  << indices_acceptor.size() << " pairs found)" << std::endl;
-
-        for(const auto& bpbc: base_kind_acceptor)
-        {
-            const std::string b0bp = bp_kind.first + bp_kind.second;
-            parameters_vec.push_back(
-                parameter_list(
-                    ThreeSPN2CCrossStackingPotentialParameter<double>{}, b0bp, bpbc
-                )
-            );
-        }
-        return ThreeSPN2CrossStackingForceFieldGenerator(
-            indices_donor, indices_acceptor, ignore_list, parameters_vec,
-            use_periodic, ffgen_id);
-    }
-    else
-    {
-        throw std::runtime_error(
-            "[error] invalid potential " + pot + " found."
-            "Expected value is one of the following."
-            "- \"3SPN2\" : The general 3SPN2 parameter set."
-            "- \"3SPN2C\": The parameter set optimized to reproduce sequence-dependent curveture of dsDNA."
-        );
-    }
+    return ThreeSPN2CrossStackingForceFieldGenerator<PotentialParameterType>(
+        indices_donor, indices_acceptor, base_kind_acceptor, bp_kind, ignore_list,
+        use_periodic, ffgen_id);
 }
 
 // -----------------------------------------------------------------------------
