@@ -125,24 +125,24 @@ class ThreeSPN2BaseStackingForceFieldGenerator final : public ForceFieldGenerato
 
 struct ThreeSPN2BaseStackingPotentialParameter
 {
-    double K_BS         = 6.0;
-    double alpha_BS     = 3.0; // [1/angstrom]
+    inline static const double K_BS         = 6.0;
+    inline static const double alpha_BS     = 3.0; // [1/angstrom]
 
-    std::map<std::string, double> epsilon_BS = { // [kJ/mol]
+    inline static const std::map<std::string, double> epsilon_BS = { // [kJ/mol]
         {"AA", 14.39}, {"AT", 14.34}, {"AG", 13.25}, {"AC", 14.51},
         {"TA", 10.37}, {"TT", 13.36}, {"TG", 10.34}, {"TC", 12.89},
         {"GA", 14.81}, {"GT", 15.57}, {"GG", 14.93}, {"GC", 15.39},
         {"CA", 11.42}, {"CT", 12.79}, {"CG", 10.52}, {"CC", 13.24},
     };
 
-    std::map<std::string, double> r0_BS = { // [angstrom]
+    inline static const std::map<std::string, double> r0_BS = { // [angstrom]
         {"AA", 3.716}, {"AT", 3.675}, {"AG", 3.827}, {"AC", 3.744},
         {"TA", 4.238}, {"TT", 3.984}, {"TG", 4.416}, {"TC", 4.141},
         {"GA", 3.576}, {"GT", 3.598}, {"GG", 3.664}, {"GC", 3.635},
         {"CA", 4.038}, {"CT", 3.798}, {"CG", 4.208}, {"CC", 3.935},
     };
 
-    std::map<std::string, double> theta0_BS = { // [degree]
+    inline static const std::map<std::string, double> theta0_BS = { // [degree]
         {"AA", 101.15}, {"AT", 85.94}, {"AG", 105.26}, {"AC", 89.00},
         {"TA", 101.59}, {"TT", 89.50}, {"TG", 104.31}, {"TC", 91.28},
         {"GA", 100.89}, {"GT", 84.83}, {"GG", 105.48}, {"GC", 88.28},
@@ -172,24 +172,24 @@ struct ThreeSPN2BaseStackingPotentialParameter
 
 struct ThreeSPN2CBaseStackingPotentialParameter
 {
-    double K_BS         = 6.0;
-    double alpha_BS     = 3.0; // [1/angstrom]
+    inline static const double K_BS         = 6.0;
+    inline static const double alpha_BS     = 3.0; // [1/angstrom]
 
-    std::map<std::string, double> epsilon_BS = { // [kJ/mol]
+    inline static const std::map<std::string, double> epsilon_BS = { // [kJ/mol]
         {"AA", 13.82},  {"AT", 15.05}, {"AG",  13.32}, {"AC",  15.82},
         {"TA",  9.15},  {"TT", 12.44}, {"TG",   9.58}, {"TC",  13.11},
         {"GA", 13.76},  {"GT", 14.59}, {"GG",  14.77}, {"GC",  15.17},
         {"CA",  9.25},  {"CT", 12.42}, {"CG",   8.83}, {"CC",  14.01},
     };
 
-    std::map<std::string, double> r0_BS = { // [angstrom]
+    inline static const std::map<std::string, double> r0_BS = { // [angstrom]
         {"AA", 3.58},   {"AT", 3.56},  {"AG",   3.85}, {"AC",   3.45},
         {"TA", 4.15},   {"TT", 3.93},  {"TG",   4.32}, {"TC",   3.87},
         {"GA", 3.51},   {"GT", 3.47},  {"GG",   3.67}, {"GC",   3.42},
         {"CA", 4.15},   {"CT", 3.99},  {"CG",   4.34}, {"CC",   3.84},
     };
 
-    std::map<std::string, double> theta0_BS = { // [degree]
+    inline static const std::map<std::string, double> theta0_BS = { // [degree]
         {"AA", 100.13}, {"AT", 90.48}, {"AG", 104.39}, {"AC",  93.23},
         {"TA", 102.59}, {"TT", 93.32}, {"TG", 103.70}, {"TC",  94.55},
         {"GA",  95.45}, {"GT", 87.63}, {"GG", 106.36}, {"GC",  83.12},

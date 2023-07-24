@@ -130,19 +130,17 @@ class ThreeSPN2ExcludedVolumeForceFieldGenerator final : public ForceFieldGenera
 //   - TABLE III (sigma)
 //   - TABLE IV  (epsilon)
 
-template<typename realT>
 struct ThreeSPN2ExcludedVolumePotentialParameter
 {
-    using real_type = realT;
-    real_type epsilon = real_type(1.0); // [kJ/mol]
+    inline static const double epsilon = double(1.0); // [kJ/mol]
 
-    const std::map<std::string, real_type> sigma = { // [nm]
-        {"P", real_type(4.5) * OpenMM::NmPerAngstrom},
-        {"S", real_type(6.2) * OpenMM::NmPerAngstrom},
-        {"A", real_type(5.4) * OpenMM::NmPerAngstrom},
-        {"T", real_type(7.1) * OpenMM::NmPerAngstrom},
-        {"G", real_type(4.9) * OpenMM::NmPerAngstrom},
-        {"C", real_type(6.4) * OpenMM::NmPerAngstrom},
+    inline static const std::map<std::string, double> sigma = { // [nm]
+        {"P", double(4.5) * OpenMM::NmPerAngstrom},
+        {"S", double(6.2) * OpenMM::NmPerAngstrom},
+        {"A", double(5.4) * OpenMM::NmPerAngstrom},
+        {"T", double(7.1) * OpenMM::NmPerAngstrom},
+        {"G", double(4.9) * OpenMM::NmPerAngstrom},
+        {"C", double(6.4) * OpenMM::NmPerAngstrom},
     };
 };
 

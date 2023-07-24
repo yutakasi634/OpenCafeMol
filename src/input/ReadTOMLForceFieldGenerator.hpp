@@ -758,12 +758,12 @@ read_toml_3spn2_base_stacking_ff_generator(
 
         if (pot == "3SPN2")
         {
-            const ThreeSPN2BaseStackingPotentialParameter parameter;
-            const double eps       = parameter.epsilon_BS.at(base_kind); // kJ/mol
-            const double r0_BS     = parameter.r0_BS     .at(base_kind) * OpenMM::NmPerAngstrom; // nm
-            const double theta0_BS = parameter.theta0_BS .at(base_kind) * OpenMM::RadiansPerDegree; // radian
-            alpha                  = parameter.alpha_BS / OpenMM::NmPerAngstrom; // nm^{-1}
-            K_BS                   = parameter.K_BS;
+            using parameter_type = ThreeSPN2BaseStackingPotentialParameter;
+            const double eps       = parameter_type::epsilon_BS.at(base_kind); // kJ/mol
+            const double r0_BS     = parameter_type::r0_BS     .at(base_kind) * OpenMM::NmPerAngstrom; // nm
+            const double theta0_BS = parameter_type::theta0_BS .at(base_kind) * OpenMM::RadiansPerDegree; // radian
+            alpha                  = parameter_type::alpha_BS / OpenMM::NmPerAngstrom; // nm^{-1}
+            K_BS                   = parameter_type::K_BS;
 
             indices_vec  .push_back(indices);
             eps_vec      .push_back(eps);
@@ -772,12 +772,12 @@ read_toml_3spn2_base_stacking_ff_generator(
         }
         else if (pot == "3SPN2C")
         {
-            const ThreeSPN2CBaseStackingPotentialParameter parameter;
-            const double eps       = parameter.epsilon_BS.at(base_kind); // kJ/mol
-            const double r0_BS     = parameter.r0_BS     .at(base_kind) * OpenMM::NmPerAngstrom;    // nm
-            const double theta0_BS = parameter.theta0_BS .at(base_kind) * OpenMM::RadiansPerDegree; // radian
-            alpha                  = parameter.alpha_BS / OpenMM::NmPerAngstrom; // nm^{-1}
-            K_BS                   = parameter.K_BS;
+            using parameter_type = ThreeSPN2CBaseStackingPotentialParameter;
+            const double eps       = parameter_type::epsilon_BS.at(base_kind); // kJ/mol
+            const double r0_BS     = parameter_type::r0_BS     .at(base_kind) * OpenMM::NmPerAngstrom;    // nm
+            const double theta0_BS = parameter_type::theta0_BS .at(base_kind) * OpenMM::RadiansPerDegree; // radian
+            alpha                  = parameter_type::alpha_BS / OpenMM::NmPerAngstrom; // nm^{-1}
+            K_BS                   = parameter_type::K_BS;
 
             indices_vec  .push_back(indices);
             eps_vec      .push_back(eps);
@@ -986,8 +986,7 @@ read_toml_3spn2_excluded_volume_ff_generator(
     const auto&  params = toml::find<toml::array>(global_ff_data, "parameters");
     const auto&  env    = global_ff_data.contains("env") ? global_ff_data.at("env") : toml::value{};
 
-    const ThreeSPN2ExcludedVolumePotentialParameter<double> param_exv;
-    const auto   eps    = param_exv.epsilon;
+    const auto   eps    = ThreeSPN2ExcludedVolumePotentialParameter::epsilon;
     const auto   cutoff = toml::find_or(global_ff_data, "cutoff", 2.0);
 
     // Parse parameters
@@ -1001,7 +1000,7 @@ read_toml_3spn2_excluded_volume_ff_generator(
         const auto index  = Utility::find_parameter   <std::size_t>(param, env, "index") +
                             Utility::find_parameter_or<std::size_t>(param, env, "offset", 0);
         const auto kind   = toml::find<std::string>(param, "kind");
-        radius_vec[index] = param_exv.sigma.at(kind);
+        radius_vec[index] = ThreeSPN2ExcludedVolumePotentialParameter::sigma.at(kind);
     }
 
     std::cerr << "    Global        : ExcludedVolume 3SPN2 (" << params.size()
