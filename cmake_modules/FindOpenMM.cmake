@@ -14,6 +14,7 @@ find_path(OPENMM_INCLUDE_DIR
 find_path(OPENMM_PLUGIN_DIR
     NAMES
         libOpenMMCUDA.so
+        libOpenMMCPU.so
     PATHS
         ${OPENMM_ROOT}
         /usr/openmm
