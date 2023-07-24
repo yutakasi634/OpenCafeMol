@@ -1317,7 +1317,8 @@ read_toml_uniform_lennard_jones_attractive_ff_generator(
         ignore_list, use_periodic, ffgen_id, ignore_group_pairs, group_vec);
 }
 
-const ThreeSPN2BasePairForceFieldGenerator
+template<typename PotentialParameterType>
+const ThreeSPN2BasePairForceFieldGenerator<PotentialParameterType>
 read_toml_3spn2_base_pair_ff_generator(
         const toml::value& global_ff_data, Topology& topology,
         const std::pair<std::string, std::string> base_pair,
@@ -1328,7 +1329,6 @@ read_toml_3spn2_base_pair_ff_generator(
 
     const std::string donor    = base_pair.first;
     const std::string acceptor = base_pair.second;
-    const std::string bp_kind  = base_pair.first + base_pair.second;
 
     if (! ((donor == "A" && acceptor == "T") || (donor == "T" && acceptor == "A") ||
            (donor == "G" && acceptor == "C") || (donor == "C" && acceptor == "G")))
@@ -1380,7 +1380,7 @@ read_toml_3spn2_base_pair_ff_generator(
     // ]
 
     std::vector<Nucleotide> nucleotide_idxs;
-    for(const auto& param: params)
+    for(const auto& param : params)
     {
         Nucleotide nucleotide;
 
@@ -1412,7 +1412,7 @@ read_toml_3spn2_base_pair_ff_generator(
     std::vector<std::array<std::size_t, 2>> indices_donor;     // 0: base, 1: sugar
     std::vector<std::array<std::size_t, 2>> indices_acceptor;  // 0: base, 1: sugar
 
-    for(const auto& nuc: nucleotide_idxs)
+    for(const auto& nuc : nucleotide_idxs)
     {
         if (nuc.base == donor)
         {
@@ -1432,45 +1432,15 @@ read_toml_3spn2_base_pair_ff_generator(
         ignore_list = read_ignore_molecule_and_particles_within(ignore, topology);
     }
 
-    if (pot == "3SPN2")
-    {
-        std::cerr << "    Global        : 3SPN2 BasePair "
-              << donor << "-" << acceptor << " ("
-              << indices_donor.size()    << donor << " and "
-              << indices_acceptor.size() << acceptor
-              << " found)" << std::endl;
+    std::cerr << "    Global        : " + PotentialParameterType::name + " BasePair "
+          << donor << "-" << acceptor << " ("
+          << indices_donor.size()    << donor << " and "
+          << indices_acceptor.size() << acceptor
+          << " found)" << std::endl;
 
-        const ThreeSPN2BasePairPotentialParameter<double> params_3spn_bp;
-        const ThreeSPN2BasePairParameterList<double> param_list(params_3spn_bp, bp_kind);
-
-        return ThreeSPN2BasePairForceFieldGenerator(
-            indices_donor, indices_acceptor, ignore_list, param_list,
-            use_periodic, ffgen_id);
-    }
-    else if (pot == "3SPN2C")
-    {
-        std::cerr << "    Global        : 3SPN2C BasePair "
-              << donor << "-" << acceptor << " ("
-              << indices_donor.size()    << donor << " and "
-              << indices_acceptor.size() << acceptor
-              << " found)" << std::endl;
-
-        const ThreeSPN2CBasePairPotentialParameter<double> params_3spnc_bp;
-        const ThreeSPN2BasePairParameterList<double> param_list(params_3spnc_bp, bp_kind);
-
-        return ThreeSPN2BasePairForceFieldGenerator(
-            indices_donor, indices_acceptor, ignore_list, param_list,
-            use_periodic, ffgen_id);
-    }
-    else
-    {
-        throw std::runtime_error(
-            "[error] invalid potential " + pot + " fond."
-            "Expected value is one of the following."
-            "- \"3SPN2\" : The general 3SPN2 parameter set."
-            "- \"3SPN2C\": The parameter set optimized to reproduce sequence-dependent curveture of dsDNA."
-        );
-    }
+    return ThreeSPN2BasePairForceFieldGenerator<PotentialParameterType>(
+        indices_donor, indices_acceptor, base_pair, ignore_list,
+        use_periodic, ffgen_id);
 }
 
 const ThreeSPN2CrossStackingForceFieldGenerator

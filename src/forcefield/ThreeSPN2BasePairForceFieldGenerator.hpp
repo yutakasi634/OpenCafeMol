@@ -10,68 +10,27 @@
 #include "ForceFieldGeneratorBase.hpp"
 #include "src/util/Constants.hpp"
 
-template<typename realT>
-class ThreeSPN2BasePairParameterList
-{
-  using real_type = realT;
-
-  public:
-    template<typename ParameterSet>
-    ThreeSPN2BasePairParameterList(ParameterSet param_set, const std::string& bp_kind)
-    : cutoff_  (param_set.cutoff),
-      alpha_BP_(param_set.alpha_BP),
-      K_BP_    (param_set.K_BP),
-      epsilon_ (param_set.epsilon_BP.at(bp_kind)),
-      r0_      (param_set.r0        .at(bp_kind)),
-      theta0_1_(param_set.theta0_1  .at(bp_kind)),
-      theta0_2_(param_set.theta0_2  .at(bp_kind)),
-      phi0_    (param_set.phi0      .at(bp_kind)),
-      bp_kind_ (bp_kind)
-    {}
-
-    real_type cutoff()   const noexcept {return cutoff_;}
-    real_type epsilon()  const noexcept {return epsilon_;}
-    real_type r0()       const noexcept {return r0_;}
-    real_type theta0_1() const noexcept {return theta0_1_;}
-    real_type theta0_2() const noexcept {return theta0_2_;}
-    real_type phi0()     const noexcept {return phi0_;}
-    real_type alpha_BP() const noexcept {return alpha_BP_;}
-    real_type K_BP()     const noexcept {return K_BP_;}
-
-    std::string getBasePairKind() const noexcept {return bp_kind_;}
-
-  private:
-    const real_type  cutoff_;
-    const real_type  alpha_BP_;
-    const real_type  K_BP_;
-    const real_type  epsilon_;
-    const real_type  r0_;
-    const real_type  theta0_1_;
-    const real_type  theta0_2_;
-    const real_type  phi0_;
-    const std::string bp_kind_;
-};
-
+template<typename PotentialParameterType>
 class ThreeSPN2BasePairForceFieldGenerator final : public ForceFieldGeneratorBase
 {
   public:
     using indices_type     = std::array<std::size_t, 2>;
     using index_pairs_type = std::vector<std::pair<std::size_t, std::size_t>>;
-    using parameter_list   = ThreeSPN2BasePairParameterList<double>;
 
   public:
     ThreeSPN2BasePairForceFieldGenerator(
         const std::vector<indices_type>& donor_indices_vec,
         const std::vector<indices_type>& acceptor_indices_vec,
+        const std::pair<std::string, std::string>& base_pair,
         const index_pairs_type& ignore_list,
-        const parameter_list& param_list,
         const bool use_periodic, const std::size_t ffgen_id = 0)
-        : donor_indices_vec_(donor_indices_vec), acceptor_indices_vec_(acceptor_indices_vec),
-          ignore_list_(ignore_list), param_list_(param_list),
+        : donor_indices_vec_(donor_indices_vec),
+          acceptor_indices_vec_(acceptor_indices_vec),
+          base_pair_(base_pair), ignore_list_(ignore_list),
           use_periodic_(use_periodic), ffgen_id_str_(std::to_string(ffgen_id))
     {}
 
-    std::unique_ptr<OpenMM::Force> generate() const noexcept override
+    std::unique_ptr<OpenMM::Force> generate() const override
     {
         // Hinckley et al., J. Chem. Phys. (2013)
         std::string potential_formula = "energy;"
@@ -122,7 +81,7 @@ class ThreeSPN2BasePairForceFieldGenerator final : public ForceFieldGeneratorBas
         }
 
         // set cutoff
-        chbond_ff->setCutoffDistance   (param_list_.cutoff());
+        chbond_ff->setCutoffDistance   (PotentialParameterType::cutoff);
 
         chbond_ff->addPerDonorParameter(ff_params.at("epsilon"));
         chbond_ff->addPerDonorParameter(ff_params.at("r0"));
@@ -132,15 +91,36 @@ class ThreeSPN2BasePairForceFieldGenerator final : public ForceFieldGeneratorBas
         chbond_ff->addPerDonorParameter(ff_params.at("alpha_BP"));
         chbond_ff->addPerDonorParameter(ff_params.at("K_BP"));
 
-        const std::vector<double> parameters = {
-            param_list_.epsilon(),
-            param_list_.r0(),
-            param_list_.theta0_1(),
-            param_list_.theta0_2(),
-            param_list_.phi0(),
-            param_list_.alpha_BP(),
-            param_list_.K_BP(),
-        };
+
+        std::vector<double> parameters;
+        if((base_pair_.first == "A" && base_pair_.second == "T") ||
+           (base_pair_.first == "T" && base_pair_.second == "A"))
+        {
+            parameters.push_back(PotentialParameterType::epsilon_AT_BP);
+            parameters.push_back(PotentialParameterType::r0_AT);
+            parameters.push_back(PotentialParameterType::theta0_1_AT);
+            parameters.push_back(PotentialParameterType::theta0_2_AT);
+            parameters.push_back(PotentialParameterType::phi0_AT);
+        }
+        else if((base_pair_.first == "G" && base_pair_.second == "C") ||
+                (base_pair_.first == "C" && base_pair_.second == "G"))
+        {
+            parameters.push_back(PotentialParameterType::epsilon_GC_BP);
+            parameters.push_back(PotentialParameterType::r0_GC);
+            parameters.push_back(PotentialParameterType::theta0_1_GC);
+            parameters.push_back(PotentialParameterType::theta0_2_GC);
+            parameters.push_back(PotentialParameterType::phi0_GC);
+        }
+        else
+        {
+            throw std::runtime_error(
+                "[error] ThreeSPNBasePairForceFieldGenerator : "
+                "invalid base pair "
+                "{" + base_pair_.first + ", " + base_pair_.second +  "} was passed."
+                "One of {A, T}, {T, A}, {G, C}, {C, G} are expected.");
+        }
+        parameters.push_back(PotentialParameterType::alpha_BP);
+        parameters.push_back(PotentialParameterType::K_BP);
 
         for (const auto& donor_particles: donor_indices_vec_)
         {
@@ -183,14 +163,14 @@ class ThreeSPN2BasePairForceFieldGenerator final : public ForceFieldGeneratorBas
 
     std::string name() const noexcept
     {
-        return "3SPN2BasePair (" + param_list_.getBasePairKind() + ")";
+        return "3SPN2BasePair (" + base_pair_.first + "-" + base_pair_.second + ")";
     };
 
   private:
     std::vector<indices_type> donor_indices_vec_;
     std::vector<indices_type> acceptor_indices_vec_;
+    std::pair<std::string, std::string> base_pair_;
     index_pairs_type          ignore_list_;
-    parameter_list            param_list_;
     bool                      use_periodic_;
     std::string               ffgen_id_str_;
 };
@@ -209,50 +189,29 @@ class ThreeSPN2BasePairForceFieldGenerator final : public ForceFieldGeneratorBas
 // - D. M. Hinckley, G. S. Freeman, J. K. Whitmer, and J. J. de Pablo
 //   J. Chem. Phys. (2013)
 
-template<typename realT>
 struct ThreeSPN2BasePairPotentialParameter
 {
-    using real_type = realT;
+    inline static double cutoff   = 18.0 * OpenMM::NmPerAngstrom;  // [nm]
 
-    const real_type cutoff   = 18.0 * OpenMM::NmPerAngstrom;  // [nm]
+    inline static double alpha_BP =  2.0 / OpenMM::NmPerAngstrom;  // [1/nm]
+    inline static double K_BP     = 12.0;
 
-    const real_type alpha_BP =  2.0 / OpenMM::NmPerAngstrom;  // [1/nm]
-    const real_type K_BP     = 12.0;
+    inline static double epsilon_AT_BP = 16.73; // [kJ/mol]
+    inline static double epsilon_GC_BP = 21.18; // [kJ/mol]
 
-    const std::map<std::string, real_type> epsilon_BP = { // [kJ/mol]
-        {"AT", 16.73},
-        {"TA", 16.73},
-        {"GC", 21.18},
-        {"CG", 21.18}
-    };
+    inline static double r0_AT = 5.941 * OpenMM::NmPerAngstrom; // [nm]
+    inline static double r0_GC = 5.530 * OpenMM::NmPerAngstrom; // [nm]
 
-    const std::map<std::string, real_type> r0 = { // [nm]
-        {"AT", 5.941 * OpenMM::NmPerAngstrom},
-        {"TA", 5.941 * OpenMM::NmPerAngstrom},
-        {"GC", 5.530 * OpenMM::NmPerAngstrom},
-        {"GC", 5.530 * OpenMM::NmPerAngstrom}
-    };
+    inline static double theta0_1_AT = 156.54 * OpenMM::RadiansPerDegree; // [radian]
+    inline static double theta0_1_GC = 159.81 * OpenMM::RadiansPerDegree; // [radian]
 
-    const std::map<std::string, real_type> theta0_1 = { // [radian]
-        {"AT", 156.54 * OpenMM::RadiansPerDegree},
-        {"TA", 135.78 * OpenMM::RadiansPerDegree},
-        {"GC", 159.81 * OpenMM::RadiansPerDegree},
-        {"GC", 141.16 * OpenMM::RadiansPerDegree}
-    };
+    inline static double theta0_2_AT = 135.78 * OpenMM::RadiansPerDegree; // [radian]
+    inline static double theta0_2_GC = 141.16 * OpenMM::RadiansPerDegree; // [radian]
 
-    const std::map<std::string, real_type> theta0_2 = { // [radian]
-        {"AT", 135.78 * OpenMM::RadiansPerDegree},
-        {"TA", 156.54 * OpenMM::RadiansPerDegree},
-        {"GC", 141.16 * OpenMM::RadiansPerDegree},
-        {"GC", 159.81 * OpenMM::RadiansPerDegree}
-    };
+    inline static double phi0_AT     = -38.35 * OpenMM::RadiansPerDegree; // [radian]
+    inline static double phi0_GC     = -42.98 * OpenMM::RadiansPerDegree; // [radian]
 
-    const std::map<std::string, real_type> phi0 = { // [radian]
-        {"AT", -38.35 * OpenMM::RadiansPerDegree},
-        {"TA", -38.35 * OpenMM::RadiansPerDegree},
-        {"GC", -42.98 * OpenMM::RadiansPerDegree},
-        {"GC", -42.98 * OpenMM::RadiansPerDegree}
-    };
+    inline static const std::string name = "3SPN2";
 };
 
 // ----------------------------------------------------------------------------
@@ -271,49 +230,29 @@ struct ThreeSPN2BasePairPotentialParameter
 // - G. S. Freeman, D. M. Hinckley, J. P. Lequieu, J. K. Whitmer, and J. J. de Pablo
 //   J. Chem. Phys. (2014)
 
-template<typename realT>
 struct ThreeSPN2CBasePairPotentialParameter
 {
-    using real_type = realT;
-    real_type cutoff       = 18.0 * OpenMM::NmPerAngstrom;  // [nm]
+    inline static double cutoff       = 18.0 * OpenMM::NmPerAngstrom;  // [nm]
 
-    real_type alpha_BP     =  2.0 / OpenMM::NmPerAngstrom;  // [1/nm]
-    real_type K_BP         = 12.0;
+    inline static double alpha_BP     =  2.0 / OpenMM::NmPerAngstrom;  // [1/nm]
+    inline static double K_BP         = 12.0;
 
-    const std::map<std::string, real_type> epsilon_BP = { // [kJ/mol]
-        {"AT", 14.41},
-        {"TA", 14.41},
-        {"GC", 18.24},
-        {"CG", 18.24}
-    };
+    inline static double epsilon_AT_BP = 14.41; // [kJ/mol]
+    inline static double epsilon_GC_BP = 18.24; // [kJ/mol]
 
-    const std::map<std::string, real_type> r0 = { // [nm]
-        {"AT", 5.82 * OpenMM::NmPerAngstrom},
-        {"TA", 5.82 * OpenMM::NmPerAngstrom},
-        {"GC", 5.52 * OpenMM::NmPerAngstrom},
-        {"GC", 5.52 * OpenMM::NmPerAngstrom}
-    };
+    inline static double r0_AT = 5.82 * OpenMM::NmPerAngstrom; // [nm]
+    inline static double r0_GC = 5.52 * OpenMM::NmPerAngstrom; // [nm]
 
-    const std::map<std::string, real_type> theta0_1 = { // [radian]
-        {"AT", 153.17 * OpenMM::RadiansPerDegree},
-        {"TA", 133.51 * OpenMM::RadiansPerDegree},
-        {"GC", 159.50 * OpenMM::RadiansPerDegree},
-        {"GC", 138.08 * OpenMM::RadiansPerDegree}
-    };
+    inline static double theta0_1_AT = 153.17 * OpenMM::RadiansPerDegree; // [radian]
+    inline static double theta0_1_GC = 159.50 * OpenMM::RadiansPerDegree; // [radian]
 
-    const std::map<std::string, real_type> theta0_2 = { // [radian]
-        {"AT", 133.51 * OpenMM::RadiansPerDegree},
-        {"TA", 153.17 * OpenMM::RadiansPerDegree},
-        {"GC", 138.08 * OpenMM::RadiansPerDegree},
-        {"GC", 159.50 * OpenMM::RadiansPerDegree}
-    };
+    inline static double theta0_2_AT = 133.51 * OpenMM::RadiansPerDegree; // [radian]
+    inline static double theta0_2_GC = 138.08 * OpenMM::RadiansPerDegree; // [radian]
 
-    const std::map<std::string, real_type> phi0 = { // [radian]
-        {"AT", -38.18 * OpenMM::RadiansPerDegree},
-        {"TA", -38.18 * OpenMM::RadiansPerDegree},
-        {"GC", -35.75 * OpenMM::RadiansPerDegree},
-        {"GC", -35.75 * OpenMM::RadiansPerDegree}
-    };
+    inline static double phi0_AT = -38.18 * OpenMM::RadiansPerDegree; // [radian]
+    inline static double phi0_GC = -35.75 * OpenMM::RadiansPerDegree; // [radian]
+
+    inline static const std::string name = "3SPN2C";
 };
 
 #endif // OPEN_AICG2_PLUS_3SPN2_BASE_PAIR_FORCE_FIELD_GENERATOR_HPP
