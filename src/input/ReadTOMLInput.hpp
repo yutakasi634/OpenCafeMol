@@ -518,6 +518,10 @@ Simulator read_toml_input(const std::string& toml_file_name)
     const bool         dump_progress_bar =
         toml::find_or<bool>(output, "progress_bar", true);
     std::string output_path   = toml::find<std::string>(output, "path");
+    if(output_path.empty())
+    {
+        output_path = "./";
+    }
     if(output_path.back() != '/')
     {
         output_path += '/';
