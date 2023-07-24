@@ -163,7 +163,8 @@ class ThreeSPN2BasePairForceFieldGenerator final : public ForceFieldGeneratorBas
 
     std::string name() const noexcept
     {
-        return "3SPN2BasePair (" + base_pair_.first + "-" + base_pair_.second + ")";
+        return PotentialParameterType::name+"BasePair "
+               "(" + base_pair_.first + "-" + base_pair_.second + ")";
     };
 
   private:
