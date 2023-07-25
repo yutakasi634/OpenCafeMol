@@ -39,7 +39,7 @@ std::map<std::string, std::map<std::string, std::string>> read_inp_file(const st
                 section_name = result.str(1);
                 inp_data.insert(std::make_pair(section_name, std::map<std::string, std::string>()));
             }
-            else if(!std::regex_match(line, std::regex("^\\s*$"))) // non-comment line
+            else if(!std::regex_match(line, std::regex("^\\s*$"))) // non-empty line
             {
                 std::size_t hash_position = line.find_first_of("#");
                 if(hash_position == std::string::npos)
@@ -49,7 +49,11 @@ std::map<std::string, std::map<std::string, std::string>> read_inp_file(const st
                 const std::string noncomment_part = line.substr(0, hash_position);
                 std::regex_match(noncomment_part, result,
                                  std::regex("\\s*(\\S+)\\s*=\\s*(\\S+)\\s*"));
-                table_contents.insert(std::make_pair(result.str(1), result.str(2)));
+
+                if(!result.empty()) // avoid inserting comment only line
+                {
+                    table_contents.insert(std::make_pair(result.str(1), result.str(2)));
+                }
             }
         }
     }
