@@ -5,19 +5,19 @@ output.format = "pdb"       # output format
 
 # optional. By default, "CUDA" platform is used.
 [platform]
-name = "CUDA"
-properties.Precision = "single"
-properties.UseCpuPme = "false"
-properties.DeviceIndex = "0"
+name = "CPU"
+properties.Threads = "1"
 
 # [platform]
-# name = "CPU"
-# properties.Threads = "4"
+# name = "CUDA"
+# properties.Precision = "single"
+# properties.UseCpuPme = "false"
+# properties.DeviceIndex = "0"
 
 [simulator]
 boundary_type = "Unlimited"
 delta_t       = 0.01
-total_step    = 100_000
+total_step    = 1000
 save_step     = 100
 seed          = 12345
 
