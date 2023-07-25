@@ -3,11 +3,22 @@ output.prefix = "flatmemb128_MembraneBarostat"
 output.path   = "./output/"
 output.format = "pdb"
 
+# optional. By default, "CUDA" platform is used.
+[platform]
+name = "CPU"
+properties.Threads = "1"
+
+# [platform]
+# name = "CUDA"
+# properties.Precision = "single"
+# properties.UseCpuPme = "false"
+# properties.DeviceIndex = "0"
+
 [simulator]
 precision     = "float"
 boundary_type = "PeriodicCuboid"
 delta_t       = 0.1
-total_step    = 1000_000
+total_step    = 1000
 save_step     = 100
 seed          = 12345
 
