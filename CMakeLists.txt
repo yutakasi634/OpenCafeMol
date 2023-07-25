@@ -63,4 +63,5 @@ message(STATUS "debugger flags are ${OPEN_AICG2PLUS_DEBUGGER_FLAGS}")
 # =============================================================================
 # Build the code
 
+add_subdirectory(fmt)
 add_subdirectory(src)
