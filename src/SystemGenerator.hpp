@@ -110,11 +110,10 @@ class SystemGenerator
         {
             std::cerr << "generating barostat..." << std::endl;
             const auto& barostat_gen_ptr = barostat_gen_opt_.value();
-            std::cerr << "    ensemble type is NPT with anisotropic barostat" << std::endl;
             if(!edge_lengthes_opt_)
             {
                 throw std::runtime_error(
-                        "[error] ensemble type \"NPT\" should be used with periodic boundary condition.");
+                        "[error] barostat should be used with periodic boundary condition.");
             }
 
             std::cerr << "    barostat is " << barostat_gen_ptr->name() << std::endl;

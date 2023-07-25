@@ -55,33 +55,40 @@ class ProgressBar
         os << '|';
 
         const auto current  = std::chrono::system_clock::now();
-        const auto residual = std::chrono::duration_cast<std::chrono::milliseconds>(
-            (current - start_) * (1.0 - ratio) / ratio).count() * 0.001;
 
         buf.fill('\0');
-        if(residual < 60.0)
+
+        // ratio == 0 means the first step.
+        // If ratio is zero, we cannot estimate how long does it take.
+        // Also we need to avoid zero-division.
+        if(ratio != 0)
         {
-            std::snprintf(buf.data(), 6, "%5.1f", residual);
-            os << buf.data() << " seconds remaning  ";
-        }
-        else if(residual < 60.0 * 60.0)
-        {
-            std::snprintf(buf.data(), 6, "%5.1f", residual * 0.0167);
-            os << buf.data() << " minutes remaining ";
-        }
-        else if(residual < 60.0 * 60.0 * 24.0)
-        {
-            std::snprintf(buf.data(), 6, "%5.1f", residual * 0.0167 * 0.0167);
-            os << buf.data() << " hours remaining   ";
-        }
-        else if(residual < 60.0 * 60.0 * 24.0 * 99.0)
-        {
-            std::snprintf(buf.data(), 6, "%5.1f", residual * 0.0167 * 0.0167 * 0.0417);
-            os << buf.data() << " days remaining    ";
-        }
-        else
-        {
-            os << " over 100 days remaining";
+            const auto residual = std::chrono::duration_cast<std::chrono::milliseconds>(
+                (current - start_) * (1.0 - ratio) / ratio).count() * 0.001;
+            if(residual < 60.0)
+            {
+                std::snprintf(buf.data(), 6, "%5.1f", residual);
+                os << buf.data() << " seconds remaning  ";
+            }
+            else if(residual < 60.0 * 60.0)
+            {
+                std::snprintf(buf.data(), 6, "%5.1f", residual * 0.0167);
+                os << buf.data() << " minutes remaining ";
+            }
+            else if(residual < 60.0 * 60.0 * 24.0)
+            {
+                std::snprintf(buf.data(), 6, "%5.1f", residual * 0.0167 * 0.0167);
+                os << buf.data() << " hours remaining   ";
+            }
+            else if(residual < 60.0 * 60.0 * 24.0 * 99.0)
+            {
+                std::snprintf(buf.data(), 6, "%5.1f", residual * 0.0167 * 0.0167 * 0.0417);
+                os << buf.data() << " days remaining    ";
+            }
+            else
+            {
+                os << " over 100 days remaining";
+            }
         }
         os << std::flush;
 
@@ -90,6 +97,7 @@ class ProgressBar
 
     void finalize(std::ostream& os) const
     {
+        this->format(1, 1, os); // show 100%
         os << std::endl;
     }
 
