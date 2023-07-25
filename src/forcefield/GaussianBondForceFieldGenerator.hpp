@@ -16,7 +16,7 @@ class GaussianBondForceFieldGenerator final : public ForceFieldGeneratorBase
     GaussianBondForceFieldGenerator(
         const std::vector<indices_type>& indices_vec, const std::vector<double>& ks,
         const std::vector<double>& v0s, const std::vector<double>& sigmas,
-        const bool use_periodic, const std::size_t ffgen_id = 0)
+        const bool use_periodic, const std::size_t ffgen_id)
         : indices_vec_(indices_vec), ks_(ks), v0s_(v0s), sigmas_(sigmas),
           use_periodic_(use_periodic), ffgen_id_str_(std::to_string(ffgen_id))
     {

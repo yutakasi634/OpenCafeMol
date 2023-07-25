@@ -17,7 +17,7 @@ class FlexibleLocalAngleForceFieldGenerator final : public ForceFieldGeneratorBa
     FlexibleLocalAngleForceFieldGenerator(
         const std::vector<indices_type>& indices_vec, const std::vector<double>& ks,
         const std::array<double, 10>& spline_table, const std::string& aa_name,
-        const bool use_periodic, const std::size_t ffgen_id = 0,
+        const bool use_periodic, const std::size_t ffgen_id,
         const double min_theta = Constant::fla_spline_min_theta,
         const double max_theta = Constant::fla_spline_max_theta)
         : indices_vec_(indices_vec), ks_(ks), aa_name_(aa_name),

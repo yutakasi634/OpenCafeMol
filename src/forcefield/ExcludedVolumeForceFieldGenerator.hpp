@@ -18,11 +18,11 @@ class ExcludedVolumeForceFieldGenerator final: public ForceFieldGeneratorBase
     ExcludedVolumeForceFieldGenerator(const double eps, const double cutoff,
         const std::vector<std::optional<double>>& radiuses,
         const index_pairs_type& ignore_list, const bool use_periodic,
-        const std::size_t ffgen_count = 0,
+        const std::size_t ffgen_id,
         const std::vector<std::pair<std::string, std::string>> ignore_group_pairs = {},
         const std::vector<std::optional<std::string>> group_vec = {})
         : eps_(eps), cutoff_(cutoff), radiuses_(radiuses), ignore_list_(ignore_list),
-          use_periodic_(use_periodic), ffgen_id_str_(std::to_string(ffgen_count))
+          use_periodic_(use_periodic), ffgen_id_str_(std::to_string(ffgen_id))
     {
         if(ignore_group_pairs.size() == 0)
         {

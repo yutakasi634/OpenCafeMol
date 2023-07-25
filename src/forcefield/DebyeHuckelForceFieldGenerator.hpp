@@ -16,7 +16,7 @@ class DebyeHuckelForceFieldGenerator final : public ForceFieldGeneratorBase
         const double temperature, const double cutoff_ratio,
         const std::vector<std::optional<double>>& charges,
         const index_pairs_type& ignore_list,
-        const bool use_periodic, const std::size_t ffgen_id = 0,
+        const bool use_periodic, const std::size_t ffgen_id,
         const std::vector<std::pair<std::string, std::string>> ignore_group_pairs = {},
         const std::vector<std::optional<std::string>> group_vec = {})
         : ionic_strength_(ionic_strength), temperature_(temperature),
