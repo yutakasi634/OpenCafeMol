@@ -2,6 +2,7 @@
 #define OPEN_AICG2_PLUS_WEEKS_CHANDLER_ANDERSEN_FORCE_FIELD_GENERATOR_HPP
 
 #include <OpenMM.h>
+#include <fmt/core.h>
 #include "ForceFieldGeneratorBase.hpp"
 
 class WeeksChandlerAndersenForceFieldGenerator final : public ForceFieldGeneratorBase
@@ -19,7 +20,7 @@ class WeeksChandlerAndersenForceFieldGenerator final : public ForceFieldGenerato
         const std::vector<std::pair<std::string, std::string>> ignore_group_pairs = {},
         const std::vector<std::optional<std::string>> group_vec = {})
         : sigmas_(sigmas), epsilons_(epsilons), ignore_list_(ignore_list),
-          use_periodic_(use_periodic), ffgen_id_str_(std::to_string(ffgen_id))
+          use_periodic_(use_periodic), ffgen_id_(ffgen_id)
     {
         assert(this->sigmas_.size() == this->epsilons_.size());
 
@@ -114,17 +115,19 @@ class WeeksChandlerAndersenForceFieldGenerator final : public ForceFieldGenerato
 
     std::unique_ptr<OpenMM::Force> generate() const override
     {
-        const std::string potential_formula =
+        const std::string potential_formula = fmt::format(
             "step(sigma*2^(1/6)-r) * (4*eps * (sigma_r_12 - sigma_r_6) + eps);"
             "sigma_r_12 = sigma_r_6^2;"
             "sigma_r_6 = sigma_r^6;"
             "sigma_r = sigma/r;"
-            "eps     = sqrt(WCA"+ffgen_id_str_+"_eps1*WCA"+ffgen_id_str_+"_eps2);"
-            "sigma   = (WCA"+ffgen_id_str_+"_sigma1+WCA"+ffgen_id_str_+"_sigma2)*0.5";
+            "eps     = sqrt(WCA{id}_eps1 * WCA{id}_eps2);"
+            "sigma   = (WCA{id}_sigma1 + WCA{id}_sigma2) * 0.5",
+            fmt::arg("id", ffgen_id_));
+
         auto wca_ff = std::make_unique<OpenMM::CustomNonbondedForce>(potential_formula);
 
-        wca_ff->addPerParticleParameter("WCA"+ffgen_id_str_+"_sigma");
-        wca_ff->addPerParticleParameter("WCA"+ffgen_id_str_+"_eps");
+        wca_ff->addPerParticleParameter(fmt::format("WCA{}_sigma", ffgen_id_));
+        wca_ff->addPerParticleParameter(fmt::format("WCA{}_eps", ffgen_id_));
 
         double max_sigma        = std::numeric_limits<double>::min();
         double second_max_sigma = std::numeric_limits<double>::min();
@@ -201,7 +204,7 @@ class WeeksChandlerAndersenForceFieldGenerator final : public ForceFieldGenerato
     index_pairs_type                    ignore_list_;
     std::vector<interaction_group_type> interaction_groups_;
     bool                                use_periodic_;
-    std::string                         ffgen_id_str_;
+    std::size_t                         ffgen_id_;
 };
 
 #endif // OPEN_AICG2_PLUS_WEEKS_CHANDLER_ANDERSEN_FORCE_FIELD_GENERATOR_HPP
