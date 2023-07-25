@@ -97,6 +97,7 @@ class ProgressBar
 
     void finalize(std::ostream& os) const
     {
+        this->format(1, 1, os); // show 100%
         os << std::endl;
     }
 
