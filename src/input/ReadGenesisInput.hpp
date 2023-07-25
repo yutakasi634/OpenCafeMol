@@ -418,6 +418,11 @@ Simulator make_simulator_from_genesis_inputs(
 
     // read [PLATFORM] section (set `CUDA` if it does not exist)
     std::string platform_name = "CUDA";
+
+
+    // platform properties corresponds to OpenMM platform-specific properties.
+    // The detail informations are in
+    // http://docs.openmm.org/latest/userguide/library/04_platform_specifics.html
     std::map<std::string, std::string> platform_properties = {};
     if(inpfile_data.count("PLATFORM") != 0)
     {

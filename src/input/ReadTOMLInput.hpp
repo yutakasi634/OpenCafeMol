@@ -577,6 +577,10 @@ Simulator read_toml_input(const std::string& toml_file_name)
     const auto platform_table = toml::find_or(data, "platform", {});
     const auto platform_name  = toml::find_or<std::string>(platform_table, "name", std::string("CUDA"));
     std::cerr << "    OpenMM platform : " << platform_name << std::endl;
+
+    // platform properties corresponds to OpenMM platform-specific properties.
+    // The detail informations are in
+    // http://docs.openmm.org/latest/userguide/library/04_platform_specifics.html
     const auto platform_properties =
         toml::find_or<std::map<std::string, std::string>>(platform_table, "properties", {/*no properties*/});
 
