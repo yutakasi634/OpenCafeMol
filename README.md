@@ -4,6 +4,8 @@
 
 ## Requirement
 - OpenMM
+- C++17
+- CMake 3.10
 
 ## Build
 Since OpenAICG2plus manages depending library via git submodule, clone this repo using git and do not download zip or release-tarball. It will cause compilation error.
