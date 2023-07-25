@@ -218,8 +218,8 @@ SystemGenerator read_toml_system(const toml::value& data)
                             local_ff, aa_type, spline_table, topology, use_periodic, ffgen_count);
                     system_gen.add_ff_generator(
                             std::make_unique<FlexibleLocalAngleForceFieldGenerator>(ff_gen));
+                    ++ffgen_count;
                 }
-                ++ffgen_count;
             }
             else if(interaction == "DihedralAngle" && potential == "Gaussian")
             {
@@ -518,6 +518,10 @@ Simulator read_toml_input(const std::string& toml_file_name)
     const bool         dump_progress_bar =
         toml::find_or<bool>(output, "progress_bar", true);
     std::string output_path   = toml::find<std::string>(output, "path");
+    if(output_path.empty())
+    {
+        output_path = "./";
+    }
     if(output_path.back() != '/')
     {
         output_path += '/';
