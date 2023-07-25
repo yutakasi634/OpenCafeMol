@@ -17,6 +17,9 @@ class ExcludedVolumeForceFieldGenerator final: public ForceFieldGeneratorBase
     using interaction_group_type = std::pair<std::set<int>, std::set<int>>;
 
   public:
+    // The size of the vector representing the per-particle parameters
+    // (in this case, radiuses) must match the system size. This must be guaranteed
+    // inside the read function.
     ExcludedVolumeForceFieldGenerator(const double eps, const double cutoff,
         const std::vector<std::optional<double>>& radiuses,
         const index_pairs_type& ignore_list, const bool use_periodic,
