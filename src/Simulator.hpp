@@ -11,7 +11,8 @@ class Simulator
   public:
     Simulator(
         const SystemGenerator& system_gen, const IntegratorGeneratorBase& integrator_gen,
-        OpenMM::Platform& platform, const std::map<std::string, std::string>& platform_properties,
+        OpenMM::Platform& platform,
+        const std::map<std::string, std::string>& platform_properties,
         const std::vector<OpenMM::Vec3>& initial_position,
         const std::size_t total_step, const std::size_t save_step,
         std::vector<std::unique_ptr<ObserverBase>>& observers, bool output_progress = true)
@@ -23,7 +24,8 @@ class Simulator
 
     Simulator(
         const SystemGenerator& system_gen, const IntegratorGeneratorBase& integrator_gen,
-        OpenMM::Platform& platform, const std::map<std::string, std::string>& platform_properties,
+        OpenMM::Platform& platform,
+        const std::map<std::string, std::string>& platform_properties,
         const std::size_t total_step, const std::size_t save_step,
         std::vector<std::unique_ptr<ObserverBase>>& observers, bool output_progress = true)
         : system_ptr_(system_gen.generate().release()), integrator_ptr_(integrator_gen.generate()),

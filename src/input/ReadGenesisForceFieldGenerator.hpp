@@ -37,7 +37,8 @@ read_genesis_harmonic_bond_ff_generator(
 
 GaussianBondForceFieldGenerator
 read_genesis_gaussian_bond_ff_generator(
-        const std::vector<std::string>& angles_data, const bool use_periodic)
+        const std::vector<std::string>& angles_data, const bool use_periodic,
+        const std::size_t ffgen_id)
 {
     std::vector<std::pair<std::size_t, std::size_t>> indices_vec;
     std::vector<double>                              v0s;
@@ -62,12 +63,14 @@ read_genesis_gaussian_bond_ff_generator(
     }
 
     std::cerr << "    BondLength    : Gaussian (" << indices_vec.size() << " found)" << std::endl;
-    return GaussianBondForceFieldGenerator(indices_vec, ks, v0s, sigmas, use_periodic);
+    return GaussianBondForceFieldGenerator(
+            indices_vec, ks, v0s, sigmas, use_periodic, ffgen_id);
 }
 
 GoContactForceFieldGenerator
 read_genesis_go_contact_ff_generator(
-        const std::vector<std::string>& pairs_data, Topology& topology, const bool use_periodic)
+        const std::vector<std::string>& pairs_data, Topology& topology,
+        const bool use_periodic, const std::size_t ffgen_id)
 {
     std::vector<std::pair<std::size_t, std::size_t>> indices_vec;
     std::vector<double>                              ks;
@@ -87,13 +90,13 @@ read_genesis_go_contact_ff_generator(
     topology.add_edges(indices_vec, "contact");
 
     std::cerr << "    BondLength    : GoContact (" << indices_vec.size() << " found)" << std::endl;
-    return GoContactForceFieldGenerator(indices_vec, ks, r0s, use_periodic);
+    return GoContactForceFieldGenerator(indices_vec, ks, r0s, use_periodic, ffgen_id);
 }
 
 FlexibleLocalAngleForceFieldGenerator
 read_genesis_flexible_local_angle_ff_generator(
         const std::vector<std::string>& angles_data, const std::vector<std::string>& atoms_data,
-        const std::string& aa_type, const bool use_periodic)
+        const std::string& aa_type, const bool use_periodic, const std::size_t ffgen_id)
 {
     std::vector<std::string> aa_type_vec;
     for(const auto& atoms_line : atoms_data)
@@ -123,12 +126,13 @@ read_genesis_flexible_local_angle_ff_generator(
 
     return FlexibleLocalAngleForceFieldGenerator(
                indices_vec, std::vector<double>(indices_vec.size(), OpenMM::KJPerKcal),
-               Constant::fla_spline_table.at(aa_type), aa_type, use_periodic);
+               Constant::fla_spline_table.at(aa_type), aa_type, use_periodic, ffgen_id);
 }
 
 GaussianDihedralForceFieldGenerator
 read_genesis_gaussian_dihedral_ff_generator(
-        const std::vector<std::string>& dihedrals_data, const bool use_periodic)
+        const std::vector<std::string>& dihedrals_data,
+        const bool use_periodic, const std::size_t ffgen_id)
 {
     std::vector<std::array<std::size_t, 4>> indices_vec;
     std::vector<double>                     ks;
@@ -155,13 +159,16 @@ read_genesis_gaussian_dihedral_ff_generator(
     }
 
     std::cerr << "    DihedralAngle : Gaussian (" << indices_vec.size() << " found)" << std::endl;
-    return GaussianDihedralForceFieldGenerator(indices_vec, ks, theta0s, sigmas, use_periodic);
+    return GaussianDihedralForceFieldGenerator(
+            indices_vec, ks, theta0s, sigmas, use_periodic, ffgen_id);
 }
 
 FlexibleLocalDihedralForceFieldGenerator
 read_genesis_flexible_local_dihedral_ff_generator(
-        const std::vector<std::string>& dihedrals_data, const std::vector<std::string>& atoms_data,
-        const std::pair<std::string, std::string>& aa_type_pair, const bool use_periodic)
+        const std::vector<std::string>& dihedrals_data,
+        const std::vector<std::string>& atoms_data,
+        const std::pair<std::string, std::string>& aa_type_pair,
+        const bool use_periodic, const std::size_t ffgen_id)
 {
     std::vector<std::string> aa_type_vec;
     for(const auto& atoms_line : atoms_data)
@@ -228,13 +235,14 @@ read_genesis_flexible_local_dihedral_ff_generator(
     std::vector<double> ks = std::vector<double>(indices_vec.size(), OpenMM::KJPerKcal);
     return FlexibleLocalDihedralForceFieldGenerator(indices_vec, ks,
             Constant::fld_fourier_table.at(aa_type_pair),
-            aa_type_pair.first + "-" + aa_type_pair.second, use_periodic);
+            aa_type_pair.first + "-" + aa_type_pair.second, use_periodic, ffgen_id);
 }
 
 ExcludedVolumeForceFieldGenerator
 read_genesis_exv_ff_generator(const std::vector<std::string>& atomtypes_data,
         const std::vector<std::string>& atoms_data, Topology& topology,
-        const bool use_periodic, const std::size_t ignore_particle_within_bond = 3)
+        const bool use_periodic, const std::size_t ffgen_id,
+        const std::size_t ignore_particle_within_bond = 3)
 {
     std::map<std::string, double> name_rmin_map;
     std::string                   eps_str;
@@ -285,7 +293,7 @@ read_genesis_exv_ff_generator(const std::vector<std::string>& atomtypes_data,
     ignore_list.erase(result, ignore_list.end());
 
     return ExcludedVolumeForceFieldGenerator(
-            eps, 2.0/*cutoff ratio*/, radius_vec, ignore_list, use_periodic);
+            eps, 2.0/*cutoff ratio*/, radius_vec, ignore_list, use_periodic, ffgen_id);
 }
 
 #endif // OPEN_AICG2_PLUS_READ_GENESIS_FORCE_FIELD_GENERATOR_HPP

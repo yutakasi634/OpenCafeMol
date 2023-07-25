@@ -14,7 +14,7 @@ class GaussianDihedralForceFieldGenerator final : public ForceFieldGeneratorBase
     GaussianDihedralForceFieldGenerator(
         const std::vector<indices_type>& indices_vec, const std::vector<double>& ks,
         const std::vector<double>&       theta0s,     const std::vector<double>& sigmas,
-        const bool use_periodic, const std::size_t ffgen_id = 0)
+        const bool use_periodic, const std::size_t ffgen_id)
         : indices_vec_(indices_vec), ks_(ks), theta0s_(theta0s), sigmas_(sigmas),
           use_periodic_(use_periodic), ffgen_id_str_(std::to_string(ffgen_id))
     {

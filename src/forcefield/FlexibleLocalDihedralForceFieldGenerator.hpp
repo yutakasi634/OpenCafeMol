@@ -14,7 +14,7 @@ class FlexibleLocalDihedralForceFieldGenerator final : public ForceFieldGenerato
     FlexibleLocalDihedralForceFieldGenerator(
         const std::vector<indices_type>& indices_vec, const std::vector<double>& ks,
         const std::array<double, 7>& fourier_table, const std::string& aa_pair_name,
-        const bool use_periodic, const std::size_t ffgen_id = 0)
+        const bool use_periodic, const std::size_t ffgen_id)
         : indices_vec_(indices_vec), ks_(ks),
           fourier_table_(fourier_table), aa_pair_name_(aa_pair_name),
           use_periodic_(use_periodic), ffgen_id_str_(std::to_string(ffgen_id))

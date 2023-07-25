@@ -4,6 +4,10 @@
 #include <OpenMM.h>
 #include "ForceFieldGeneratorBase.hpp"
 
+// The formulation of this potential is
+//        /                 -ε                , r <= 2^(1/6)*σ
+//  u(r) < -ε * cos(0.5*π*(r - 2^(1/6)*σ)/ω)^2, 2^(1/6)*σ < r < 2^(1/6)*σ + ω
+//        \                  0                , 2^(1/6)*σ + ω <= r
 class iSoLFAttractiveForceFieldGenerator final : public ForceFieldGeneratorBase
 {
   public:

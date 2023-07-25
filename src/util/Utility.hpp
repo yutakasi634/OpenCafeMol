@@ -3,6 +3,7 @@
 
 #include <string>
 #include <algorithm>
+#include <filesystem>
 
 namespace Utility
 {
@@ -41,6 +42,25 @@ std::string erase_space(std::string&& str)
 
 void clear_file(const std::string& filename)
 {
+    std::filesystem::path fpath(filename);
+    fpath.remove_filename(); // extract direcotry
+
+    // output filename = "filename.pdb" means output dir is current dir
+    if(fpath.empty())
+    {
+        fpath = "./";
+    }
+
+    if( ! std::filesystem::exists(fpath))
+    {
+        std::filesystem::create_directories(fpath);
+    }
+    if( ! std::filesystem::exists(fpath) || ! std::filesystem::is_directory(fpath))
+    {
+        throw std::runtime_error(
+                "failed to make output directory: " + fpath.string());
+    }
+
     std::ofstream ofs(filename);
     if(not ofs.good())
     {

@@ -166,7 +166,7 @@ SystemGenerator read_toml_system(const toml::value& data)
     const auto ff = toml::find(data, "forcefields").at(0);
     // to distinguish same name parameters between forcefields, we need to label forcefield
     // id to that parameter. so we need to count the number of forcefield generator.
-    std::size_t ffgen_count = 0;
+    std::size_t custom_ffgen_count = 0;
     if(ff.contains("local"))
     {
         const auto& locals = toml::find(ff, "local").as_array();
@@ -178,28 +178,29 @@ SystemGenerator read_toml_system(const toml::value& data)
             if(interaction == "BondLength" && potential == "Harmonic")
             {
                 HarmonicBondForceFieldGenerator ff_gen =
-                    read_toml_harmonic_bond_ff_generator(local_ff, topology, use_periodic);
+                    read_toml_harmonic_bond_ff_generator(
+                            local_ff, topology, use_periodic);
                 system_gen.add_ff_generator(
                         std::make_unique<HarmonicBondForceFieldGenerator>(ff_gen));
-                ++ffgen_count;
+                ++custom_ffgen_count;
             }
             else if(interaction == "BondLength" && potential == "Gaussian")
             {
                 GaussianBondForceFieldGenerator ff_gen =
                     read_toml_gaussian_bond_ff_generator(
-                        local_ff, topology, use_periodic, ffgen_count);
+                        local_ff, topology, use_periodic, custom_ffgen_count);
                 system_gen.add_ff_generator(
                         std::make_unique<GaussianBondForceFieldGenerator>(ff_gen));
-                ++ffgen_count;
+                ++custom_ffgen_count;
             }
             else if(interaction == "BondLength" && potential == "GoContact")
             {
                 GoContactForceFieldGenerator ff_gen =
                     read_toml_go_contact_ff_generator(
-                        local_ff, topology, use_periodic, ffgen_count);
+                        local_ff, topology, use_periodic, custom_ffgen_count);
                 system_gen.add_ff_generator(
                         std::make_unique<GoContactForceFieldGenerator>(ff_gen));
-                ++ffgen_count;
+                ++custom_ffgen_count;
             }
             else if(interaction == "BondAngle" && potential == "Harmonic")
             {
@@ -207,7 +208,7 @@ SystemGenerator read_toml_system(const toml::value& data)
                     read_toml_harmonic_angle_ff_generator(local_ff, topology, use_periodic);
                 system_gen.add_ff_generator(
                         std::make_unique<HarmonicAngleForceFieldGenerator>(ff_gen));
-                ++ffgen_count;
+                ++custom_ffgen_count;
             }
             else if(interaction == "BondAngle" && potential == "FlexibleLocalAngle")
             {
@@ -215,20 +216,20 @@ SystemGenerator read_toml_system(const toml::value& data)
                 {
                     FlexibleLocalAngleForceFieldGenerator ff_gen =
                         read_toml_flexible_local_angle_ff_generator(
-                            local_ff, aa_type, spline_table, topology, use_periodic, ffgen_count);
+                            local_ff, aa_type, spline_table, topology, use_periodic, custom_ffgen_count);
                     system_gen.add_ff_generator(
                             std::make_unique<FlexibleLocalAngleForceFieldGenerator>(ff_gen));
-                    ++ffgen_count;
+                    ++custom_ffgen_count;
                 }
             }
             else if(interaction == "DihedralAngle" && potential == "Gaussian")
             {
                 GaussianDihedralForceFieldGenerator ff_gen =
                     read_toml_gaussian_dihedral_ff_generator(
-                            local_ff, topology, use_periodic, ffgen_count);
+                            local_ff, topology, use_periodic, custom_ffgen_count);
                 system_gen.add_ff_generator(
                         std::make_unique<GaussianDihedralForceFieldGenerator>(ff_gen));
-                ++ffgen_count;
+                ++custom_ffgen_count;
             }
             else if(interaction == "DihedralAngle" && potential == "FlexibleLocalDihedral")
             {
@@ -237,11 +238,11 @@ SystemGenerator read_toml_system(const toml::value& data)
                     FlexibleLocalDihedralForceFieldGenerator ff_gen =
                         read_toml_flexible_local_dihedral_ff_generator(
                             local_ff, aa_pair_type, fourier_table, topology,
-                            use_periodic, ffgen_count);
+                            use_periodic, custom_ffgen_count);
                     system_gen.add_ff_generator(
                             std::make_unique<FlexibleLocalDihedralForceFieldGenerator>(
                                 ff_gen));
-                    ++ffgen_count;
+                    ++custom_ffgen_count;
                 }
             }
         }
@@ -259,10 +260,10 @@ SystemGenerator read_toml_system(const toml::value& data)
             {
                 ExcludedVolumeForceFieldGenerator ff_gen =
                     read_toml_excluded_volume_ff_generator(
-                        global_ff, system_size, topology, group_vec, use_periodic, ffgen_count);
+                        global_ff, system_size, topology, group_vec, use_periodic, custom_ffgen_count);
                 system_gen.add_ff_generator(
                         std::make_unique<ExcludedVolumeForceFieldGenerator>(ff_gen));
-                ++ffgen_count;
+                ++custom_ffgen_count;
             }
             if(potential == "WCA")
             {
@@ -294,7 +295,7 @@ SystemGenerator read_toml_system(const toml::value& data)
                                 UniformWeeksChandlerAndersenForceFieldGenerator ff_gen =
                                     read_toml_uniform_weeks_chandler_andersen_ff_generator(
                                         global_ff, system_size, sigma, epsilon, name_pair, topology,
-                                        group_vec, use_periodic, ffgen_count);
+                                        group_vec, use_periodic, custom_ffgen_count);
                                 if(ff_gen.former_group_size() == 0 || ff_gen.latter_group_size() == 0)
                                 {
                                     std::cerr << "        "
@@ -306,7 +307,7 @@ SystemGenerator read_toml_system(const toml::value& data)
                                     std::make_unique<
                                         UniformWeeksChandlerAndersenForceFieldGenerator>(
                                                 ff_gen));
-                                ++ffgen_count;
+                                ++custom_ffgen_count;
                                 treated_pair.push_back(name_pair);
                             }
                         }
@@ -316,11 +317,11 @@ SystemGenerator read_toml_system(const toml::value& data)
                 {
                     WeeksChandlerAndersenForceFieldGenerator ff_gen =
                         read_toml_weeks_chandler_andersen_ff_generator(
-                            global_ff, system_size, topology, group_vec, use_periodic, ffgen_count);
+                            global_ff, system_size, topology, group_vec, use_periodic, custom_ffgen_count);
                     system_gen.add_ff_generator(
                             std::make_unique<WeeksChandlerAndersenForceFieldGenerator>(
                                 ff_gen));
-                    ++ffgen_count;
+                    ++custom_ffgen_count;
                 }
             }
             if(potential == "DebyeHuckel")
@@ -342,19 +343,19 @@ SystemGenerator read_toml_system(const toml::value& data)
                 DebyeHuckelForceFieldGenerator ff_gen =
                     read_toml_debye_huckel_ff_generator(global_ff, system_size,
                         ionic_strength.unwrap(), temperature.unwrap(), topology, group_vec,
-                        use_periodic, ffgen_count);
+                        use_periodic, custom_ffgen_count);
                 system_gen.add_ff_generator(
                         std::make_unique<DebyeHuckelForceFieldGenerator>(ff_gen));
-                ++ffgen_count;
+                ++custom_ffgen_count;
             }
             if(potential == "iSoLFAttractive")
             {
                 iSoLFAttractiveForceFieldGenerator ff_gen =
                     read_toml_isolf_attractive_ff_generator(
-                        global_ff, system_size, topology, group_vec, use_periodic, ffgen_count);
+                        global_ff, system_size, topology, group_vec, use_periodic, custom_ffgen_count);
                 system_gen.add_ff_generator(
                         std::make_unique<iSoLFAttractiveForceFieldGenerator>(ff_gen));
-                ++ffgen_count;
+                ++custom_ffgen_count;
             }
             if(potential == "LennardJonesAttractive")
             {
@@ -386,7 +387,7 @@ SystemGenerator read_toml_system(const toml::value& data)
                                 UniformLennardJonesAttractiveForceFieldGenerator ff_gen =
                                     read_toml_uniform_lennard_jones_attractive_ff_generator(
                                         global_ff, system_size, sigma, epsilon, name_pair,
-                                        topology, group_vec, use_periodic, ffgen_count);
+                                        topology, group_vec, use_periodic, custom_ffgen_count);
                                 if(ff_gen.former_group_size() == 0 ||ff_gen.latter_group_size() == 0)                                {
                                     std::cerr << "        "
                                         << "[warning] this force field generation will be skipped"
@@ -397,7 +398,7 @@ SystemGenerator read_toml_system(const toml::value& data)
                                     std::make_unique<
                                         UniformLennardJonesAttractiveForceFieldGenerator>(
                                                 ff_gen));
-                                ++ffgen_count;
+                                ++custom_ffgen_count;
                                 treated_pair.push_back(name_pair);
                             }
                         }
@@ -429,10 +430,10 @@ SystemGenerator read_toml_system(const toml::value& data)
                 {
                     HarmonicCoMPullingForceFieldGenerator ff_gen =
                         read_toml_harmonic_com_pulling_ff_generator(
-                                param, use_periodic, env, ffgen_count);
+                                param, use_periodic, env, custom_ffgen_count);
                     system_gen.add_ff_generator(
                             std::make_unique<HarmonicCoMPullingForceFieldGenerator>(ff_gen));
-                    ++ffgen_count;
+                    ++custom_ffgen_count;
                 }
             }
         }
@@ -518,6 +519,10 @@ Simulator read_toml_input(const std::string& toml_file_name)
     const bool         dump_progress_bar =
         toml::find_or<bool>(output, "progress_bar", true);
     std::string output_path   = toml::find<std::string>(output, "path");
+    if(output_path.empty())
+    {
+        output_path = "./";
+    }
     if(output_path.back() != '/')
     {
         output_path += '/';
@@ -576,11 +581,15 @@ Simulator read_toml_input(const std::string& toml_file_name)
     // read platform
     const auto platform_table = toml::find_or(data, "platform", {});
     const auto platform_name  = toml::find_or<std::string>(platform_table, "name", std::string("CUDA"));
+    std::cerr << "    OpenMM platform : " << platform_name << std::endl;
+
+    // platform properties corresponds to OpenMM platform-specific properties.
+    // The detail informations are in
+    // http://docs.openmm.org/latest/userguide/library/04_platform_specifics.html
     const auto platform_properties =
         toml::find_or<std::map<std::string, std::string>>(platform_table, "properties", {/*no properties*/});
 
     // check if the platform is available
-
     bool platform_found = false;
     for(int i=0; i<OpenMM::Platform::getNumPlatforms(); ++i)
     {

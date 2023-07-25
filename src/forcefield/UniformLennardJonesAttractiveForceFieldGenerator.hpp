@@ -17,7 +17,7 @@ class UniformLennardJonesAttractiveForceFieldGenerator final : public ForceField
         const std::vector<std::size_t>& former_group_vec,
         const std::vector<std::size_t>& latter_group_vec,
         const index_pairs_type& ignore_list, const bool use_periodic,
-        const std::size_t ffgen_count = 0,
+        const std::size_t ffgen_count,
         const std::vector<std::pair<std::string, std::string>> ignore_group_pairs = {},
         const std::vector<std::optional<std::string>> group_vec = {})
         : system_size_(system_size), eps_(eps), sigma_(sigma),

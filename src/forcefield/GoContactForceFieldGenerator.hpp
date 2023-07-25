@@ -16,7 +16,7 @@ class GoContactForceFieldGenerator final : public ForceFieldGeneratorBase
     GoContactForceFieldGenerator(
         const std::vector<indices_type>& indices_vec,
         const std::vector<double>& ks, const std::vector<double>& r0s,
-        const bool use_periodic, const std::size_t ffgen_id = 0)
+        const bool use_periodic, const std::size_t ffgen_id)
         : indices_vec_(indices_vec), ks_(ks), r0s_(r0s),
           use_periodic_(use_periodic), ffgen_id_str_(std::to_string(ffgen_id))
     {
