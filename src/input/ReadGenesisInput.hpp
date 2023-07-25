@@ -234,10 +234,12 @@ Simulator make_simulator_from_genesis_inputs(
 
     std::cerr << "reading forcefield tables..." << std::endl;
     Topology topology(top_data.at("atoms").size());
+    std::size_t custom_ffgen_count = 0;
     if(top_data.find("bonds") != top_data.end())
     {
         HarmonicBondForceFieldGenerator ff_gen =
-            read_genesis_harmonic_bond_ff_generator(top_data.at("bonds"), topology, use_periodic);
+            read_genesis_harmonic_bond_ff_generator(
+                    top_data.at("bonds"), topology, use_periodic);
         if(ff_gen.indices().size() != 0)
         {
             system_gen.add_ff_generator(
@@ -440,7 +442,6 @@ Simulator make_simulator_from_genesis_inputs(
     }
 
     // check if the platform is available
-
     bool platform_found = false;
     for(int i=0; i<OpenMM::Platform::getNumPlatforms(); ++i)
     {
