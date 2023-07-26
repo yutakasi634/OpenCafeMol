@@ -75,10 +75,10 @@ class Simulator
         for(const auto& observer : observers_)
         {
             observer->finalize();
-            if(output_progress_)
-            {
-                progress_bar_.finalize(std::cerr);
-            }
+        }
+        if(output_progress_)
+        {
+            progress_bar_.finalize(std::cerr);
         }
     }
 
