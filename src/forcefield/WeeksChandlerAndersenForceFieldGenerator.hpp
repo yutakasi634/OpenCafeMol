@@ -20,7 +20,7 @@ class WeeksChandlerAndersenForceFieldGenerator final : public ForceFieldGenerato
         const std::vector<std::pair<std::string, std::string>> ignore_group_pairs = {},
         const std::vector<std::optional<std::string>> group_vec = {})
         : sigmas_(sigmas), epsilons_(epsilons), ignore_list_(ignore_list),
-          use_periodic_(use_periodic), ffgen_id_(ffgen_id)
+          use_periodic_(use_periodic), ffgen_id_(fmt::format("WCA{}", ffgen_id))
     {
         assert(this->sigmas_.size() == this->epsilons_.size());
 
@@ -120,14 +120,14 @@ class WeeksChandlerAndersenForceFieldGenerator final : public ForceFieldGenerato
             "sigma_r_12 = sigma_r_6^2;"
             "sigma_r_6 = sigma_r^6;"
             "sigma_r = sigma/r;"
-            "eps     = sqrt(WCA{id}_eps1 * WCA{id}_eps2);"
-            "sigma   = (WCA{id}_sigma1 + WCA{id}_sigma2) * 0.5",
+            "eps     = sqrt({id}_eps1 * {id}_eps2);"
+            "sigma   = ({id}_sigma1 + {id}_sigma2) * 0.5",
             fmt::arg("id", ffgen_id_));
 
         auto wca_ff = std::make_unique<OpenMM::CustomNonbondedForce>(potential_formula);
 
-        wca_ff->addPerParticleParameter(fmt::format("WCA{}_sigma", ffgen_id_));
-        wca_ff->addPerParticleParameter(fmt::format("WCA{}_eps", ffgen_id_));
+        wca_ff->addPerParticleParameter(fmt::format("{}_sigma", ffgen_id_));
+        wca_ff->addPerParticleParameter(fmt::format("{}_eps", ffgen_id_));
 
         double max_sigma        = std::numeric_limits<double>::min();
         double second_max_sigma = std::numeric_limits<double>::min();
@@ -204,7 +204,7 @@ class WeeksChandlerAndersenForceFieldGenerator final : public ForceFieldGenerato
     index_pairs_type                    ignore_list_;
     std::vector<interaction_group_type> interaction_groups_;
     bool                                use_periodic_;
-    std::size_t                         ffgen_id_;
+    std::string                         ffgen_id_;
 };
 
 #endif // OPEN_AICG2_PLUS_WEEKS_CHANDLER_ANDERSEN_FORCE_FIELD_GENERATOR_HPP

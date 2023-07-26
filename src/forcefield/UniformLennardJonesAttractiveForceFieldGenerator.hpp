@@ -25,7 +25,7 @@ class UniformLennardJonesAttractiveForceFieldGenerator final : public ForceField
           ignore_list_(ignore_list), use_periodic_(use_periodic),
           former_group_size_(former_group_vec.size()),
           latter_group_size_(latter_group_vec.size()),
-          ffgen_id_(ffgen_count)
+          ffgen_id_(fmt::format("ULJ{}", ffgen_count))
     {
         cutoff_correction_ =
             4.0*(std::pow(1.0 / cutoff_ratio, 12) - std::pow(1.0 / cutoff_ratio, 6));
@@ -148,20 +148,20 @@ class UniformLennardJonesAttractiveForceFieldGenerator final : public ForceField
     std::unique_ptr<OpenMM::Force> generate() const noexcept override
     {
         const std::string potential_formula = fmt::format(
-            "ULJ{id}_epsilon *"
+            "{id}_epsilon *"
             "(step(r-threthold)*4*(sigma_r_12 - sigma_r_6) - step(threthold-r) -"
-            " ULJ{id}_cutoff_correction);"
+            " {id}_cutoff_correction);"
             "sigma_r_12 = sigma_r_6^2;"
             "sigma_r_6  = sigma_r^6;"
-            "sigma_r    = ULJ{id}_sigma/r;"
-            "threthold  = ULJ{id}_sigma*2^(1/6)",
+            "sigma_r    = {id}_sigma/r;"
+            "threthold  = {id}_sigma*2^(1/6)",
             fmt::arg("id", ffgen_id_));
 
         auto uljattr_ff = std::make_unique<OpenMM::CustomNonbondedForce>(potential_formula);
 
-        uljattr_ff->addGlobalParameter(fmt::format("ULJ{}_epsilon", ffgen_id_), eps_);
-        uljattr_ff->addGlobalParameter(fmt::format("ULJ{}_sigma", ffgen_id_), sigma_);
-        uljattr_ff->addGlobalParameter(fmt::format("ULJ{}_cutoff_correction", ffgen_id_), cutoff_correction_);
+        uljattr_ff->addGlobalParameter(fmt::format("{}_epsilon", ffgen_id_), eps_);
+        uljattr_ff->addGlobalParameter(fmt::format("{}_sigma", ffgen_id_), sigma_);
+        uljattr_ff->addGlobalParameter(fmt::format("{}_cutoff_correction", ffgen_id_), cutoff_correction_);
 
         for(std::size_t idx=0; idx<system_size_; ++idx)
         {
@@ -209,7 +209,7 @@ class UniformLennardJonesAttractiveForceFieldGenerator final : public ForceField
     bool             use_periodic_;
     std::size_t      former_group_size_;
     std::size_t      latter_group_size_;
-    std::size_t      ffgen_id_;
+    std::string      ffgen_id_;
 
     std::vector<interaction_group_type> interaction_groups_;
     double                              cutoff_correction_;

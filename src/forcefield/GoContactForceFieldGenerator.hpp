@@ -19,7 +19,7 @@ class GoContactForceFieldGenerator final : public ForceFieldGeneratorBase
         const std::vector<double>& ks, const std::vector<double>& r0s,
         const bool use_periodic, const std::size_t ffgen_id)
         : indices_vec_(indices_vec), ks_(ks), r0s_(r0s),
-          use_periodic_(use_periodic), ffgen_id_(ffgen_id)
+          use_periodic_(use_periodic), ffgen_id_(fmt::format("GC{}", ffgen_id))
     {
         if(!(indices_vec.size() == ks.size() && ks.size() == r0s.size()))
         {
@@ -37,12 +37,12 @@ class GoContactForceFieldGenerator final : public ForceFieldGeneratorBase
     std::unique_ptr<OpenMM::Force> generate() const noexcept override
     {
         const std::string potential_formula = fmt::format(
-            "GC{id}_k * (5 * (GC{id}_r0 / r)^12 - 6 * (GC{id}_r0 / r)^10)",
+            "{id}_k * (5 * ({id}_r0 / r)^12 - 6 * ({id}_r0 / r)^10)",
             fmt::arg("id", ffgen_id_));
         auto contact_ff = std::make_unique<OpenMM::CustomBondForce>(potential_formula);
         contact_ff->setUsesPeriodicBoundaryConditions(use_periodic_);
-        contact_ff->addPerBondParameter(fmt::format("GC{}_k", ffgen_id_));
-        contact_ff->addPerBondParameter(fmt::format("GC{}_r0", ffgen_id_));
+        contact_ff->addPerBondParameter(fmt::format("{}_k", ffgen_id_));
+        contact_ff->addPerBondParameter(fmt::format("{}_r0", ffgen_id_));
 
         for(std::size_t idx=0; idx<indices_vec_.size(); ++idx)
         {
@@ -61,7 +61,7 @@ class GoContactForceFieldGenerator final : public ForceFieldGeneratorBase
     std::vector<double>       ks_;
     std::vector<double>       r0s_;
     bool                      use_periodic_;
-    std::size_t               ffgen_id_;
+    std::string               ffgen_id_;
 };
 
 #endif // OPEN_AICG2_PLUS_GOCONTACT_FORCE_FIELD_GENERATOR_HPP

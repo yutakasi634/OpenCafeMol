@@ -21,7 +21,7 @@ class UniformWeeksChandlerAndersenForceFieldGenerator final : public ForceFieldG
         const std::vector<std::pair<std::string, std::string>> ignore_group_pairs = {},
         const std::vector<std::optional<std::string>> group_vec = {})
         : system_size_(system_size), eps_(eps), sigma_(sigma), ignore_list_(ignore_list),
-          use_periodic_(use_periodic), ffgen_id_(ffgen_id),
+          use_periodic_(use_periodic), ffgen_id_(fmt::format("UWCA{}", ffgen_id)),
           former_group_size_(former_group_vec.size()), latter_group_size_(latter_group_vec.size())
     {
         // make interaction group
@@ -141,16 +141,16 @@ class UniformWeeksChandlerAndersenForceFieldGenerator final : public ForceFieldG
     std::unique_ptr<OpenMM::Force> generate() const noexcept override
     {
         const std::string potential_formula = fmt::format(
-            "4 * UWCA{id}_eps * (sigma_r_12 - sigma_r_6 + 0.25);"
+            "4 * {id}_eps * (sigma_r_12 - sigma_r_6 + 0.25);"
             "sigma_r_12 = sigma_r_6^2;"
             "sigma_r_6  = sigma_r^6;"
-            "sigma_r    = UWCA{id}_sigma / r",
+            "sigma_r    = {id}_sigma / r",
             fmt::arg("id", ffgen_id_));
 
         auto uwca_ff = std::make_unique<OpenMM::CustomNonbondedForce>(potential_formula);
 
-        uwca_ff->addGlobalParameter(fmt::format("UWCA{}_sigma", ffgen_id_), sigma_);
-        uwca_ff->addGlobalParameter(fmt::format("UWCA{}_eps", ffgen_id_), eps_);
+        uwca_ff->addGlobalParameter(fmt::format("{}_sigma", ffgen_id_), sigma_);
+        uwca_ff->addGlobalParameter(fmt::format("{}_eps", ffgen_id_), eps_);
 
         for(std::size_t idx=0; idx<system_size_; ++idx)
         {
@@ -197,7 +197,7 @@ class UniformWeeksChandlerAndersenForceFieldGenerator final : public ForceFieldG
     double           sigma_;
     index_pairs_type ignore_list_;
     bool             use_periodic_;
-    std::size_t      ffgen_id_;
+    std::string      ffgen_id_;
     std::size_t      former_group_size_;
     std::size_t      latter_group_size_;
 

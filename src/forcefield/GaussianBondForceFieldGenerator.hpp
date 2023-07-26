@@ -19,7 +19,7 @@ class GaussianBondForceFieldGenerator final : public ForceFieldGeneratorBase
         const std::vector<double>& v0s, const std::vector<double>& sigmas,
         const bool use_periodic, const std::size_t ffgen_id)
         : indices_vec_(indices_vec), ks_(ks), v0s_(v0s), sigmas_(sigmas),
-          use_periodic_(use_periodic), ffgen_id_(ffgen_id)
+          use_periodic_(use_periodic), ffgen_id_(fmt::format("GB{}", ffgen_id))
     {
         if(!(indices_vec.size() == v0s.size() && v0s.size() == ks.size()))
         {
@@ -38,14 +38,14 @@ class GaussianBondForceFieldGenerator final : public ForceFieldGeneratorBase
     std::unique_ptr<OpenMM::Force> generate() const noexcept override
     {
         const std::string potential_formula = fmt::format(
-            "GB{id}_k * exp(-(r - GB{id}_v0)^2 / (2 * GB{id}_sigma^2))",
+            "{id}_k * exp(-(r - {id}_v0)^2 / (2 * {id}_sigma^2))",
             fmt::arg("id", ffgen_id_));
 
         auto bond_ff = std::make_unique<OpenMM::CustomBondForce>(potential_formula);
         bond_ff->setUsesPeriodicBoundaryConditions(use_periodic_);
-        bond_ff->addPerBondParameter(fmt::format("GB{}_k", ffgen_id_));
-        bond_ff->addPerBondParameter(fmt::format("GB{}_v0", ffgen_id_));
-        bond_ff->addPerBondParameter(fmt::format("GB{}_sigma", ffgen_id_));
+        bond_ff->addPerBondParameter(fmt::format("{}_k", ffgen_id_));
+        bond_ff->addPerBondParameter(fmt::format("{}_v0", ffgen_id_));
+        bond_ff->addPerBondParameter(fmt::format("{}_sigma", ffgen_id_));
 
         for(std::size_t idx=0; idx<indices_vec_.size(); ++idx)
         {
@@ -66,7 +66,7 @@ class GaussianBondForceFieldGenerator final : public ForceFieldGeneratorBase
     std::vector<double>       v0s_;
     std::vector<double>       sigmas_;
     bool                      use_periodic_;
-    std::size_t               ffgen_id_;
+    std::string               ffgen_id_;
 };
 
 #endif // OPEN_AICG2_PLUS_GAUSSIAN_BOND_FORCE_FIELD_GENERATOR_HPP
