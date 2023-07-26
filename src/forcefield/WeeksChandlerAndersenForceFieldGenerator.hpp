@@ -66,7 +66,7 @@ class WeeksChandlerAndersenForceFieldGenerator final : public ForceFieldGenerato
             }
 
             std::set<int> others;
-            for(std::size_t idx=0; idx<sigmas.size(); ++idx)
+            for(std::size_t idx=0; idx<sigmas_.size(); ++idx)
             {
                 if(sigmas_[idx])
                 {
@@ -169,7 +169,7 @@ class WeeksChandlerAndersenForceFieldGenerator final : public ForceFieldGenerato
             }
         }
 
-        // if interaction_groups size is 0, no interaction group will be added,
+        // if interaction_group size is 0, no interaction group will be added,
         // so all the particle in the system will be considerd as participant
         for(const auto& group_pair : interaction_groups_)
         {
