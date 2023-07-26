@@ -2,6 +2,7 @@
 #define OPEN_AICG2_PLUS_ISOLF_ATTRACTIVE_FORCE_FIELD_GENERATOR_HPP
 
 #include <OpenMM.h>
+#include <fmt/core.h>
 #include "ForceFieldGeneratorBase.hpp"
 
 // The formulation of this potential is
@@ -24,7 +25,7 @@ class iSoLFAttractiveForceFieldGenerator final : public ForceFieldGeneratorBase
         const std::vector<std::pair<std::string, std::string>> ignore_group_pairs = {},
         const std::vector<std::optional<std::string>> group_vec = {})
         : sigmas_(sigmas), epsilons_(epsilons), omegas_(omegas), ignore_list_(ignore_list),
-          use_periodic_(use_periodic), ffgen_id_str_(std::to_string(ffgen_id))
+          use_periodic_(use_periodic), ffgen_id_(fmt::format("iSA{}", ffgen_id))
     {
         assert(this->sigmas_.size() == this->epsilons_.size());
         assert(this->sigmas_.size() == this->omegas_.size());
@@ -125,20 +126,22 @@ class iSoLFAttractiveForceFieldGenerator final : public ForceFieldGeneratorBase
 
     std::unique_ptr<OpenMM::Force> generate() const override
     {
-        const std::string potential_formula =
+        const std::string potential_formula = fmt::format(
             "-eps *"
             "(step(base-r) +"
             " step(r-base)*step(base+omega-r) * cos(0.5*pi*(r - base)/omega)^2);"
-            "base  = sigma*2^(1/6);"
-            "sigma = (iSA"+ffgen_id_str_+"_sigma1+iSA"+ffgen_id_str_+"_sigma2)*0.5;"
-            "eps   = sqrt(iSA"+ffgen_id_str_+"_eps1*iSA"+ffgen_id_str_+"_eps2);"
-            "omega = (iSA"+ffgen_id_str_+"_omega1+iSA"+ffgen_id_str_+"_omega2)*0.5;"
-            "pi    = 3.1415926535897932385";
+            "base  = sigma * 2^(1/6);"
+            "sigma = ({id}_sigma1 + {id}_sigma2) * 0.5;"
+            "eps   = sqrt({id}_eps1 * {id}_eps2);"
+            "omega = ({id}_omega1 + {id}_omega2) * 0.5;"
+            "pi    = 3.1415926535897932385",
+            fmt::arg("id", ffgen_id_));
+
         auto isa_ff = std::make_unique<OpenMM::CustomNonbondedForce>(potential_formula);
 
-        isa_ff->addPerParticleParameter("iSA"+ffgen_id_str_+"_sigma");
-        isa_ff->addPerParticleParameter("iSA"+ffgen_id_str_+"_eps");
-        isa_ff->addPerParticleParameter("iSA"+ffgen_id_str_+"_omega");
+        isa_ff->addPerParticleParameter(fmt::format("{}_sigma", ffgen_id_));
+        isa_ff->addPerParticleParameter(fmt::format("{}_eps",   ffgen_id_));
+        isa_ff->addPerParticleParameter(fmt::format("{}_omega", ffgen_id_));
 
         double max_sigma        = std::numeric_limits<double>::min();
         double second_max_sigma = std::numeric_limits<double>::min();
@@ -235,7 +238,7 @@ class iSoLFAttractiveForceFieldGenerator final : public ForceFieldGeneratorBase
     index_pairs_type                    ignore_list_;
     std::vector<interaction_group_type> interaction_groups_;
     bool                                use_periodic_;
-    std::string                         ffgen_id_str_;
+    std::string                         ffgen_id_;
 };
 
 #endif // OPEN_AICG2_PLUS_ISOLF_ATTRACTIVE_FORCE_FIELD_GENERATOR_HPP

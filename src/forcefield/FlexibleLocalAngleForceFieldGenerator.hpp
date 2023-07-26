@@ -4,7 +4,10 @@
 #include <memory>
 #include <sstream>
 #include <string>
+
 #include <OpenMM.h>
+#include <fmt/core.h>
+
 #include "src/util/Constants.hpp"
 #include "ForceFieldGeneratorBase.hpp"
 
@@ -28,7 +31,7 @@ class FlexibleLocalAngleForceFieldGenerator final : public ForceFieldGeneratorBa
           thetas_{
               {1.30900, 1.48353, 1.65806, 1.83260, 2.00713,
                2.18166, 2.35619, 2.53073, 2.70526, 2.87979}
-          }, use_periodic_(use_periodic), ffgen_id_str_(std::to_string(ffgen_id))
+          }, use_periodic_(use_periodic), ffgen_id_(fmt::format("FLA{}", ffgen_id))
     {
         if(!(indices_vec.size() == ks.size()))
         {
@@ -60,26 +63,21 @@ class FlexibleLocalAngleForceFieldGenerator final : public ForceFieldGeneratorBa
             th += 1e-4;
         }
 
-        const std::string potential_formula =
-            "FLA"+ffgen_id_str_+"_k * ("
-                "spline(theta) - FLA"+ffgen_id_str_+"_min_energy +"
-                "(step(FLA"+ffgen_id_str_+"_min_theta-theta) *"
-                "(30 * (FLA"+ffgen_id_str_+"_min_theta-theta) +"
-                "FLA"+ffgen_id_str_+"_min_theta_y)) +"
-                "(step(theta-FLA"+ffgen_id_str_+"_max_theta) *"
-                "(30 * (theta-FLA"+ffgen_id_str_+"_max_theta) +"
-                "FLA"+ffgen_id_str_+"_max_theta_y))"
-            ");"
-            "theta = angle(p1,p2,p3)";
+        const std::string potential_formula = fmt::format("{id}_k * ("
+                "spline(theta) - {id}_min_energy + "
+                "(step({id}_min_theta-theta) * (30 * ({id}_min_theta-theta) + {id}_min_theta_y)) +"
+                "(step(theta-{id}_max_theta) * (30 * (theta-{id}_max_theta) + {id}_max_theta_y))"
+            "); theta = angle(p1, p2, p3)", fmt::arg("id", ffgen_id_));
+
         auto angle_ff = std::make_unique<OpenMM::CustomCompoundBondForce>(3, potential_formula);
         angle_ff->setUsesPeriodicBoundaryConditions(use_periodic_);
         angle_ff->addTabulatedFunction("spline", spline_func.release());
-        angle_ff->addPerBondParameter("FLA"+ffgen_id_str_+"_k");
-        angle_ff->addGlobalParameter("FLA"+ffgen_id_str_+"_min_energy",  min_energy);
-        angle_ff->addGlobalParameter("FLA"+ffgen_id_str_+"_min_theta",   min_theta_);
-        angle_ff->addGlobalParameter("FLA"+ffgen_id_str_+"_max_theta",   max_theta_);
-        angle_ff->addGlobalParameter("FLA"+ffgen_id_str_+"_min_theta_y", min_theta_y);
-        angle_ff->addGlobalParameter("FLA"+ffgen_id_str_+"_max_theta_y", max_theta_y);
+        angle_ff->addPerBondParameter(fmt::format("{}_k",           ffgen_id_));
+        angle_ff->addGlobalParameter (fmt::format("{}_min_energy",  ffgen_id_), min_energy);
+        angle_ff->addGlobalParameter (fmt::format("{}_min_theta",   ffgen_id_), min_theta_);
+        angle_ff->addGlobalParameter (fmt::format("{}_max_theta",   ffgen_id_), max_theta_);
+        angle_ff->addGlobalParameter (fmt::format("{}_min_theta_y", ffgen_id_), min_theta_y);
+        angle_ff->addGlobalParameter (fmt::format("{}_max_theta_y", ffgen_id_), max_theta_y);
 
 
         for(std::size_t idx=0; idx<indices_vec_.size(); ++idx)
@@ -136,7 +134,7 @@ class FlexibleLocalAngleForceFieldGenerator final : public ForceFieldGeneratorBa
     std::array<double, 10>    spline_second_deriv_table_;
     std::array<double, 10>    thetas_;
     bool                      use_periodic_;
-    std::string               ffgen_id_str_;
+    std::string               ffgen_id_;
 };
 
 #endif // OPEN_AICG2_PLUS_FLEXIBLE_LOCAL_ANGLE_FORCE_FIELD_GENERATOR_HPP

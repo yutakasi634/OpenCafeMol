@@ -6,6 +6,7 @@
 #include <set>
 #include <optional>
 #include <OpenMM.h>
+#include <fmt/core.h>
 #include "ForceFieldGeneratorBase.hpp"
 
 class ExcludedVolumeForceFieldGenerator final: public ForceFieldGeneratorBase
@@ -22,7 +23,7 @@ class ExcludedVolumeForceFieldGenerator final: public ForceFieldGeneratorBase
         const std::vector<std::pair<std::string, std::string>> ignore_group_pairs = {},
         const std::vector<std::optional<std::string>> group_vec = {})
         : eps_(eps), cutoff_(cutoff), radiuses_(radiuses), ignore_list_(ignore_list),
-          use_periodic_(use_periodic), ffgen_id_str_(std::to_string(ffgen_id))
+          use_periodic_(use_periodic), ffgen_id_(fmt::format("EXV{}", ffgen_id))
     {
         if(ignore_group_pairs.size() == 0)
         {
@@ -115,14 +116,14 @@ class ExcludedVolumeForceFieldGenerator final: public ForceFieldGeneratorBase
 
     std::unique_ptr<OpenMM::Force> generate() const noexcept override
     {
-        const std::string potential_formula =
-            "EXV"+ffgen_id_str_+"_epsilon*"
-            "(sigma_sum)^12*((1/r)^12-EXV"+ffgen_id_str_+"_cutoff_correction);"
-            "sigma_sum = EXV"+ffgen_id_str_+"_sigma1 + EXV"+ffgen_id_str_+"_sigma2";
+        const std::string potential_formula = fmt::format(
+            "{id}_epsilon * (sigma_sum)^12 * ((1/r)^12 - {id}_cutoff_correction);"
+            "sigma_sum = {id}_sigma1 + {id}_sigma2", fmt::arg("id", ffgen_id_));
+
         auto exv_ff = std::make_unique<OpenMM::CustomNonbondedForce>(potential_formula);
 
-        exv_ff->addPerParticleParameter("EXV"+ffgen_id_str_+"_sigma");
-        exv_ff->addGlobalParameter("EXV"+ffgen_id_str_+"_epsilon", eps_);
+        exv_ff->addPerParticleParameter(fmt::format("{}_sigma", ffgen_id_));
+        exv_ff->addGlobalParameter(fmt::format("{}_epsilon", ffgen_id_), eps_);
 
         double max_radius        = std::numeric_limits<double>::min();
         double second_max_radius = std::numeric_limits<double>::min();
@@ -172,7 +173,7 @@ class ExcludedVolumeForceFieldGenerator final: public ForceFieldGeneratorBase
         const double cutoff_correction = std::pow(1.0 / cutoff_distance, 12);
         std::cerr << "        cutoff disntace is " << cutoff_distance << " nm" << std::endl;
         exv_ff->setCutoffDistance(cutoff_distance);
-        exv_ff->addGlobalParameter("EXV"+ffgen_id_str_+"_cutoff_correction", cutoff_correction);
+        exv_ff->addGlobalParameter(fmt::format("{}_cutoff_correction", ffgen_id_), cutoff_correction);
 
         // set exclusion list
         for(const auto& pair : ignore_list_)
@@ -192,7 +193,7 @@ class ExcludedVolumeForceFieldGenerator final: public ForceFieldGeneratorBase
     index_pairs_type                    ignore_list_;
     std::vector<interaction_group_type> interaction_groups_;
     bool                                use_periodic_;
-    std::string                         ffgen_id_str_;
+    std::string                         ffgen_id_;
 };
 
 #endif // OPEN_AICG2_PLUS_EXCLUDED_VOLUME_FORCE_FIELD_GENERATOR_HPP

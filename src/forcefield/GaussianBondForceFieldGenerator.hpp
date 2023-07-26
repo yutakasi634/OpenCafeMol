@@ -5,6 +5,7 @@
 #include <sstream>
 #include <string>
 #include <OpenMM.h>
+#include <fmt/core.h>
 #include "ForceFieldGeneratorBase.hpp"
 
 class GaussianBondForceFieldGenerator final : public ForceFieldGeneratorBase
@@ -18,7 +19,7 @@ class GaussianBondForceFieldGenerator final : public ForceFieldGeneratorBase
         const std::vector<double>& v0s, const std::vector<double>& sigmas,
         const bool use_periodic, const std::size_t ffgen_id)
         : indices_vec_(indices_vec), ks_(ks), v0s_(v0s), sigmas_(sigmas),
-          use_periodic_(use_periodic), ffgen_id_str_(std::to_string(ffgen_id))
+          use_periodic_(use_periodic), ffgen_id_(fmt::format("GB{}", ffgen_id))
     {
         if(!(indices_vec.size() == v0s.size() && v0s.size() == ks.size()))
         {
@@ -36,15 +37,15 @@ class GaussianBondForceFieldGenerator final : public ForceFieldGeneratorBase
 
     std::unique_ptr<OpenMM::Force> generate() const noexcept override
     {
-        const std::string potential_formula =
-            "GB"+ffgen_id_str_+"_k *"
-            "exp(-(r-GB"+ffgen_id_str_+"_v0)^2 /"
-                 "(2*GB"+ffgen_id_str_+"_sigma^2))";
+        const std::string potential_formula = fmt::format(
+            "{id}_k * exp(-(r - {id}_v0)^2 / (2 * {id}_sigma^2))",
+            fmt::arg("id", ffgen_id_));
+
         auto bond_ff = std::make_unique<OpenMM::CustomBondForce>(potential_formula);
         bond_ff->setUsesPeriodicBoundaryConditions(use_periodic_);
-        bond_ff->addPerBondParameter("GB"+ffgen_id_str_+"_k");
-        bond_ff->addPerBondParameter("GB"+ffgen_id_str_+"_v0");
-        bond_ff->addPerBondParameter("GB"+ffgen_id_str_+"_sigma");
+        bond_ff->addPerBondParameter(fmt::format("{}_k", ffgen_id_));
+        bond_ff->addPerBondParameter(fmt::format("{}_v0", ffgen_id_));
+        bond_ff->addPerBondParameter(fmt::format("{}_sigma", ffgen_id_));
 
         for(std::size_t idx=0; idx<indices_vec_.size(); ++idx)
         {
@@ -65,7 +66,7 @@ class GaussianBondForceFieldGenerator final : public ForceFieldGeneratorBase
     std::vector<double>       v0s_;
     std::vector<double>       sigmas_;
     bool                      use_periodic_;
-    std::string               ffgen_id_str_;
+    std::string               ffgen_id_;
 };
 
 #endif // OPEN_AICG2_PLUS_GAUSSIAN_BOND_FORCE_FIELD_GENERATOR_HPP

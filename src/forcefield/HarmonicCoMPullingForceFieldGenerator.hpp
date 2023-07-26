@@ -6,6 +6,7 @@
 #include <set>
 #include <optional>
 #include <OpenMM.h>
+#include <fmt/core.h>
 #include "ForceFieldGeneratorBase.hpp"
 
 class HarmonicCoMPullingForceFieldGenerator : public ForceFieldGeneratorBase
@@ -16,18 +17,19 @@ class HarmonicCoMPullingForceFieldGenerator : public ForceFieldGeneratorBase
         const std::vector<int>& first_group, const std::vector<int>& second_group,
         const bool use_periodic, const std::size_t ffgen_id)
         : k_(k), v0_(v0), first_group_(first_group), second_group_(second_group),
-          use_periodic_(use_periodic), ffgen_id_str_(std::to_string(ffgen_id))
+          use_periodic_(use_periodic), ffgen_id_(fmt::format("HCP{}", ffgen_id))
     {}
 
     std::unique_ptr<OpenMM::Force> generate() const noexcept override
     {
-        const std::string potential_formula =
-            "0.5*HCP"+ffgen_id_str_+"_k*"
-            "(distance(g1, g2) - HCP"+ffgen_id_str_+"_v0)^2";
+        const std::string potential_formula = fmt::format(
+            "0.5 * {id}_k * (distance(g1, g2) - {id}_v0)^2",
+            fmt::arg("id", ffgen_id_));
+
         auto com_ff = std::make_unique<OpenMM::CustomCentroidBondForce>(2, potential_formula);
 
-        com_ff->addGlobalParameter("HCP"+ffgen_id_str_+"_k", k_);
-        com_ff->addGlobalParameter("HCP"+ffgen_id_str_+"_v0", v0_);
+        com_ff->addGlobalParameter(fmt::format("{}_k", ffgen_id_), k_);
+        com_ff->addGlobalParameter(fmt::format("{}_v0", ffgen_id_), v0_);
         com_ff->addGroup(first_group_);
         com_ff->addGroup(second_group_);
         com_ff->addBond({0, 1});
@@ -45,7 +47,7 @@ class HarmonicCoMPullingForceFieldGenerator : public ForceFieldGeneratorBase
     std::vector<int> first_group_;
     std::vector<int> second_group_;
     bool             use_periodic_;
-    std::string      ffgen_id_str_;
+    std::string      ffgen_id_;
 };
 
 #endif // OPEN_AICG2_PLUS_HARMONIC_COM_PULLING_FORCE_FIELD_GENERATOR_HPP
