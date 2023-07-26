@@ -36,8 +36,7 @@ type                = NOBC
 
 # optional table. By default, use "CUDA" platform with default properties.
 [PLATFORM]
-name = CPU
-Threads = 1
+name = Reference
 
 # [PLATFORM]
 # name = CUDA

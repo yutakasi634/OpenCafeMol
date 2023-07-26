@@ -5,8 +5,7 @@ output.format = "pdb"       # output format
 
 # optional. By default, "CUDA" platform is used.
 [platform]
-name = "CPU"
-properties.Threads = "1"
+name = "Reference"
 
 # [platform]
 # name = "CUDA"
