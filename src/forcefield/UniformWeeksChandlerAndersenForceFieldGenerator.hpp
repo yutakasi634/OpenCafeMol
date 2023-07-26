@@ -4,6 +4,7 @@
 #include <OpenMM.h>
 #include <fmt/core.h>
 #include "ForceFieldGeneratorBase.hpp"
+#include "ForceFieldIDGenerator.hpp"
 
 class UniformWeeksChandlerAndersenForceFieldGenerator final : public ForceFieldGeneratorBase
 {
@@ -17,11 +18,11 @@ class UniformWeeksChandlerAndersenForceFieldGenerator final : public ForceFieldG
         const std::vector<std::size_t> former_group_vec,
         const std::vector<std::size_t> latter_group_vec,
         const index_pairs_type& ignore_list,
-        const bool use_periodic, const std::size_t ffgen_id,
+        const bool use_periodic,
         const std::vector<std::pair<std::string, std::string>> ignore_group_pairs = {},
         const std::vector<std::optional<std::string>> group_vec = {})
         : system_size_(system_size), eps_(eps), sigma_(sigma), ignore_list_(ignore_list),
-          use_periodic_(use_periodic), ffgen_id_(fmt::format("UWCA{}", ffgen_id)),
+          use_periodic_(use_periodic), ffgen_id_(fmt::format("UWCA{}", ffid.gen())),
           former_group_size_(former_group_vec.size()), latter_group_size_(latter_group_vec.size())
     {
         // make interaction group

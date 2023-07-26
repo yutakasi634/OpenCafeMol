@@ -4,6 +4,7 @@
 #include <memory>
 #include <OpenMM.h>
 #include "ForceFieldGeneratorBase.hpp"
+#include "ForceFieldIDGenerator.hpp"
 
 class FlexibleLocalDihedralForceFieldGenerator final : public ForceFieldGeneratorBase
 {
@@ -14,10 +15,10 @@ class FlexibleLocalDihedralForceFieldGenerator final : public ForceFieldGenerato
     FlexibleLocalDihedralForceFieldGenerator(
         const std::vector<indices_type>& indices_vec, const std::vector<double>& ks,
         const std::array<double, 7>& fourier_table, const std::string& aa_pair_name,
-        const bool use_periodic, const std::size_t ffgen_id)
+        const bool use_periodic)
         : indices_vec_(indices_vec), ks_(ks),
           fourier_table_(fourier_table), aa_pair_name_(aa_pair_name),
-          use_periodic_(use_periodic), ffgen_id_(fmt::format("FLD{}", ffgen_id))
+          use_periodic_(use_periodic), ffgen_id_(fmt::format("FLD{}", ffid.gen()))
     {
         if(!(indices_vec.size() == ks.size()))
         {

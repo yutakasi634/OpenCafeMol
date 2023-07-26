@@ -4,6 +4,7 @@
 #include <OpenMM.h>
 #include <fmt/core.h>
 #include "ForceFieldGeneratorBase.hpp"
+#include "ForceFieldIDGenerator.hpp"
 
 class GaussianDihedralForceFieldGenerator final : public ForceFieldGeneratorBase
 {
@@ -15,9 +16,9 @@ class GaussianDihedralForceFieldGenerator final : public ForceFieldGeneratorBase
     GaussianDihedralForceFieldGenerator(
         const std::vector<indices_type>& indices_vec, const std::vector<double>& ks,
         const std::vector<double>&       theta0s,     const std::vector<double>& sigmas,
-        const bool use_periodic, const std::size_t ffgen_id)
+        const bool use_periodic)
         : indices_vec_(indices_vec), ks_(ks), theta0s_(theta0s), sigmas_(sigmas),
-          use_periodic_(use_periodic), ffgen_id_(fmt::format("GD{}", ffgen_id))
+          use_periodic_(use_periodic), ffgen_id_(fmt::format("GD{}", ffid.gen()))
     {
         const std::size_t system_size = indices_vec.size();
         if(!(system_size == ks.size() && system_size == theta0s.size() &&

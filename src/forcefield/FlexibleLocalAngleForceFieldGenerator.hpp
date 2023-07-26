@@ -10,6 +10,7 @@
 
 #include "src/util/Constants.hpp"
 #include "ForceFieldGeneratorBase.hpp"
+#include "ForceFieldIDGenerator.hpp"
 
 class FlexibleLocalAngleForceFieldGenerator final : public ForceFieldGeneratorBase
 {
@@ -20,7 +21,7 @@ class FlexibleLocalAngleForceFieldGenerator final : public ForceFieldGeneratorBa
     FlexibleLocalAngleForceFieldGenerator(
         const std::vector<indices_type>& indices_vec, const std::vector<double>& ks,
         const std::array<double, 10>& spline_table, const std::string& aa_name,
-        const bool use_periodic, const std::size_t ffgen_id,
+        const bool use_periodic,
         const double min_theta = Constant::fla_spline_min_theta,
         const double max_theta = Constant::fla_spline_max_theta)
         : indices_vec_(indices_vec), ks_(ks), aa_name_(aa_name),
@@ -31,7 +32,7 @@ class FlexibleLocalAngleForceFieldGenerator final : public ForceFieldGeneratorBa
           thetas_{
               {1.30900, 1.48353, 1.65806, 1.83260, 2.00713,
                2.18166, 2.35619, 2.53073, 2.70526, 2.87979}
-          }, use_periodic_(use_periodic), ffgen_id_(fmt::format("FLA{}", ffgen_id))
+          }, use_periodic_(use_periodic), ffgen_id_(fmt::format("FLA{}", ffid.gen()))
     {
         if(!(indices_vec.size() == ks.size()))
         {
