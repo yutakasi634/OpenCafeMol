@@ -45,6 +45,10 @@ class WeeksChandlerAndersenForceFieldGenerator final : public ForceFieldGenerato
                 }
                 interaction_groups_.push_back({ participants, participants });
             }
+            else
+            {
+                std::cerr << "        all particles are participants in this interaction" << std::endl;
+            }
         }
         else // group based ignoration specified case
         {
