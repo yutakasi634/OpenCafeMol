@@ -321,7 +321,7 @@ SystemGenerator read_toml_system(const toml::value& data)
                 system_gen.add_ff_generator(
                         std::make_unique<ThreeSPN2ExcludedVolumeForceFieldGenerator>(ff_gen));
             }
-            if(potential == "WCA")
+            else if(potential == "WCA")
             {
                 if(global_ff.contains("table"))
                 {
@@ -378,7 +378,7 @@ SystemGenerator read_toml_system(const toml::value& data)
                                 ff_gen));
                 }
             }
-            if(potential == "DebyeHuckel")
+            else if(potential == "DebyeHuckel")
             {
                 const auto attr = toml::find(systems[0], "attributes");
 
@@ -401,7 +401,7 @@ SystemGenerator read_toml_system(const toml::value& data)
                 system_gen.add_ff_generator(
                         std::make_unique<DebyeHuckelForceFieldGenerator>(ff_gen));
             }
-            if(potential == "iSoLFAttractive")
+            else if(potential == "iSoLFAttractive")
             {
                 iSoLFAttractiveForceFieldGenerator ff_gen =
                     read_toml_isolf_attractive_ff_generator(
@@ -409,7 +409,7 @@ SystemGenerator read_toml_system(const toml::value& data)
                 system_gen.add_ff_generator(
                         std::make_unique<iSoLFAttractiveForceFieldGenerator>(ff_gen));
             }
-            if(potential == "LennardJonesAttractive")
+            else if(potential == "LennardJonesAttractive")
             {
                 if(global_ff.contains("table"))
                 {

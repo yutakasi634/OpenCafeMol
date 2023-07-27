@@ -859,8 +859,8 @@ read_ignore_group(const toml::value& ignore_table)
 
 const ExcludedVolumeForceFieldGenerator
 read_toml_excluded_volume_ff_generator(
-    const toml::value& global_ff_data, const std::size_t system_size, const Topology& topology,
-    const std::vector<std::optional<std::string>>& group_vec,
+    const toml::value& global_ff_data, const std::size_t system_size,
+    const Topology& topology, const std::vector<std::optional<std::string>>& group_vec,
     const bool use_periodic)
 {
     using index_pairs_type = std::vector<std::pair<std::size_t, std::size_t>>;
@@ -1188,6 +1188,20 @@ read_toml_isolf_attractive_ff_generator(
             use_periodic, ignore_group_pairs, group_vec);
 }
 
+
+// [[forcefields.global]]
+// potential = "LennardJonesAttractive"
+// cutoff    = 5.0
+//table.A.A = {sigma =   4.1260, epsilon =  -0.7350}
+//table.A.B = {sigma =   6.3361, epsilon =  -0.3710}
+//table.B.B = {sigma =   4.1221, epsilon =   0.6500}
+//parameters = [
+//{index =     1, name = "A"},
+//{index =     2, name = "A"},
+//{index =     3, name = "B"},
+//{index =     4, name = "B"},
+// ...
+// ]
 const UniformLennardJonesAttractiveForceFieldGenerator
 read_toml_uniform_lennard_jones_attractive_ff_generator(
         const toml::value& global_ff_data, const std::size_t system_size,
