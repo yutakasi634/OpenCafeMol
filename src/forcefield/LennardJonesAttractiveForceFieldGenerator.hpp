@@ -9,7 +9,7 @@ class LennardJonesAttractiveForceFieldGenerator final : public ForceFieldGenerat
 {
   public:
     using index_pairs_type       = std::vector<std::pair<std::size_t, std::size_t>>;
-    using interaction_group_type = std:pair<std::set<int>, std::set<int>>;
+    using interaction_group_type = std::pair<std::set<int>, std::set<int>>;
 
   public:
     LennardJonesAttractiveForceFieldGenerator(const double cutoff_ratio,
@@ -19,8 +19,8 @@ class LennardJonesAttractiveForceFieldGenerator final : public ForceFieldGenerat
         const std::size_t ffgen_id,
         const std::vector<std::pair<std::string, std::string>> ignore_group_pairs = {},
         const std::vector<std::optional<std::string>> group_vec = {})
-        : cutoff_(cutoff), epsilons_(epsilons), sigmas_(sigmas),
-          use_periodic_(use_periodic), ffgen_id_(ffgen_id)
+        : cutoff_ratio_(cutoff_ratio), epsilons_(epsilons), sigmas_(sigmas),
+          use_periodic_(use_periodic), ffgen_id_(fmt::format("LJAT{}", ffgen_id))
     {
         assert(this->epsilons_.size() == this->sigmas_.size());
 
@@ -115,20 +115,26 @@ class LennardJonesAttractiveForceFieldGenerator final : public ForceFieldGenerat
                 }
             }
         }
+
+        cutoff_correction_ =
+            4.0*(std::pow(1.0 / cutoff_ratio, 12) - std::pow(1.0 / cutoff_ratio, 6));
     }
 
     std::unique_ptr<OpenMM::Force> generate() const override
     {
         const std::string potential_formula = fmt::format(
-            "{id}_epsilon *"
-            "(step(r-threthold)*4*(sigma_r_12 - sigma_r_6) - step(threthold-r) -"
-            " {id}_cutoff_correction);"
+            "step(r-threthold) * epsilon * (4*(sigma_r_12 - sigma_r_6));"
             "sigma_r_12 = sigma_r_6^2;"
             "sigma_r_6  = sigma_r^6;"
-            "sigma_r    = {id}_sigma/r;"
-            "threthold  = {id}_sigma*2^(1/6)",
+            "sigma_r    = sigma/r;"
+            "threthold  = sigma*2^(1/6);"
+            "sigma      = ({id}_sigma1 + {id}_sigma2) * 0.5;"
+            "epsilon    = ({id}_epsilon1 + {id}_epsilon2) * 0.5",
             fmt::arg("id", ffgen_id_));
         auto ljattr_ff = std::make_unique<OpenMM::CustomNonbondedForce>(potential_formula);
+
+        ljattr_ff->addPerParticleParameter(fmt::format("{}_epsilon", ffgen_id_));
+        ljattr_ff->addPerParticleParameter(fmt::format("{}_sigma",   ffgen_id_));
 
         double max_sigma        = std::numeric_limits<double>::min();
         double second_max_sigma = std::numeric_limits<double>::min();
@@ -139,7 +145,7 @@ class LennardJonesAttractiveForceFieldGenerator final : public ForceFieldGenerat
             if(sigma && epsilon)
             {
                 double sigma_val = sigma.value();
-                ljattr_ff->addParticle({sigma_val, epsilon.value()});
+                ljattr_ff->addParticle({epsilon.value(), sigma_val});
 
                 if(max_sigma <= sigma_val)
                 {
@@ -154,7 +160,7 @@ class LennardJonesAttractiveForceFieldGenerator final : public ForceFieldGenerat
             else if(!sigma && !epsilon)
             {
                 ljattr_ff->addParticle({std::numeric_limits<double>::quiet_NaN(),
-                                     std::numeric_limits<double>::quiet_NaN()});
+                                        std::numeric_limits<double>::quiet_NaN()});
             }
             else
             {
@@ -184,8 +190,10 @@ class LennardJonesAttractiveForceFieldGenerator final : public ForceFieldGenerat
 
         // set cutoff
         const double cutoff_distance =
-            (max_sigma + second_max_sigma) * 0.5 * cutoff_ratio;
+            (max_sigma + second_max_sigma) * 0.5 * cutoff_ratio_;
         ljattr_ff->setCutoffDistance(cutoff_distance);
+        // ljattr_ff->setUseSwitchingFunction(true);
+        // ljattr_ff->setSwitchingDistance(0.9*cutoff_distance);
 
         // set exclusion list
         for(const auto& pair : ignore_list_)
@@ -199,12 +207,14 @@ class LennardJonesAttractiveForceFieldGenerator final : public ForceFieldGenerat
     std::string name() const noexcept { return "LennardJonesAttractive"; }
 
   private:
-    double                             cutoff_ratio_;
-    std::vector<std::optional<double>> epsilons_;
-    std::vector<std::optional<double>> sigmas_;
-    index_pairs_type                   ignore_list_;
-    bool                               use_periodic_;
-    std::size_t                        ffgen_id_;
+    double                              cutoff_ratio_;
+    std::vector<std::optional<double>>  epsilons_;
+    std::vector<std::optional<double>>  sigmas_;
+    index_pairs_type                    ignore_list_;
+    bool                                use_periodic_;
+    std::string                         ffgen_id_;
+    std::vector<interaction_group_type> interaction_groups_;
+    double                              cutoff_correction_;
 };
 
 #endif // OPEN_AICG2_PLUS_LENNARD_JONES_ATTRACTIVE_FORCE_FIELD_GENERATOR_HPP
