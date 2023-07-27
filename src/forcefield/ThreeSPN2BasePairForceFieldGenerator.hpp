@@ -62,10 +62,10 @@ class ThreeSPN2BasePairForceFieldGenerator final : public ForceFieldGeneratorBas
             {"K_BP",     "TSPN2BP" + ffgen_id_str_ + "_K_BP"},
         };
 
-        for (auto itr=ff_params.begin(); itr!=ff_params.end(); ++itr)
+        for (const auto& param: ff_params)
         {
             potential_formula = std::regex_replace(
-                potential_formula, std::regex(itr->first), itr->second);
+                potential_formula, std::regex(param.first), param.second);
         }
 
         auto chbond_ff = std::make_unique<OpenMM::CustomHbondForce>(potential_formula);
