@@ -457,9 +457,14 @@ SystemGenerator read_toml_system(const toml::value& data)
                 }
                 else
                 {
-                    throw std::runtime_error(
-                        "[error] LennardJonesAttractive potential only support "
-                        "table mode for providing pair-paramters.");
+                    LennardJonesAttractiveForceFieldGenerator ff_gen =
+                        read_toml_lennard_jones_attractive_ff_generator(
+                            global_ff, system_size,
+                            topology, group_vec, use_periodic, custom_ffgen_count);
+                    system_gen.add_ff_generator(
+                        std::make_unique<
+                            LennardJonesAttractiveForceFieldGenerator>(ff_gen));
+                    ++custom_ffgen_count;
                 }
             }
 
@@ -567,6 +572,17 @@ SystemGenerator read_toml_system(const toml::value& data)
                         "- \"3SPN2C\": The parameter set optimized to reproduce sequence-dependent curveture of dsDNA."
                     );
                 }
+            }
+            else if(potential == "LennardJonesRepulsive")
+            {
+                LennardJonesRepulsiveForceFieldGenerator ff_gen =
+                    read_toml_lennard_jones_repulsive_ff_generator(
+                         global_ff, system_size,
+                         topology, group_vec, use_periodic, custom_ffgen_count);
+                system_gen.add_ff_generator(
+                     std::make_unique<
+                         LennardJonesRepulsiveForceFieldGenerator>(ff_gen));
+                ++custom_ffgen_count;
             }
         }
     }

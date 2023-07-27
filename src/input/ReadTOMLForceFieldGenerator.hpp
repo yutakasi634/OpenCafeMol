@@ -19,6 +19,8 @@
 #include "src/forcefield/WeeksChandlerAndersenForceFieldGenerator.hpp"
 #include "src/forcefield/DebyeHuckelForceFieldGenerator.hpp"
 #include "src/forcefield/iSoLFAttractiveForceFieldGenerator.hpp"
+#include "src/forcefield/LennardJonesAttractiveForceFieldGenerator.hpp"
+#include "src/forcefield/LennardJonesRepulsiveForceFieldGenerator.hpp"
 #include "src/forcefield/UniformLennardJonesAttractiveForceFieldGenerator.hpp"
 #include "src/forcefield/UniformWeeksChandlerAndersenForceFieldGenerator.hpp"
 #include "src/forcefield/ThreeSPN2BasePairForceFieldGenerator.hpp"
@@ -1562,6 +1564,136 @@ read_toml_3spn2_cross_stacking_ff_generator(
     return ThreeSPN2CrossStackingForceFieldGenerator<PotentialParameterType>(
         indices_donor, indices_acceptor, base_kind_acceptor, bp_kind, ignore_list,
         use_periodic);
+}
+
+
+// [[forcefields.global]]
+// potential = "LennardJonesAttractive"
+// cutoff    = 5.0
+// parameters = [
+// {index = 1, offset = 10, epsilon = 1.0, sigma = 1.0},
+// ...
+// ]
+const LennardJonesAttractiveForceFieldGenerator
+read_toml_lennard_jones_attractive_ff_generator(
+        const toml::value& global_ff_data, const std::size_t system_size,
+        const Topology& topology, const std::vector<std::optional<std::string>>& group_vec,
+        const bool use_periodic,  const std::size_t ffgen_id)
+{
+    using index_pairs_type = LennardJonesAttractiveForceFieldGenerator::index_pairs_type;
+
+
+    const auto& params = toml::find<toml::array>(global_ff_data, "parameters");
+    const auto& env =
+        global_ff_data.contains("env") ? global_ff_data.at("env") : toml::value{};
+    const double cutoff_ratio =
+        Utility::find_parameter_or<double>(global_ff_data, env, "cutoff", 2.5);
+
+    std::vector<std::optional<double>> epsilon_vec(system_size, std::nullopt);
+    std::vector<std::optional<double>> sigma_vec  (system_size, std::nullopt);
+    for(const auto& param : params)
+    {
+        const std::size_t index =
+            Utility::find_parameter<std::size_t>(param, env, "index") +
+            Utility::find_parameter_or<std::size_t>(param, env, "offset", 0);
+
+        if(topology.size() <= index)
+        {
+            throw std::runtime_error("[error] read_toml_lennard_jones_attractive_ff_generator : index "+std::to_string(index)+" exceeds the system's largest index "+std::to_string(topology.size()-1)+".");
+        }
+
+        const double epsilon =
+            Utility::find_parameter<double>(param, env, "sigma") *
+            OpenMM::NmPerAngstrom; // nm
+        const double sigma =
+            Utility::find_parameter<double>(param, env, "epsilon") *
+            OpenMM::KJPerKcal; // KJPermol
+
+        epsilon_vec[index] = epsilon;
+        sigma_vec  [index] = sigma;
+    }
+
+    std::cerr << "    Global        : LennardJonesAttractive (" << params.size()
+              << " found)" << std::endl;
+
+    // ignore list generation
+    index_pairs_type ignore_list;
+    std::vector<std::pair<std::string, std::string>> ignore_group_pairs;
+    if(global_ff_data.contains("ignore"))
+    {
+        const auto& ignore = toml::find(global_ff_data, "ignore");
+        ignore_list        = read_ignore_molecule_and_particles_within(ignore, topology);
+        ignore_group_pairs = read_ignore_group(ignore);
+    }
+
+    return LennardJonesAttractiveForceFieldGenerator(cutoff_ratio,
+            epsilon_vec, sigma_vec, ignore_list, use_periodic, ffgen_id,
+            ignore_group_pairs, group_vec);
+}
+
+
+// [[forcefields.global]]
+// potential = "LennardJonesRepulsive"
+// cutoff    = 5.0
+// parameters = [
+// {index = 1, offset = 10, epsilon = 1.0, sigma = 1.0},
+// ...
+// ]
+const LennardJonesRepulsiveForceFieldGenerator
+read_toml_lennard_jones_repulsive_ff_generator(
+        const toml::value& global_ff_data, const std::size_t system_size,
+        const Topology& topology, const std::vector<std::optional<std::string>>& group_vec,
+        const bool use_periodic,  const std::size_t ffgen_id)
+{
+    using index_pairs_type = LennardJonesRepulsiveForceFieldGenerator::index_pairs_type;
+
+
+    const auto& params = toml::find<toml::array>(global_ff_data, "parameters");
+    const auto& env =
+        global_ff_data.contains("env") ? global_ff_data.at("env") : toml::value{};
+    const double cutoff_ratio =
+        Utility::find_parameter_or<double>(global_ff_data, env, "cutoff", 2.5);
+
+    std::vector<std::optional<double>> epsilon_vec(system_size, std::nullopt);
+    std::vector<std::optional<double>> sigma_vec  (system_size, std::nullopt);
+    for(const auto& param : params)
+    {
+        const std::size_t index =
+            Utility::find_parameter<std::size_t>(param, env, "index") +
+            Utility::find_parameter_or<std::size_t>(param, env, "offset", 0);
+
+        if(topology.size() <= index)
+        {
+            throw std::runtime_error("[error] read_toml_lennard_jones_repulsive_ff_generator : index "+std::to_string(index)+" exceeds the system's largest index "+std::to_string(topology.size()-1)+".");
+        }
+
+        const double epsilon =
+            Utility::find_parameter<double>(param, env, "sigma") *
+            OpenMM::NmPerAngstrom; // nm
+        const double sigma =
+            Utility::find_parameter<double>(param, env, "epsilon") *
+            OpenMM::KJPerKcal; // KJPermol
+
+        epsilon_vec[index] = epsilon;
+        sigma_vec  [index] = sigma;
+    }
+
+    std::cerr << "    Global        : LennardJonesRepulsive (" << params.size()
+              << " found)" << std::endl;
+
+    // ignore list generation
+    index_pairs_type ignore_list;
+    std::vector<std::pair<std::string, std::string>> ignore_group_pairs;
+    if(global_ff_data.contains("ignore"))
+    {
+        const auto& ignore = toml::find(global_ff_data, "ignore");
+        ignore_list        = read_ignore_molecule_and_particles_within(ignore, topology);
+        ignore_group_pairs = read_ignore_group(ignore);
+    }
+
+    return LennardJonesRepulsiveForceFieldGenerator(cutoff_ratio,
+            epsilon_vec, sigma_vec, ignore_list, use_periodic, ffgen_id,
+            ignore_group_pairs, group_vec);
 }
 
 // -----------------------------------------------------------------------------
