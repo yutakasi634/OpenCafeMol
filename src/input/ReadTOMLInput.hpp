@@ -181,11 +181,32 @@ SystemGenerator read_toml_system(const toml::value& data)
             else if(interaction == "DihedralAngle" &&
                    (potential == "Gaussian+Cosine" || potential == "Cosine+Gaussian"))
             {
-                GaussianCosineDihedralForceFieldGenerator ff_gen =
-                    read_toml_gaussian_cosine_dihedral_ff_generator(
-                        local_ff, topology, use_periodic, ffgen_count);
+                toml::array a1;
+                toml::array a2;
+                for (const auto& elem : local_ff.at("parameters").as_array())
+                {
+                    toml::value v1 = toml::find(elem, "Gaussian");
+                    toml::value v2 = toml::find(elem, "Cosine");
+                    v1["indices"]  = toml::find(elem, "indices");
+                    v2["indices"]  = toml::find(elem, "indices");
+                    a1.push_back(std::move(v1));
+                    a2.push_back(std::move(v2));
+                }
+                toml::value local_ff_gaussian = toml::table{{"parameters", a1}};
+                toml::value local_ff_cosine   = toml::table{{"parameters", a2}};
+
+                GaussianDihedralForceFieldGenerator ff_gen1 =
+                    read_toml_gaussian_dihedral_ff_generator(
+                        local_ff_gaussian, topology, use_periodic, ffgen_count);
                 system_gen.add_ff_generator(
-                        std::make_unique<GaussianCosineDihedralForceFieldGenerator>(ff_gen));
+                        std::make_unique<GaussianDihedralForceFieldGenerator>(ff_gen1));
+                ++ffgen_count;
+
+                CosineDihedralForceFieldGenerator ff_gen2 =
+                    read_toml_cosine_dihedral_ff_generator(
+                        local_ff_cosine, topology, use_periodic, ffgen_count);
+                system_gen.add_ff_generator(
+                        std::make_unique<CosineDihedralForceFieldGenerator>(ff_gen2));
                 ++ffgen_count;
             }
             else if(interaction == "DihedralAngle" && potential == "FlexibleLocalDihedral")
