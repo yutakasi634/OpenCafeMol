@@ -123,7 +123,7 @@ class LennardJonesAttractiveForceFieldGenerator final : public ForceFieldGenerat
     std::unique_ptr<OpenMM::Force> generate() const override
     {
         const std::string potential_formula = fmt::format(
-            "step(r-threthold) * epsilon * (4*(sigma_r_12 - sigma_r_6));"
+            "step(r-threthold) * epsilon * 4 * (sigma_r_12 - sigma_r_6);"
             "sigma_r_12 = sigma_r_6^2;"
             "sigma_r_6  = sigma_r^6;"
             "sigma_r    = sigma/r;"
@@ -192,8 +192,8 @@ class LennardJonesAttractiveForceFieldGenerator final : public ForceFieldGenerat
         const double cutoff_distance =
             (max_sigma + second_max_sigma) * 0.5 * cutoff_ratio_;
         ljattr_ff->setCutoffDistance(cutoff_distance);
-        // ljattr_ff->setUseSwitchingFunction(true);
-        // ljattr_ff->setSwitchingDistance(0.9*cutoff_distance);
+        ljattr_ff->setUseSwitchingFunction(true);
+        ljattr_ff->setSwitchingDistance(0.9*cutoff_distance);
 
         // set exclusion list
         for(const auto& pair : ignore_list_)
