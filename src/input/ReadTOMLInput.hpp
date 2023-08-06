@@ -200,10 +200,9 @@ SystemGenerator read_toml_system(const toml::value& data)
             {
                 ThreeSPN2BondForceFieldGenerator ff_gen =
                     read_toml_3spn2_bond_ff_generator(
-                        local_ff, topology, use_periodic, custom_ffgen_count);
+                        local_ff, topology, use_periodic);
                 system_gen.add_ff_generator(
                         std::make_unique<ThreeSPN2BondForceFieldGenerator>(ff_gen));
-                ++custom_ffgen_count;
             }
             else if(interaction == "BondAngle" && potential == "Harmonic")
             {
@@ -235,10 +234,9 @@ SystemGenerator read_toml_system(const toml::value& data)
             {
                 CosineDihedralForceFieldGenerator ff_gen =
                     read_toml_cosine_dihedral_ff_generator(
-                            local_ff, topology, use_periodic, custom_ffgen_count);
+                            local_ff, topology, use_periodic);
                 system_gen.add_ff_generator(
                         std::make_unique<CosineDihedralForceFieldGenerator>(ff_gen));
-                ++custom_ffgen_count;
             }
             else if(interaction == "DihedralAngle" &&
                    (potential == "Gaussian+Cosine" || potential == "Cosine+Gaussian"))
@@ -259,17 +257,15 @@ SystemGenerator read_toml_system(const toml::value& data)
 
                 GaussianDihedralForceFieldGenerator ff_gen1 =
                     read_toml_gaussian_dihedral_ff_generator(
-                        local_ff_gaussian, topology, use_periodic, custom_ffgen_count);
+                        local_ff_gaussian, topology, use_periodic);
                 system_gen.add_ff_generator(
                         std::make_unique<GaussianDihedralForceFieldGenerator>(ff_gen1));
-                ++custom_ffgen_count;
 
                 CosineDihedralForceFieldGenerator ff_gen2 =
                     read_toml_cosine_dihedral_ff_generator(
-                        local_ff_cosine, topology, use_periodic, custom_ffgen_count);
+                        local_ff_cosine, topology, use_periodic);
                 system_gen.add_ff_generator(
                         std::make_unique<CosineDihedralForceFieldGenerator>(ff_gen2));
-                ++custom_ffgen_count;
             }
             else if(interaction == "DihedralAngle" && potential == "FlexibleLocalDihedral")
             {
@@ -288,11 +284,10 @@ SystemGenerator read_toml_system(const toml::value& data)
             {
                 ThreeSPN2BaseStackingForceFieldGenerator ff_gen =
                     read_toml_3spn2_base_stacking_ff_generator(
-                        local_ff, topology, use_periodic, custom_ffgen_count);
+                        local_ff, topology, use_periodic);
                     system_gen.add_ff_generator(
                             std::make_unique<ThreeSPN2BaseStackingForceFieldGenerator>(
                                 ff_gen));
-                ++custom_ffgen_count;
             }
         }
     }
@@ -322,10 +317,9 @@ SystemGenerator read_toml_system(const toml::value& data)
             {
                 ThreeSPN2ExcludedVolumeForceFieldGenerator ff_gen =
                     read_toml_3spn2_excluded_volume_ff_generator(
-                        global_ff, system_size, topology, use_periodic, custom_ffgen_count);
+                        global_ff, system_size, topology, use_periodic);
                 system_gen.add_ff_generator(
                         std::make_unique<ThreeSPN2ExcludedVolumeForceFieldGenerator>(ff_gen));
-                ++custom_ffgen_count;
             }
             if(potential == "WCA")
             {
@@ -486,20 +480,16 @@ SystemGenerator read_toml_system(const toml::value& data)
                         // Cross stacking of sense-strand
                         potential_type ff_gen_sense =
                             read_toml_3spn2_cross_stacking_ff_generator<parameter_type>(
-                                global_ff, topology, bp_kind, "sense", use_periodic,
-                                custom_ffgen_count);
+                                global_ff, topology, bp_kind, "sense", use_periodic);
                         system_gen.add_ff_generator(
                             std::make_unique<potential_type>(ff_gen_sense));
-                        ++custom_ffgen_count;
 
                         // Cross stacking of antisense-strand
                         potential_type ff_gen_antisense =
                             read_toml_3spn2_cross_stacking_ff_generator<parameter_type>(
-                                global_ff, topology, bp_kind, "antisense", use_periodic,
-                                custom_ffgen_count);
+                                global_ff, topology, bp_kind, "antisense", use_periodic);
                         system_gen.add_ff_generator(
                             std::make_unique<potential_type>(ff_gen_antisense));
-                        ++custom_ffgen_count;
                     }
                 }
                 else if(potential == "3SPN2C")
@@ -512,20 +502,16 @@ SystemGenerator read_toml_system(const toml::value& data)
                         // Cross stacking of sense-strand
                         potential_type ff_gen_sense =
                             read_toml_3spn2_cross_stacking_ff_generator<parameter_type>(
-                                global_ff, topology, bp_kind, "sense", use_periodic,
-                                custom_ffgen_count);
+                                global_ff, topology, bp_kind, "sense", use_periodic);
                         system_gen.add_ff_generator(
                             std::make_unique<potential_type>(ff_gen_sense));
-                        ++custom_ffgen_count;
 
                         // Cross stacking of antisense-strand
                         potential_type ff_gen_antisense =
                             read_toml_3spn2_cross_stacking_ff_generator<parameter_type>(
-                                global_ff, topology, bp_kind, "antisense", use_periodic,
-                                custom_ffgen_count);
+                                global_ff, topology, bp_kind, "antisense", use_periodic);
                         system_gen.add_ff_generator(
                             std::make_unique<potential_type>(ff_gen_antisense));
-                        ++custom_ffgen_count;
                     }
                 }
                 else
@@ -552,10 +538,9 @@ SystemGenerator read_toml_system(const toml::value& data)
                     {
                         potential_type ff_gen =
                             read_toml_3spn2_base_pair_ff_generator<parameter_type>(
-                                global_ff, topology, pair, use_periodic, custom_ffgen_count);
+                                global_ff, topology, pair, use_periodic);
                         system_gen.add_ff_generator(
                             std::make_unique<potential_type>(ff_gen));
-                        ++custom_ffgen_count;
                     }
                 }
                 else if(potential == "3SPN2C")
@@ -568,10 +553,9 @@ SystemGenerator read_toml_system(const toml::value& data)
                     {
                         potential_type ff_gen =
                             read_toml_3spn2_base_pair_ff_generator<parameter_type>(
-                                global_ff, topology, pair, use_periodic, custom_ffgen_count);
+                                global_ff, topology, pair, use_periodic);
                         system_gen.add_ff_generator(
                             std::make_unique<potential_type>(ff_gen));
-                        ++custom_ffgen_count;
                     }
                 }
                 else

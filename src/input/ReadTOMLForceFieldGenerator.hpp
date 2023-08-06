@@ -184,7 +184,7 @@ read_toml_go_contact_ff_generator(
 const ThreeSPN2BondForceFieldGenerator
 read_toml_3spn2_bond_ff_generator(
         const toml::value& local_ff_data, Topology& topology,
-        const bool use_periodic, const std::size_t ffgen_id)
+        const bool use_periodic)
 {
     const auto& params = toml::find<toml::array>(local_ff_data, "parameters");
     const auto& env = local_ff_data.contains("env") ? local_ff_data.at("env") : toml::value{};
@@ -230,7 +230,7 @@ read_toml_3spn2_bond_ff_generator(
     }
 
     std::cerr << "    BondLength    : 3SPN2 (" << indices_vec.size() << " found)" << std::endl;
-    return ThreeSPN2BondForceFieldGenerator(indices_vec, k2s, k4s, v0s, use_periodic, ffgen_id);
+    return ThreeSPN2BondForceFieldGenerator(indices_vec, k2s, k4s, v0s, use_periodic);
 }
 
 const HarmonicAngleForceFieldGenerator
@@ -398,7 +398,7 @@ read_toml_gaussian_dihedral_ff_generator(
 const CosineDihedralForceFieldGenerator
 read_toml_cosine_dihedral_ff_generator(
         const toml::value& local_ff_data, Topology& topology,
-        const bool use_periodic, const std::size_t ffgen_id)
+        const bool use_periodic)
 {
 
     const auto& params = toml::find<toml::array>(local_ff_data, "parameters");
@@ -450,7 +450,7 @@ read_toml_cosine_dihedral_ff_generator(
 
     std::cerr << "    DihedralAngle : Cosine (" << indices_vec.size() << " found)" << std::endl;
     return CosineDihedralForceFieldGenerator(
-            indices_vec, ks, theta0s, ns, use_periodic, ffgen_id);
+            indices_vec, ks, theta0s, ns, use_periodic);
 }
 
 const FlexibleLocalDihedralForceFieldGenerator
@@ -579,7 +579,7 @@ read_toml_flexible_local_dihedral_ff_generator(
 const ThreeSPN2BaseStackingForceFieldGenerator
 read_toml_3spn2_base_stacking_ff_generator(
         const toml::value& local_ff_data, Topology& topology,
-        const bool use_periodic, const std::size_t ffgen_id)
+        const bool use_periodic)
 {
     // [[forcefields.local]]
     // interaction = "3SPN2BaseStacking"
@@ -760,7 +760,7 @@ read_toml_3spn2_base_stacking_ff_generator(
     }
 
     return ThreeSPN2BaseStackingForceFieldGenerator(
-        indices_vec, eps_vec, r0_BS_vec, theta0_BS_vec, alpha, K_BS, use_periodic, ffgen_id);
+        indices_vec, eps_vec, r0_BS_vec, theta0_BS_vec, alpha, K_BS, use_periodic);
 }
 
 // ----------------------------------------------------------------------------
@@ -906,7 +906,7 @@ read_toml_excluded_volume_ff_generator(
 const ThreeSPN2ExcludedVolumeForceFieldGenerator
 read_toml_3spn2_excluded_volume_ff_generator(
     const toml::value& global_ff_data, const std::size_t system_size, const Topology& topology,
-    const bool use_periodic, const std::size_t ffgen_id)
+    const bool use_periodic)
 {
     using index_pairs_type = std::vector<std::pair<std::size_t, std::size_t>>;
 
@@ -979,7 +979,7 @@ read_toml_3spn2_excluded_volume_ff_generator(
     ignore_list.erase(std::unique(ignore_list.begin(), ignore_list.end()), ignore_list.end());
 
     return ThreeSPN2ExcludedVolumeForceFieldGenerator(
-            eps, cutoff, radius_vec, ignore_list, use_periodic, ffgen_id);
+            eps, cutoff, radius_vec, ignore_list, use_periodic);
 }
 
 const WeeksChandlerAndersenForceFieldGenerator
@@ -1248,8 +1248,7 @@ const ThreeSPN2BasePairForceFieldGenerator<PotentialParameterType>
 read_toml_3spn2_base_pair_ff_generator(
         const toml::value& global_ff_data, Topology& topology,
         const std::pair<std::string, std::string> base_pair,
-        const bool use_periodic, const std::size_t ffgen_id
-)
+        const bool use_periodic)
 {
     using index_pairs_type = std::vector<std::pair<std::size_t, std::size_t>>;
 
@@ -1366,7 +1365,7 @@ read_toml_3spn2_base_pair_ff_generator(
 
     return ThreeSPN2BasePairForceFieldGenerator<PotentialParameterType>(
         indices_donor, indices_acceptor, base_pair, ignore_list,
-        use_periodic, ffgen_id);
+        use_periodic);
 }
 
 template<typename PotentialParameterType>
@@ -1374,8 +1373,7 @@ const ThreeSPN2CrossStackingForceFieldGenerator<PotentialParameterType>
 read_toml_3spn2_cross_stacking_ff_generator(
         const toml::value& global_ff_data, Topology& topology,
         const std::pair<std::string, std::string> bp_kind, const std::string& strand_kind,
-        const bool use_periodic, const std::size_t ffgen_id
-)
+        const bool use_periodic)
 {
     using index_pairs_type = std::vector<std::pair<std::size_t, std::size_t>>;
 
@@ -1563,7 +1561,7 @@ read_toml_3spn2_cross_stacking_ff_generator(
 
     return ThreeSPN2CrossStackingForceFieldGenerator<PotentialParameterType>(
         indices_donor, indices_acceptor, base_kind_acceptor, bp_kind, ignore_list,
-        use_periodic, ffgen_id);
+        use_periodic);
 }
 
 // -----------------------------------------------------------------------------

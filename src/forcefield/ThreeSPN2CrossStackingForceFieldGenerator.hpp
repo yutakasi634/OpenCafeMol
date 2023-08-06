@@ -9,6 +9,7 @@
 #include <string>
 #include <OpenMM.h>
 #include "ForceFieldGeneratorBase.hpp"
+#include "ForceFieldIDGenerator.hpp"
 #include "src/util/Constants.hpp"
 
 template<typename PotentialParameterType>
@@ -25,12 +26,13 @@ class ThreeSPN2CrossStackingForceFieldGenerator final : public ForceFieldGenerat
         const std::vector<std::string>&  base_kind_acceptors_vec,
         const std::pair<std::string, std::string>& base_pair,
         const index_pairs_type& ignore_list,
-        const bool use_periodic, const std::size_t ffgen_id = 0)
+        const bool use_periodic)
         : donor_indices_vec_(donor_indices_vec),
           acceptor_indices_vec_(acceptor_indices_vec),
           base_kind_acceptors_vec_(base_kind_acceptors_vec), base_pair_(base_pair),
           ignore_list_(ignore_list),
-          use_periodic_(use_periodic), ffgen_id_str_(std::to_string(ffgen_id))
+          use_periodic_(use_periodic),
+          ffgen_id_(fmt::format("TSPN2_CS{}", ffid.gen()))
     {
         if(!(acceptor_indices_vec.size() == base_kind_acceptors_vec.size()))
         {
@@ -73,13 +75,13 @@ class ThreeSPN2CrossStackingForceFieldGenerator final : public ForceFieldGenerat
 
         const std::map<std::string, std::string> ff_params =
         {
-            {"epsilon",  "TSPN2_CS" + ffgen_id_str_ + "_epsilon"},
-            {"r0",       "TSPN2_CS" + ffgen_id_str_ + "_r0"},
-            {"t03",      "TSPN2_CS" + ffgen_id_str_ + "_t03"},
-            {"t0CS",     "TSPN2_CS" + ffgen_id_str_ + "_t0CS"},
-            {"K_BP",     "TSPN2_CS" + ffgen_id_str_ + "_K_BP"},
-            {"K_CS",     "TSPN2_CS" + ffgen_id_str_ + "_K_CS"},
-            {"alpha_CS", "TSPN2_CS" + ffgen_id_str_ + "_alpha_CS"}
+            {"epsilon",  ffgen_id_ + "_epsilon"},
+            {"r0",       ffgen_id_ + "_r0"},
+            {"t03",      ffgen_id_ + "_t03"},
+            {"t0CS",     ffgen_id_ + "_t0CS"},
+            {"K_BP",     ffgen_id_ + "_K_BP"},
+            {"K_CS",     ffgen_id_ + "_K_CS"},
+            {"alpha_CS", ffgen_id_ + "_alpha_CS"}
         };
 
         for(const auto& param : ff_params)
@@ -173,7 +175,7 @@ class ThreeSPN2CrossStackingForceFieldGenerator final : public ForceFieldGenerat
     std::pair<std::string, std::string> base_pair_;
     index_pairs_type                    ignore_list_;
     bool                                use_periodic_;
-    std::string                         ffgen_id_str_;
+    std::string                         ffgen_id_;
 };
 
 // ----------------------------------------------------------------------------

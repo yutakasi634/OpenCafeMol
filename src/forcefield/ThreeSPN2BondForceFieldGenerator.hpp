@@ -8,6 +8,7 @@
 #include <string>
 #include <OpenMM.h>
 #include "ForceFieldGeneratorBase.hpp"
+#include "ForceFieldIDGenerator.hpp"
 
 class ThreeSPN2BondForceFieldGenerator final : public ForceFieldGeneratorBase
 {
@@ -18,9 +19,10 @@ class ThreeSPN2BondForceFieldGenerator final : public ForceFieldGeneratorBase
     ThreeSPN2BondForceFieldGenerator(
         const std::vector<indices_type>& indices_vec,
         const std::vector<double>& k2s, const std::vector<double>& k4s, const std::vector<double>& v0s,
-        const bool use_periodic, const std::size_t ffgen_id = 0)
+        const bool use_periodic)
         : indices_vec_(indices_vec), k2s_(k2s), k4s_(k4s), v0s_(v0s),
-          use_periodic_(use_periodic), ffgen_id_str_(std::to_string(ffgen_id))
+          use_periodic_(use_periodic),
+          ffgen_id_(fmt::format("TSPN2B{}", ffid.gen()))
     {
         if(!(indices_vec.size() == v0s.size() && v0s.size() == k2s.size()))
         {
@@ -41,9 +43,9 @@ class ThreeSPN2BondForceFieldGenerator final : public ForceFieldGeneratorBase
 
         const std::map<std::string, std::string> ff_params =
         {
-            {"k2", "TSPN2B" + ffgen_id_str_ + "_k2"},
-            {"k4", "TSPN2B" + ffgen_id_str_ + "_k4"},
-            {"v0", "TSPN2B" + ffgen_id_str_ + "_v0"},
+            {"k2", ffgen_id_ + "_k2"},
+            {"k4", ffgen_id_ + "_k4"},
+            {"v0", ffgen_id_ + "_v0"},
         };
 
         for(const auto& param : ff_params)
@@ -78,7 +80,7 @@ class ThreeSPN2BondForceFieldGenerator final : public ForceFieldGeneratorBase
     std::vector<double>       k4s_;
     std::vector<double>       v0s_;
     bool                      use_periodic_;
-    std::string               ffgen_id_str_;
+    std::string               ffgen_id_;
 };
 
 #endif // OPEN_AICG2_PLUS_3SPN2_BOND_FORCE_FIELD_GENERATOR_HPP

@@ -8,6 +8,7 @@
 #include <string>
 #include <OpenMM.h>
 #include "ForceFieldGeneratorBase.hpp"
+#include "ForceFieldIDGenerator.hpp"
 #include "src/util/Constants.hpp"
 
 class ThreeSPN2BaseStackingForceFieldGenerator final : public ForceFieldGeneratorBase
@@ -21,10 +22,11 @@ class ThreeSPN2BaseStackingForceFieldGenerator final : public ForceFieldGenerato
         const std::vector<double>& eps_vec, const std::vector<double>& r0s,
         const std::vector<double>& theta0, const double& alpha,
         const double& K_BS,
-        const bool use_periodic, const std::size_t ffgen_id = 0)
+        const bool use_periodic)
         : indices_vec_(indices_vec), eps_vec_(eps_vec), r0s_(r0s),
           theta0s_(theta0), alpha_(alpha), K_BS_(K_BS),
-          use_periodic_(use_periodic), ffgen_id_str_(std::to_string(ffgen_id))
+          use_periodic_(use_periodic),
+          ffgen_id_(fmt::format("TSPN2BS{}", ffid.gen()))
     {
         if(!(indices_vec.size() == eps_vec.size() && eps_vec.size() == r0s.size() &&
              r0s.size() == theta0.size()))
@@ -57,11 +59,11 @@ class ThreeSPN2BaseStackingForceFieldGenerator final : public ForceFieldGenerato
 
         const std::map<std::string, std::string> ff_params =
         {
-            {"epsilon", "TSPN2BS" + ffgen_id_str_ + "_epsilon"},
-            {"r0",      "TSPN2BS" + ffgen_id_str_ + "_r0"},
-            {"t0",      "TSPN2BS" + ffgen_id_str_ + "_t0"},
-            {"alpha",   "TSPN2BS" + ffgen_id_str_ + "_alpha"},
-            {"K_BS",    "TSPN2BS" + ffgen_id_str_ + "_K_BS"},
+            {"epsilon", ffgen_id_ + "_epsilon"},
+            {"r0",      ffgen_id_ + "_r0"},
+            {"t0",      ffgen_id_ + "_t0"},
+            {"alpha",   ffgen_id_ + "_alpha"},
+            {"K_BS",    ffgen_id_ + "_K_BS"},
         };
 
         for(const auto& param : ff_params)
@@ -110,7 +112,7 @@ class ThreeSPN2BaseStackingForceFieldGenerator final : public ForceFieldGenerato
     double                    alpha_;
     double                    K_BS_;
     bool                      use_periodic_;
-    std::string               ffgen_id_str_;
+    std::string               ffgen_id_;
 };
 
 // ----------------------------------------------------------------------------

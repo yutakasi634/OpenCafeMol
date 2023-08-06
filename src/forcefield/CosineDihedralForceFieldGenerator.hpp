@@ -7,6 +7,7 @@
 #include <regex>
 #include <OpenMM.h>
 #include "ForceFieldGeneratorBase.hpp"
+#include "ForceFieldIDGenerator.hpp"
 
 class CosineDihedralForceFieldGenerator final : public ForceFieldGeneratorBase
 {
@@ -18,9 +19,9 @@ class CosineDihedralForceFieldGenerator final : public ForceFieldGeneratorBase
     CosineDihedralForceFieldGenerator(
         const std::vector<indices_type>& indices_vec, const std::vector<double>& ks,
         const std::vector<double>&       theta0s,     const std::vector<double>& ns,
-        const bool use_periodic, const std::size_t ffgen_id = 0)
+        const bool use_periodic)
         : indices_vec_(indices_vec), ks_(ks), theta0s_(theta0s), ns_(ns),
-          use_periodic_(use_periodic), ffgen_id_str_(std::to_string(ffgen_id))
+          use_periodic_(use_periodic), ffgen_id_(fmt::format("CD{}", ffid.gen()))
     {
         const std::size_t system_size = indices_vec.size();
         if(!(system_size == ks.size() && system_size == theta0s.size() &&
@@ -48,9 +49,9 @@ class CosineDihedralForceFieldGenerator final : public ForceFieldGeneratorBase
 
         const std::map<std::string, std::string> ff_params =
         {
-            {"k_periodic", "CD" + ffgen_id_str_ + "_k_periodic"},
-            {"t0",         "CD" + ffgen_id_str_ + "_t0"},
-            {"n0",         "CD" + ffgen_id_str_ + "_n0"},
+            {"k_periodic", ffgen_id_ + "_k_periodic"},
+            {"t0",         ffgen_id_ + "_t0"},
+            {"n0",         ffgen_id_ + "_n0"},
         };
 
         for(const auto& param : ff_params)
@@ -87,7 +88,7 @@ class CosineDihedralForceFieldGenerator final : public ForceFieldGeneratorBase
     std::vector<double>       theta0s_;
     std::vector<double>       ns_;
     bool                      use_periodic_;
-    std::string               ffgen_id_str_;
+    std::string               ffgen_id_;
 };
 
 #endif // OPEN_AICG2_PLUS_COSINE_DIHEDRAL_FORCE_FIELD_GENERATOR_HPP
