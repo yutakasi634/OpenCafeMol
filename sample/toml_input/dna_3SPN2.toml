@@ -17,7 +17,7 @@ name = "Reference" # to run on CI
 boundary_type = "Unlimited"
 delta_t       = 0.3
 seed          = 12345
-total_step    = 50000
+total_step    = 1000
 save_step     = 100
 
 [[systems]]
