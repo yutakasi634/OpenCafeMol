@@ -202,6 +202,15 @@ SystemGenerator read_toml_system(const toml::value& data)
                         std::make_unique<GoContactForceFieldGenerator>(ff_gen));
                 ++custom_ffgen_count;
             }
+            else if (interaction == "BondLength" && potential == "3SPN2Bond")
+            {
+                ThreeSPN2BondForceFieldGenerator ff_gen =
+                    read_toml_3spn2_bond_ff_generator(
+                        local_ff, topology, use_periodic, ffgen_count);
+                system_gen.add_ff_generator(
+                        std::make_unique<ThreeSPN2BondForceFieldGenerator>(ff_gen));
+                ++ffgen_count;
+            }
             else if(interaction == "BondAngle" && potential == "Harmonic")
             {
                 HarmonicAngleForceFieldGenerator ff_gen =
@@ -231,6 +240,46 @@ SystemGenerator read_toml_system(const toml::value& data)
                         std::make_unique<GaussianDihedralForceFieldGenerator>(ff_gen));
                 ++custom_ffgen_count;
             }
+            else if(interaction == "DihedralAngle" && potential == "Cosine")
+            {
+                CosineDihedralForceFieldGenerator ff_gen =
+                    read_toml_cosine_dihedral_ff_generator(
+                            local_ff, topology, use_periodic, ffgen_count);
+                system_gen.add_ff_generator(
+                        std::make_unique<CosineDihedralForceFieldGenerator>(ff_gen));
+                ++ffgen_count;
+            }
+            else if(interaction == "DihedralAngle" &&
+                   (potential == "Gaussian+Cosine" || potential == "Cosine+Gaussian"))
+            {
+                toml::array a1;
+                toml::array a2;
+                for (const auto& elem : local_ff.at("parameters").as_array())
+                {
+                    toml::value v1 = toml::find(elem, "Gaussian");
+                    toml::value v2 = toml::find(elem, "Cosine");
+                    v1["indices"]  = toml::find(elem, "indices");
+                    v2["indices"]  = toml::find(elem, "indices");
+                    a1.push_back(std::move(v1));
+                    a2.push_back(std::move(v2));
+                }
+                toml::value local_ff_gaussian = toml::table{{"parameters", a1}};
+                toml::value local_ff_cosine   = toml::table{{"parameters", a2}};
+
+                GaussianDihedralForceFieldGenerator ff_gen1 =
+                    read_toml_gaussian_dihedral_ff_generator(
+                        local_ff_gaussian, topology, use_periodic, ffgen_count);
+                system_gen.add_ff_generator(
+                        std::make_unique<GaussianDihedralForceFieldGenerator>(ff_gen1));
+                ++ffgen_count;
+
+                CosineDihedralForceFieldGenerator ff_gen2 =
+                    read_toml_cosine_dihedral_ff_generator(
+                        local_ff_cosine, topology, use_periodic, ffgen_count);
+                system_gen.add_ff_generator(
+                        std::make_unique<CosineDihedralForceFieldGenerator>(ff_gen2));
+                ++ffgen_count;
+            }
             else if(interaction == "DihedralAngle" && potential == "FlexibleLocalDihedral")
             {
                 for(const auto& [aa_pair_type, fourier_table] : Constant::fld_fourier_table)
@@ -245,6 +294,16 @@ SystemGenerator read_toml_system(const toml::value& data)
                     ++custom_ffgen_count;
                 }
             }
+            else if (interaction == "3SPN2BaseStacking" && (potential == "3SPN2" || potential == "3SPN2C"))
+            {
+                ThreeSPN2BaseStackingForceFieldGenerator ff_gen =
+                    read_toml_3spn2_base_stacking_ff_generator(
+                        local_ff, topology, use_periodic, ffgen_count);
+                    system_gen.add_ff_generator(
+                            std::make_unique<ThreeSPN2BaseStackingForceFieldGenerator>(
+                                ff_gen));
+                ++ffgen_count;
+            }
         }
     }
     topology.make_molecule("bond");
@@ -255,7 +314,12 @@ SystemGenerator read_toml_system(const toml::value& data)
 
         for(const auto& global_ff : globals)
         {
-            const std::string potential = toml::find<std::string>(global_ff, "potential");
+            const std::string interaction =
+                toml::find<std::string>(global_ff, "interaction");
+            const std::string potential =
+                toml::find<std::string>(global_ff, "potential");
+
+            // Pair interaction case
             if(potential == "ExcludedVolume")
             {
                 ExcludedVolumeForceFieldGenerator ff_gen =
@@ -264,6 +328,15 @@ SystemGenerator read_toml_system(const toml::value& data)
                 system_gen.add_ff_generator(
                         std::make_unique<ExcludedVolumeForceFieldGenerator>(ff_gen));
                 ++custom_ffgen_count;
+            }
+            if (potential == "3SPN2ExcludedVolume")
+            {
+                ThreeSPN2ExcludedVolumeForceFieldGenerator ff_gen =
+                    read_toml_3spn2_excluded_volume_ff_generator(
+                        global_ff, system_size, topology, use_periodic, ffgen_count);
+                system_gen.add_ff_generator(
+                        std::make_unique<ThreeSPN2ExcludedVolumeForceFieldGenerator>(ff_gen));
+                ++ffgen_count;
             }
             if(potential == "WCA")
             {
@@ -280,7 +353,7 @@ SystemGenerator read_toml_system(const toml::value& data)
                             {
                                 throw std::runtime_error(
                                     "[error] parameter table for " + name_pair.first + "-" +
-                                    name_pair.second + " is difined in dupulicate.");
+                                    name_pair.second + " is defined in dupulicate.");
                             }
                             else
                             {
@@ -372,7 +445,7 @@ SystemGenerator read_toml_system(const toml::value& data)
                             {
                                 throw std::runtime_error(
                                     "[error] parameter table for " + name_pair.first + "-" +
-                                    name_pair.second + " is difined in dupulicate.");
+                                    name_pair.second + " is defined in dupulicate.");
                             }
                             else
                             {
@@ -409,6 +482,122 @@ SystemGenerator read_toml_system(const toml::value& data)
                     throw std::runtime_error(
                         "[error] LennardJonesAttractive potential only support "
                         "table mode for providing pair-paramters.");
+                }
+            }
+
+            // non-Pair interaction case
+            if(interaction == "3SPN2CrossStacking")
+            {
+                const std::vector<std::pair<std::string, std::string>> base_pairs = {
+                    {"A", "T"}, {"T", "A"}, {"G", "C"}, {"C", "G"}
+                };
+
+                if(potential == "3SPN2")
+                {
+                    using parameter_type = ThreeSPN2CrossStackingPotentialParameter;
+                    using potential_type =
+                        ThreeSPN2CrossStackingForceFieldGenerator<parameter_type>;
+                    for (const auto& bp_kind: base_pairs) {
+
+                        // Cross stacking of sense-strand
+                        potential_type ff_gen_sense =
+                            read_toml_3spn2_cross_stacking_ff_generator<parameter_type>(
+                                global_ff, topology, bp_kind, "sense", use_periodic,
+                                ffgen_count);
+                        system_gen.add_ff_generator(
+                            std::make_unique<potential_type>(ff_gen_sense));
+                        ++ffgen_count;
+
+                        // Cross stacking of antisense-strand
+                        potential_type ff_gen_antisense =
+                            read_toml_3spn2_cross_stacking_ff_generator<parameter_type>(
+                                global_ff, topology, bp_kind, "antisense", use_periodic,
+                                ffgen_count);
+                        system_gen.add_ff_generator(
+                            std::make_unique<potential_type>(ff_gen_antisense));
+                        ++ffgen_count;
+                    }
+                }
+                else if(potential == "3SPN2C")
+                {
+                    using parameter_type = ThreeSPN2CCrossStackingPotentialParameter;
+                    using potential_type =
+                        ThreeSPN2CrossStackingForceFieldGenerator<parameter_type>;
+                    for (const auto& bp_kind: base_pairs) {
+
+                        // Cross stacking of sense-strand
+                        potential_type ff_gen_sense =
+                            read_toml_3spn2_cross_stacking_ff_generator<parameter_type>(
+                                global_ff, topology, bp_kind, "sense", use_periodic,
+                                ffgen_count);
+                        system_gen.add_ff_generator(
+                            std::make_unique<potential_type>(ff_gen_sense));
+                        ++ffgen_count;
+
+                        // Cross stacking of antisense-strand
+                        potential_type ff_gen_antisense =
+                            read_toml_3spn2_cross_stacking_ff_generator<parameter_type>(
+                                global_ff, topology, bp_kind, "antisense", use_periodic,
+                                ffgen_count);
+                        system_gen.add_ff_generator(
+                            std::make_unique<potential_type>(ff_gen_antisense));
+                        ++ffgen_count;
+                    }
+                }
+                else
+                {
+                    throw std::runtime_error(
+                        "[error] invalid potential " + potential + " found."
+                        "Expected value is one of the following."
+                        "- \"3SPN2\" : The general 3SPN2 parameter set."
+                        "- \"3SPN2C\": The parameter set optimized to reproduce sequence-dependent curveture of dsDNA.");
+                }
+            }
+            if(interaction == "3SPN2BasePair")
+            {
+                const std::vector<std::pair<std::string, std::string>> base_pairs =
+                        {{"A", "T"}, {"G", "C"}};
+
+                if(potential == "3SPN2")
+                {
+                    using parameter_type = ThreeSPN2BasePairPotentialParameter;
+                    using potential_type =
+                        ThreeSPN2BasePairForceFieldGenerator<parameter_type>;
+
+                    for (const auto& pair : base_pairs)
+                    {
+                        potential_type ff_gen =
+                            read_toml_3spn2_base_pair_ff_generator<parameter_type>(
+                                global_ff, topology, pair, use_periodic, ffgen_count);
+                        system_gen.add_ff_generator(
+                            std::make_unique<potential_type>(ff_gen));
+                        ++ffgen_count;
+                    }
+                }
+                else if(potential == "3SPN2C")
+                {
+                    using parameter_type = ThreeSPN2CBasePairPotentialParameter;
+                    using potential_type =
+                        ThreeSPN2BasePairForceFieldGenerator<parameter_type>;
+
+                    for (const auto& pair : base_pairs)
+                    {
+                        potential_type ff_gen =
+                            read_toml_3spn2_base_pair_ff_generator<parameter_type>(
+                                global_ff, topology, pair, use_periodic, ffgen_count);
+                        system_gen.add_ff_generator(
+                            std::make_unique<potential_type>(ff_gen));
+                        ++ffgen_count;
+                    }
+                }
+                else
+                {
+                    throw std::runtime_error(
+                        "[error] invalid potential " + potential + " found."
+                        "Expected value is one of the following."
+                        "- \"3SPN2\" : The general 3SPN2 parameter set."
+                        "- \"3SPN2C\": The parameter set optimized to reproduce sequence-dependent curveture of dsDNA."
+                    );
                 }
             }
         }
