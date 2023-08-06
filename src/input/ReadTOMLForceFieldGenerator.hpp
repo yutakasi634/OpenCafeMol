@@ -3,19 +3,26 @@
 
 #include <OpenMM.h>
 #include "src/util/Utility.hpp"
+#include "src/util/Constants.hpp"
 #include "src/forcefield/HarmonicBondForceFieldGenerator.hpp"
 #include "src/forcefield/GaussianBondForceFieldGenerator.hpp"
 #include "src/forcefield/GoContactForceFieldGenerator.hpp"
+#include "src/forcefield/ThreeSPN2BondForceFieldGenerator.hpp"
 #include "src/forcefield/HarmonicAngleForceFieldGenerator.hpp"
 #include "src/forcefield/FlexibleLocalAngleForceFieldGenerator.hpp"
 #include "src/forcefield/GaussianDihedralForceFieldGenerator.hpp"
+#include "src/forcefield/CosineDihedralForceFieldGenerator.hpp"
 #include "src/forcefield/FlexibleLocalDihedralForceFieldGenerator.hpp"
+#include "src/forcefield/ThreeSPN2BaseStackingForceFieldGenerator.hpp"
 #include "src/forcefield/ExcludedVolumeForceFieldGenerator.hpp"
+#include "src/forcefield/ThreeSPN2ExcludedVolumeForceFieldGenerator.hpp"
 #include "src/forcefield/WeeksChandlerAndersenForceFieldGenerator.hpp"
 #include "src/forcefield/DebyeHuckelForceFieldGenerator.hpp"
 #include "src/forcefield/iSoLFAttractiveForceFieldGenerator.hpp"
 #include "src/forcefield/UniformLennardJonesAttractiveForceFieldGenerator.hpp"
 #include "src/forcefield/UniformWeeksChandlerAndersenForceFieldGenerator.hpp"
+#include "src/forcefield/ThreeSPN2BasePairForceFieldGenerator.hpp"
+#include "src/forcefield/ThreeSPN2CrossStackingForceFieldGenerator.hpp"
 #include "src/forcefield/HarmonicCoMPullingForceFieldGenerator.hpp"
 
 // -----------------------------------------------------------------------------
@@ -174,7 +181,59 @@ read_toml_go_contact_ff_generator(
     return GoContactForceFieldGenerator(indices_vec, ks, r0s, use_periodic);
 }
 
-HarmonicAngleForceFieldGenerator
+const ThreeSPN2BondForceFieldGenerator
+read_toml_3spn2_bond_ff_generator(
+        const toml::value& local_ff_data, Topology& topology,
+        const bool use_periodic, const std::size_t ffgen_id)
+{
+    const auto& params = toml::find<toml::array>(local_ff_data, "parameters");
+    const auto& env = local_ff_data.contains("env") ? local_ff_data.at("env") : toml::value{};
+
+    std::vector<std::pair<std::size_t, std::size_t>> indices_vec;
+    std::vector<double>                              v0s;
+    std::vector<double>                              k2s;
+    std::vector<double>                              k4s;
+
+    for(const auto& param : params)
+    {
+        auto indices =
+            Utility::find_parameter<std::pair<std::size_t, std::size_t>>(param, env, "indices");
+        const auto offset = Utility::find_parameter_or<std::size_t>(param, env, "offset", 0);
+        indices.first  += offset;
+        indices.second += offset;
+
+        const double v0 =
+            Utility::find_parameter<double>(param, env, "v0") * OpenMM::NmPerAngstrom; // nm
+        // The potential energy of the 3SPN2 bond is k (r-v0)^2 + 100*k*(r-v0)^4,
+        // where the parameter, k ,is shared in the harmonic and quartic terms.
+        // Unit of k for harmonic and quartic terms are kJ/(mol nm^2) and kJ/(mol nm^4),
+        // respectively. Thus, the coefficient, k, for the quartic term is 100 times larger than
+        // the coefficient for the harmonic term.
+        const double k2 =
+            Utility::find_parameter<double>(param, env, "k") * OpenMM::KJPerKcal *
+            OpenMM::AngstromsPerNm * OpenMM::AngstromsPerNm;  // KJ/(mol nm^2)
+
+        const double k4 =
+            Utility::find_parameter<double>(param, env, "k") * OpenMM::KJPerKcal *
+            OpenMM::AngstromsPerNm * OpenMM::AngstromsPerNm *
+            OpenMM::AngstromsPerNm * OpenMM::AngstromsPerNm;  // KJ/(mol nm^4)
+
+        indices_vec.push_back(indices);
+        k2s        .push_back(k2);
+        k4s        .push_back(k4);
+        v0s        .push_back(v0);
+    }
+
+    if(local_ff_data.contains("topology"))
+    {
+        topology.add_edges(indices_vec, toml::find<std::string>(local_ff_data, "topology"));
+    }
+
+    std::cerr << "    BondLength    : 3SPN2 (" << indices_vec.size() << " found)" << std::endl;
+    return ThreeSPN2BondForceFieldGenerator(indices_vec, k2s, k4s, v0s, use_periodic, ffgen_id);
+}
+
+const HarmonicAngleForceFieldGenerator
 read_toml_harmonic_angle_ff_generator(
         const toml::value& local_ff_data, Topology& topology, const bool use_periodic)
 {
@@ -316,7 +375,7 @@ read_toml_gaussian_dihedral_ff_generator(
         const double k  =
             Utility::find_parameter<double>(param, env, "k") * OpenMM::KJPerKcal; // KJ/mol
         const double theta0 =
-            Utility::find_parameter<double>(param, env, "v0"); // radiuns
+            Utility::find_parameter<double>(param, env, "v0"); // radian
         const double sigma =
             Utility::find_parameter_either<double>(param, env, "sigma", "σ"); // radiuns
 
@@ -336,7 +395,65 @@ read_toml_gaussian_dihedral_ff_generator(
             indices_vec, ks, theta0s, sigmas, use_periodic);
 }
 
-FlexibleLocalDihedralForceFieldGenerator
+const CosineDihedralForceFieldGenerator
+read_toml_cosine_dihedral_ff_generator(
+        const toml::value& local_ff_data, Topology& topology,
+        const bool use_periodic, const std::size_t ffgen_id)
+{
+
+    const auto& params = toml::find<toml::array>(local_ff_data, "parameters");
+    const auto& env = local_ff_data.contains("env") ? local_ff_data.at("env") : toml::value{};
+
+    std::vector<std::array<std::size_t, 4>> indices_vec;
+    std::vector<double>                     ks;
+    std::vector<double>                     theta0s;
+    std::vector<double>                     ns;
+
+    for(const auto& param : params)
+    {
+        auto indices =
+            Utility::find_parameter<std::array<std::size_t, 4>>(param, env, "indices");
+        const auto offset = Utility::find_parameter_or<std::size_t>(param, env, "offset", 0);
+        for(auto& idx : indices) { idx += offset; }
+
+        for(auto idx : indices)
+        {
+            if(topology.size() <= idx)
+            {
+                throw std::runtime_error("[error] read_toml_cosine_dihedral_ff_generator : index "+std::to_string(idx)+" exceeds the system's largest index "+std::to_string(topology.size()-1)+".");
+            }
+        }
+
+        const double k  =
+            Utility::find_parameter<double>(param, env, "k") * OpenMM::KJPerKcal; // KJ/mol
+        const double theta0 =
+            Utility::find_parameter<double>(param, env, "v0") + Constant::pi;    // radian
+        const double n =
+            Utility::find_parameter<size_t>(param, env, "n");
+
+        // Toml input file assumes that a formula of the cosine dihedral potential is
+        // "k*(1 + cos(n0 * (theta - t0)", while that of 3SPNC2 DNA model is
+        // "k*(1 - cos(n0 * (theta - t0)". To adjust for this, we shift theta0 by π.
+
+        indices_vec.push_back(indices);
+        ks         .push_back(k);
+        theta0s    .push_back(theta0);
+        ns         .push_back(n);
+
+
+    }
+
+    if(local_ff_data.contains("topology"))
+    {
+        topology.add_edges(indices_vec, toml::find<std::string>(local_ff_data, "topology"));
+    }
+
+    std::cerr << "    DihedralAngle : Cosine (" << indices_vec.size() << " found)" << std::endl;
+    return CosineDihedralForceFieldGenerator(
+            indices_vec, ks, theta0s, ns, use_periodic, ffgen_id);
+}
+
+const FlexibleLocalDihedralForceFieldGenerator
 read_toml_flexible_local_dihedral_ff_generator(
         const toml::value& local_ff_data, const std::pair<std::string, std::string> aa_pair_type,
         const std::array<double, 7> fourier_table, Topology& topology,
@@ -457,6 +574,193 @@ read_toml_flexible_local_dihedral_ff_generator(
               << aa_pair_name << " (" << indices_vec.size() << " found)" << std::endl;
     return FlexibleLocalDihedralForceFieldGenerator(
                indices_vec, ks, fourier_table, aa_pair_name, use_periodic);
+}
+
+const ThreeSPN2BaseStackingForceFieldGenerator
+read_toml_3spn2_base_stacking_ff_generator(
+        const toml::value& local_ff_data, Topology& topology,
+        const bool use_periodic, const std::size_t ffgen_id)
+{
+    // [[forcefields.local]]
+    // interaction = "3SPN2BaseStacking"
+    // potential   = "3SPN2C"
+    // topology    = "nucleotide"
+    // parameters = [
+    //     {strand = 0, nucleotide =  0,          S =   0, B =   1, Base = "A"},
+    //     {strand = 0, nucleotide =  1, P =   2, S =   3, B =   4, Base = "T"},
+    //     # ...
+    // ]
+
+    const auto pot = toml::find<std::string>(local_ff_data, "potential");
+    if (! (pot == "3SPN2" || pot == "3SPN2C"))
+    {
+        throw std::runtime_error(
+            "[error] invalid potential " + pot + " fond."
+            "Expected value is one of the following."
+            "- \"3SPN2\" : The general 3SPN2 parameter set."
+            "- \"3SPN2C\": The parameter set optimized to reproduce sequence-dependent curveture of dsDNA."
+        );
+    }
+
+    const auto& params = toml::find<toml::array>(local_ff_data, "parameters");
+    const auto& env = local_ff_data.contains("env") ? local_ff_data.at("env") : toml::value{};
+
+    struct Nucleotide
+    {
+        static constexpr std::size_t nil() noexcept
+        {
+            return std::numeric_limits<std::size_t>::max();
+        }
+
+        Nucleotide() noexcept
+            : strand(nil()), P(nil()), S(nil()), B(nil()), base("X")
+        {}
+        ~Nucleotide() noexcept = default;
+        Nucleotide(Nucleotide const&) = default;
+        Nucleotide(Nucleotide &&)     = default;
+        Nucleotide& operator=(Nucleotide const&) = default;
+        Nucleotide& operator=(Nucleotide &&)     = default;
+
+        std::size_t strand;
+        std::size_t P, S, B;
+        std::string base;
+    };
+
+    // parameters = [
+    //     {strand = 0, nucleotide =  0,          S =   0, B =   1, Base = "A"},
+    //     {strand = 0, nucleotide =  1, P =   2, S =   3, B =   4, Base = "T"},
+    //     # ...
+    // ]
+
+    std::vector<Nucleotide> nucleotide_idxs;
+    for(const auto& param: params)
+    {
+        Nucleotide nucleotide;
+
+        if(param.as_table().count("P") != 0)
+        {
+            nucleotide.P  = Utility::find_parameter<size_t>(param, env, "P");
+        }
+        nucleotide.S      = Utility::find_parameter<size_t>(param, env, "S");
+        nucleotide.B      = Utility::find_parameter<size_t>(param, env, "B");
+        nucleotide.strand = Utility::find_parameter<size_t>(param, env, "strand");
+
+        const auto base = toml::find<std::string>(param, "Base");
+        if (base=="A" || base == "T" || base == "G" || base == "C")
+        {
+            nucleotide.base = base;
+        }
+        else
+        {
+            throw std::runtime_error(
+                "[error] invalid base type " + base + " here. "
+                "One of the \"A\", \"T\", \"C\", \"G\" is expected."
+            );
+        }
+        nucleotide_idxs.push_back(nucleotide);
+    }
+
+    // Parameter assignment
+    std::vector<std::array<std::size_t, 3>> indices_vec;
+    std::vector<double> eps_vec;
+    std::vector<double> r0_BS_vec;
+    std::vector<double> theta0_BS_vec;
+    double alpha = 1.0;
+    double K_BS  = 1.0;
+
+    for (std::size_t i=1; i<nucleotide_idxs.size(); ++i)
+    {
+        const auto& Base5 = nucleotide_idxs.at(i-1);
+        const auto& Base3 = nucleotide_idxs.at(i);
+        const std::string base_kind = Base5.base + Base3.base;
+
+        if(Base5.strand != Base3.strand)
+        {
+            continue; // if the strands are different, there is no base stacking
+        }
+        assert(Base3.base != "X");
+        assert(Base5.base != "X");
+
+        const std::array<std::size_t, 3> indices{{Base5.S, Base5.B, Base3.B}};
+
+        if (pot == "3SPN2")
+        {
+            using parameter_type = ThreeSPN2BaseStackingPotentialParameter;
+            const double eps       = parameter_type::epsilon_BS.at(base_kind); // kJ/mol
+            const double r0_BS     = parameter_type::r0_BS     .at(base_kind) * OpenMM::NmPerAngstrom; // nm
+            const double theta0_BS = parameter_type::theta0_BS .at(base_kind) * OpenMM::RadiansPerDegree; // radian
+            alpha                  = parameter_type::alpha_BS / OpenMM::NmPerAngstrom; // nm^{-1}
+            K_BS                   = parameter_type::K_BS;
+
+            indices_vec  .push_back(indices);
+            eps_vec      .push_back(eps);
+            r0_BS_vec    .push_back(r0_BS);
+            theta0_BS_vec.push_back(theta0_BS);
+        }
+        else if (pot == "3SPN2C")
+        {
+            using parameter_type = ThreeSPN2CBaseStackingPotentialParameter;
+            const double eps       = parameter_type::epsilon_BS.at(base_kind); // kJ/mol
+            const double r0_BS     = parameter_type::r0_BS     .at(base_kind) * OpenMM::NmPerAngstrom;    // nm
+            const double theta0_BS = parameter_type::theta0_BS .at(base_kind) * OpenMM::RadiansPerDegree; // radian
+            alpha                  = parameter_type::alpha_BS / OpenMM::NmPerAngstrom; // nm^{-1}
+            K_BS                   = parameter_type::K_BS;
+
+            indices_vec  .push_back(indices);
+            eps_vec      .push_back(eps);
+            r0_BS_vec    .push_back(r0_BS);
+            theta0_BS_vec.push_back(theta0_BS);
+        }
+    }
+
+    // Creating topology
+    if (local_ff_data.contains("topology"))
+    {
+        for (std::size_t i=1; i<nucleotide_idxs.size(); ++i)
+        {
+            using edge_type = std::pair<std::size_t, std::size_t>;
+            std::vector<edge_type> edges;
+
+            const auto& Base5 = nucleotide_idxs.at(i-1);
+            const auto& Base3 = nucleotide_idxs.at(i);
+            constexpr auto nil = Nucleotide::nil();
+
+            if (Base5.strand != Base3.strand) {continue;}
+
+            edges.push_back(std::make_pair(Base5.S, Base3.S));
+            edges.push_back(std::make_pair(Base5.S, Base3.B));
+            edges.push_back(std::make_pair(Base5.B, Base3.S));
+            edges.push_back(std::make_pair(Base5.B, Base3.B));
+
+            if (Base5.P != nil)
+            {
+                edges.push_back(std::make_pair(Base5.P, Base3.S));
+                edges.push_back(std::make_pair(Base5.P, Base3.B));
+            }
+            if (Base3.P != nil)
+            {
+                edges.push_back(std::make_pair(Base5.S, Base3.P));
+                edges.push_back(std::make_pair(Base5.B, Base3.P));
+            }
+            if (Base5.P != nil && Base3.P != nil)
+            {
+                edges.push_back(std::make_pair(Base5.P, Base3.P));
+            }
+            topology.add_edges(edges, toml::find<std::string>(local_ff_data, "topology"));
+        }
+    }
+
+    if (pot == "3SPN2")
+    {
+        std::cerr << "    3SPN2BaseStacking    : 3SPN2 ("  << indices_vec.size() << " found)" << std::endl;
+    }
+    else if (pot == "3SPN2C")
+    {
+        std::cerr << "    3SPN2BaseStacking    : 3SPN2C (" << indices_vec.size() << " found)" << std::endl;
+    }
+
+    return ThreeSPN2BaseStackingForceFieldGenerator(
+        indices_vec, eps_vec, r0_BS_vec, theta0_BS_vec, alpha, K_BS, use_periodic, ffgen_id);
 }
 
 // ----------------------------------------------------------------------------
@@ -597,6 +901,85 @@ read_toml_excluded_volume_ff_generator(
     return ExcludedVolumeForceFieldGenerator(
             eps, cutoff, radius_vec, ignore_list, use_periodic,
             ignore_group_pairs, group_vec);
+}
+
+const ThreeSPN2ExcludedVolumeForceFieldGenerator
+read_toml_3spn2_excluded_volume_ff_generator(
+    const toml::value& global_ff_data, const std::size_t system_size, const Topology& topology,
+    const bool use_periodic, const std::size_t ffgen_id)
+{
+    using index_pairs_type = std::vector<std::pair<std::size_t, std::size_t>>;
+
+    const auto&  params = toml::find<toml::array>(global_ff_data, "parameters");
+    const auto&  env    = global_ff_data.contains("env") ? global_ff_data.at("env") : toml::value{};
+
+    const auto   eps    = ThreeSPN2ExcludedVolumePotentialParameter::epsilon;
+    const auto   cutoff = toml::find_or(global_ff_data, "cutoff", 2.0);
+
+    // Parse parameters
+    //  parameters = [ # {{{
+    //   {index =   0, kind = "S"},
+    //   {index =   1, kind = "A"},
+
+    std::vector<std::optional<double>> radius_vec(system_size, std::nullopt);
+    for(const auto& param : params)
+    {
+        const auto index  = Utility::find_parameter   <std::size_t>(param, env, "index") +
+                            Utility::find_parameter_or<std::size_t>(param, env, "offset", 0);
+        const auto kind   = toml::find<std::string>(param, "kind");
+        radius_vec[index] = ThreeSPN2ExcludedVolumePotentialParameter::sigma.at(kind);
+    }
+
+    std::cerr << "    Global        : ExcludedVolume 3SPN2 (" << params.size()
+               << " found)" << std::endl;
+
+    // ignore list generation for bonded interactions and neighboring nucleotides
+    index_pairs_type ignore_list;
+    std::vector<std::pair<std::string, std::string>> ignore_group_pairs;
+    if(global_ff_data.contains("ignore"))
+    {
+        const auto& ignore = toml::find(global_ff_data, "ignore");
+        ignore_list        = read_ignore_molecule_and_particles_within(ignore, topology);
+        ignore_group_pairs = read_ignore_group(ignore);
+    }
+
+    // ignore list generation for base pairing interaction
+    for(size_t idx=0; idx<params.size()-1; ++idx)
+    {
+        for(size_t jdx=idx+1; jdx<params.size(); ++jdx)
+        {
+            const auto kind_i = toml::find<std::string>(params[idx], "kind");
+            const auto kind_j = toml::find<std::string>(params[jdx], "kind");
+
+            // complement
+            if ((kind_i == "A" && kind_j == "T") || (kind_i == "T" && kind_j == "A") ||
+                (kind_i == "G" && kind_j == "C") || (kind_i == "C" && kind_j == "G"))
+            {
+                const auto index_i =
+                    Utility::find_parameter   <std::size_t>(params[idx], env, "index") +
+                    Utility::find_parameter_or<std::size_t>(params[idx], env, "offset", 0);
+                const auto index_j =
+                    Utility::find_parameter   <std::size_t>(params[jdx], env, "index") +
+                    Utility::find_parameter_or<std::size_t>(params[jdx], env, "offset", 0);
+
+                if (index_i < index_j)
+                {
+                    ignore_list.push_back(std::make_pair(index_i, index_j));
+                }
+                else
+                {
+                    ignore_list.push_back(std::make_pair(index_j, index_i));
+                }
+            }
+        }
+    }
+
+    // remove duplication
+    std::sort(ignore_list.begin(), ignore_list.end());
+    ignore_list.erase(std::unique(ignore_list.begin(), ignore_list.end()), ignore_list.end());
+
+    return ThreeSPN2ExcludedVolumeForceFieldGenerator(
+            eps, cutoff, radius_vec, ignore_list, use_periodic, ffgen_id);
 }
 
 const WeeksChandlerAndersenForceFieldGenerator
@@ -858,6 +1241,329 @@ read_toml_uniform_lennard_jones_attractive_ff_generator(
     return UniformLennardJonesAttractiveForceFieldGenerator(
         system_size, epsilon, sigma, cutoff, former_participants, latter_participants,
         ignore_list, use_periodic, ignore_group_pairs, group_vec);
+}
+
+template<typename PotentialParameterType>
+const ThreeSPN2BasePairForceFieldGenerator<PotentialParameterType>
+read_toml_3spn2_base_pair_ff_generator(
+        const toml::value& global_ff_data, Topology& topology,
+        const std::pair<std::string, std::string> base_pair,
+        const bool use_periodic, const std::size_t ffgen_id
+)
+{
+    using index_pairs_type = std::vector<std::pair<std::size_t, std::size_t>>;
+
+    const std::string donor    = base_pair.first;
+    const std::string acceptor = base_pair.second;
+
+    if (! ((donor == "A" && acceptor == "T") || (donor == "T" && acceptor == "A") ||
+           (donor == "G" && acceptor == "C") || (donor == "C" && acceptor == "G")))
+    {
+        throw std::runtime_error(
+            "[error] invalid base pair type " + donor + "-" + acceptor + " here. " +
+            "One of the A-T, T-A, G-C, C-G is expected.");
+    }
+
+    // [[forcefields.global]]
+    // interaction = "3SPN2BasePair"
+    // potential   = "3SPN2"
+    // ignore.particles_within.nucleotide = 3
+    // parameters = [
+    //     {strand = 0,          S =   0, B =   1, Base = "A"},
+    //     {strand = 0, P =   2, S =   3, B =   4, Base = "T"},
+    //     # ...
+    // ]
+
+    const auto  pot    = toml::find<std::string>(global_ff_data, "potential");
+    const auto& params = toml::find<toml::array>(global_ff_data, "parameters");
+    const auto& env    = global_ff_data.contains("env") ? global_ff_data.at("env") : toml::value{};
+
+    struct Nucleotide
+    {
+        static constexpr std::size_t nil() noexcept
+        {
+            return std::numeric_limits<std::size_t>::max();
+        }
+
+        Nucleotide() noexcept
+            : strand(nil()), P(nil()), S(nil()), B(nil()), base("X")
+        {}
+        ~Nucleotide() noexcept = default;
+        Nucleotide(Nucleotide const&) = default;
+        Nucleotide(Nucleotide &&)     = default;
+        Nucleotide& operator=(Nucleotide const&) = default;
+        Nucleotide& operator=(Nucleotide &&)     = default;
+
+        std::size_t strand;
+        std::size_t P, S, B;
+        std::string base;
+    };
+
+    // parameters = [
+    //     {strand = 0,          S =   0, B =   1, Base = "A"},
+    //     {strand = 0, P =   2, S =   3, B =   4, Base = "T"},
+    //     # ...
+    // ]
+
+    std::vector<Nucleotide> nucleotide_idxs;
+    for(const auto& param : params)
+    {
+        Nucleotide nucleotide;
+
+        if(param.as_table().count("P") != 0)
+        {
+            nucleotide.P  = Utility::find_parameter<size_t>(param, env, "P");
+        }
+        nucleotide.S      = Utility::find_parameter<size_t>(param, env, "S");
+        nucleotide.B      = Utility::find_parameter<size_t>(param, env, "B");
+        nucleotide.strand = Utility::find_parameter<size_t>(param, env, "strand");
+
+        const auto base = toml::find<std::string>(param, "Base");
+        if (base=="A" || base == "T" || base == "G" || base == "C")
+        {
+            nucleotide.base = base;
+        }
+        else
+        {
+            throw std::runtime_error(
+                "[error] invalid base type " + base + " here. "
+                "One of the \"A\", \"T\", \"C\", \"G\" is expected."
+            );
+        }
+
+        nucleotide_idxs.push_back(nucleotide);
+    }
+
+    // Create base-pairing list
+    std::vector<std::array<std::size_t, 2>> indices_donor;     // 0: base, 1: sugar
+    std::vector<std::array<std::size_t, 2>> indices_acceptor;  // 0: base, 1: sugar
+
+    for(const auto& nuc : nucleotide_idxs)
+    {
+        if (nuc.base == donor)
+        {
+            indices_donor.push_back({nuc.B, nuc.S});
+        }
+        else if (nuc.base == acceptor)
+        {
+            indices_acceptor.push_back({nuc.B, nuc.S});
+        }
+    }
+
+    // ignore list generation
+    index_pairs_type ignore_list;
+    if(global_ff_data.contains("ignore"))
+    {
+        const auto& ignore = toml::find(global_ff_data, "ignore");
+        ignore_list = read_ignore_molecule_and_particles_within(ignore, topology);
+    }
+
+    std::cerr << "    Global        : " + PotentialParameterType::name + " BasePair "
+          << donor << "-" << acceptor << " ("
+          << indices_donor.size()    << donor << " and "
+          << indices_acceptor.size() << acceptor
+          << " found)" << std::endl;
+
+    return ThreeSPN2BasePairForceFieldGenerator<PotentialParameterType>(
+        indices_donor, indices_acceptor, base_pair, ignore_list,
+        use_periodic, ffgen_id);
+}
+
+template<typename PotentialParameterType>
+const ThreeSPN2CrossStackingForceFieldGenerator<PotentialParameterType>
+read_toml_3spn2_cross_stacking_ff_generator(
+        const toml::value& global_ff_data, Topology& topology,
+        const std::pair<std::string, std::string> bp_kind, const std::string& strand_kind,
+        const bool use_periodic, const std::size_t ffgen_id
+)
+{
+    using index_pairs_type = std::vector<std::pair<std::size_t, std::size_t>>;
+
+    if (! ((bp_kind.first == "A" && bp_kind.second == "T" )||
+           (bp_kind.first == "T" && bp_kind.second == "A" )||
+           (bp_kind.first == "G" && bp_kind.second == "C" )||
+           (bp_kind.first == "C" && bp_kind.second == "G" )))
+    {
+        throw std::runtime_error(
+            "[error] invalid base type " + bp_kind.first + '-' + bp_kind.second + " here. " +
+            "One of the A-T, T-A, G-C, C-G is expected."
+        );
+    }
+
+    // [[forcefields.global]]
+    // interaction = "3SPN2CrossStacking"
+    // potential   = "3SPN2"
+    // ignore.particles_within.nucleotide = 3
+    // parameters = [
+    //     {strand = 0,          S =   0, B =   1, Base = "A"},
+    //     {strand = 0, P =   2, S =   3, B =   4, Base = "T"},
+    //     # ...
+    // ]
+
+    const auto  pot    = toml::find<std::string>(global_ff_data, "potential");
+    const auto& params = toml::find<toml::array>(global_ff_data, "parameters");
+    const auto& env    = global_ff_data.contains("env") ? global_ff_data.at("env") : toml::value{};
+
+    struct Nucleotide
+    {
+        static constexpr std::size_t nil() noexcept
+        {
+            return std::numeric_limits<std::size_t>::max();
+        }
+
+        Nucleotide() noexcept
+            : strand(nil()), P(nil()), S(nil()), B(nil()), base("X")
+        {}
+        ~Nucleotide() noexcept = default;
+        Nucleotide(Nucleotide const&) = default;
+        Nucleotide(Nucleotide &&)     = default;
+        Nucleotide& operator=(Nucleotide const&) = default;
+        Nucleotide& operator=(Nucleotide &&)     = default;
+
+        std::size_t strand;
+        std::size_t P, S, B;
+        std::string base;
+    };
+
+    // parameters = [
+    //     {strand = 0,          S =   0, B =   1, Base = "A"},
+    //     {strand = 0, P =   2, S =   3, B =   4, Base = "T"},
+    //     # ...
+    // ]
+
+    std::vector<Nucleotide> nucleotide_idxs;
+    for(const auto& param: params)
+    {
+        Nucleotide nucleotide;
+
+        if(param.as_table().count("P") != 0)
+        {
+            nucleotide.P  = Utility::find_parameter<size_t>(param, env, "P");
+        }
+        nucleotide.S      = Utility::find_parameter<size_t>(param, env, "S");
+        nucleotide.B      = Utility::find_parameter<size_t>(param, env, "B");
+        nucleotide.strand = Utility::find_parameter<size_t>(param, env, "strand");
+
+        const auto base = toml::find<std::string>(param, "Base");
+        if (base=="A" || base == "T" || base == "G" || base == "C")
+        {
+            nucleotide.base = base;
+        }
+        else
+        {
+            throw std::runtime_error(
+                "[error] invalid base type " + base + " here. "
+                "One of the \"A\", \"T\", \"C\", \"G\" is expected."
+            );
+        }
+
+        nucleotide_idxs.push_back(nucleotide);
+    }
+
+    // ================================================================
+    // cross stacking
+    //
+    //  Sense                   Anti-sense
+    //    5'                        3'
+    //    ^    /               \    |
+    //    | P o                o P  |  P : a phosphate site
+    //    |    \    B0    Bp   /    |  S : a sugar site
+    //    |  S  o -- o===o -- o S   |  B0: the reference nucleobase
+    //    |    /      \ /     \     |  Bp: the base-pairing nucleobase
+    //    | P o        X       o P  |
+    //    |    \      / \     /     |
+    //    |     o -- o===o -- o     |  Bn: the neighboring nucleobase
+    //    |    /    Bn   Bc   \     |  Bc: the cross-stacking nucleobase
+    //    | P o                o P  |
+    //    |    \              /     v
+    //    3'                        5'
+
+    // Create cross-stacking base-pair list
+    std::vector<std::array<std::size_t, 3>> indices_donor;    // {B0, S, Bn}
+    std::vector<std::array<std::size_t, 3>> indices_acceptor; // {Bp, S, Bc}
+    std::vector<std::string>                base_kind_acceptor;   // {Bp, Bc, "(5|3)"}
+
+    if(strand_kind == "sense") // Base^{5'}↑
+    {
+        for (std::size_t i = 0; i < nucleotide_idxs.size(); ++i)
+        {
+            const auto &nuc = nucleotide_idxs.at(i);
+
+            // Donor: reference base (B0) and neighboring base (Bn)
+            if (nuc.base == bp_kind.first)
+            {
+                if (i + 1 < nucleotide_idxs.size() &&
+                    nucleotide_idxs.at(i + 1).strand == nuc.strand)
+                {
+                    const auto &nuc3 = nucleotide_idxs.at(i + 1);
+                    indices_donor.push_back({nuc.B, nuc.S, nuc3.B});
+                }
+            }
+            // Acceptor: base pair (Bp) and crossing base (Bc)
+            if (nuc.base == bp_kind.second)
+            {
+                if (0 < i && nucleotide_idxs.at(i - 1).strand == nuc.strand)
+                {
+                    const auto &nuc5 = nucleotide_idxs.at(i - 1);
+                    indices_acceptor.push_back({nuc.B, nuc.S, nuc5.B});
+                    base_kind_acceptor.push_back(bp_kind.first + nuc5.base + "5");
+                }
+            }
+        }
+    }
+    else if (strand_kind == "antisense") // Base^{3'}↓
+    {
+        for (std::size_t i = 0; i < nucleotide_idxs.size(); ++i)
+        {
+            const auto &nuc = nucleotide_idxs.at(i);
+
+            // Acceptor: base pair (Bp) and crossing base (Bc)
+            if (nuc.base == bp_kind.first)
+            {
+                if (i + 1 < nucleotide_idxs.size() &&
+                    nucleotide_idxs.at(i + 1).strand == nuc.strand)
+                {
+                    const auto &nuc3 = nucleotide_idxs.at(i + 1);
+                    indices_acceptor.push_back({nuc.B, nuc.S, nuc3.B});
+                    base_kind_acceptor.push_back(bp_kind.second  + nuc3.base + "3");
+                }
+            }
+            // Donor: reference base (B0) and neighboring base (Bn)
+            if (nuc.base == bp_kind.second)
+            {
+                if (0 < i && nucleotide_idxs.at(i - 1).strand == nuc.strand)
+                {
+                    const auto &nuc5 = nucleotide_idxs.at(i - 1);
+                    indices_donor.push_back({nuc.B, nuc.S, nuc5.B});
+                }
+            }
+        }
+    }
+    else
+    {
+        throw std::runtime_error(
+            "[error] invalid strand type " + strand_kind + " here. " +
+            "\"sense\" or \"antisense\" is expected."
+        );
+    }
+
+    // ignore list generation
+    index_pairs_type ignore_list;
+    if(global_ff_data.contains("ignore"))
+    {
+        const auto& ignore = toml::find(global_ff_data, "ignore");
+        ignore_list = read_ignore_molecule_and_particles_within(ignore, topology);
+    }
+
+    std::cerr << "    Global        : " + PotentialParameterType::name + " CrossStacking "
+              << bp_kind.first << "-" << bp_kind.second << " in "
+              << strand_kind << " strand ("
+              << indices_donor.size()    << " x "
+              << indices_acceptor.size() << " pairs found)" << std::endl;
+
+    return ThreeSPN2CrossStackingForceFieldGenerator<PotentialParameterType>(
+        indices_donor, indices_acceptor, base_kind_acceptor, bp_kind, ignore_list,
+        use_periodic, ffgen_id);
 }
 
 // -----------------------------------------------------------------------------
