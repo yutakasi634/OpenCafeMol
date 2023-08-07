@@ -3,11 +3,21 @@ output.prefix = "dna_3SPN2C" # output file prefix
 output.path   = "./output/"  # output path
 output.format = "pdb"        # output format
 
+# optional. By default, "CUDA" platform is used.
+[platform]
+name = "Reference" # to run on CI
+
+# [platform]
+# name = "CUDA"
+# properties.Precision = "single"
+# properties.UseCpuPme = "false"
+# properties.DeviceIndex = "0"
+
 [simulator]
 boundary_type = "Unlimited"
 delta_t       = 0.3
 seed          = 12345
-total_step    = 50000
+total_step    = 1000
 save_step     = 100
 
 [[systems]]
