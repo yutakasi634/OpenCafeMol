@@ -8,6 +8,7 @@
 #include <string>
 #include <OpenMM.h>
 #include "ForceFieldGeneratorBase.hpp"
+#include "ForceFieldIDGenerator.hpp"
 #include "src/util/Constants.hpp"
 
 template<typename PotentialParameterType>
@@ -23,11 +24,12 @@ class ThreeSPN2BasePairForceFieldGenerator final : public ForceFieldGeneratorBas
         const std::vector<indices_type>& acceptor_indices_vec,
         const std::pair<std::string, std::string>& base_pair,
         const index_pairs_type& ignore_list,
-        const bool use_periodic, const std::size_t ffgen_id = 0)
+        const bool use_periodic)
         : donor_indices_vec_(donor_indices_vec),
           acceptor_indices_vec_(acceptor_indices_vec),
           base_pair_(base_pair), ignore_list_(ignore_list),
-          use_periodic_(use_periodic), ffgen_id_str_(std::to_string(ffgen_id))
+          use_periodic_(use_periodic),
+          ffgen_id_(fmt::format("TSPN2BP{}", ffid.gen()))
     {}
 
     std::unique_ptr<OpenMM::Force> generate() const override
@@ -53,13 +55,13 @@ class ThreeSPN2BasePairForceFieldGenerator final : public ForceFieldGeneratorBas
 
         const std::map<std::string, std::string> ff_params =
         {
-            {"epsilon",  "TSPN2BP" + ffgen_id_str_ + "_epsilon"},
-            {"r0",       "TSPN2BP" + ffgen_id_str_ + "_r0"},
-            {"t01",      "TSPN2BP" + ffgen_id_str_ + "_t01"},
-            {"t02",      "TSPN2BP" + ffgen_id_str_ + "_t02"},
-            {"phi0",     "TSPN2BP" + ffgen_id_str_ + "_phi0"},
-            {"alpha_BP", "TSPN2BP" + ffgen_id_str_ + "_alpha_BP"},
-            {"K_BP",     "TSPN2BP" + ffgen_id_str_ + "_K_BP"},
+            {"epsilon",  ffgen_id_ + "_epsilon"},
+            {"r0",       ffgen_id_ + "_r0"},
+            {"t01",      ffgen_id_ + "_t01"},
+            {"t02",      ffgen_id_ + "_t02"},
+            {"phi0",     ffgen_id_ + "_phi0"},
+            {"alpha_BP", ffgen_id_ + "_alpha_BP"},
+            {"K_BP",     ffgen_id_ + "_K_BP"},
         };
 
         for (const auto& param: ff_params)
@@ -153,7 +155,7 @@ class ThreeSPN2BasePairForceFieldGenerator final : public ForceFieldGeneratorBas
     std::pair<std::string, std::string> base_pair_;
     index_pairs_type          ignore_list_;
     bool                      use_periodic_;
-    std::string               ffgen_id_str_;
+    std::string               ffgen_id_;
 };
 
 

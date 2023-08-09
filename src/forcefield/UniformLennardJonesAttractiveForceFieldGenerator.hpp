@@ -4,6 +4,7 @@
 #include <OpenMM.h>
 #include <fmt/core.h>
 #include "ForceFieldGeneratorBase.hpp"
+#include "ForceFieldIDGenerator.hpp"
 
 class UniformLennardJonesAttractiveForceFieldGenerator final : public ForceFieldGeneratorBase
 {
@@ -18,14 +19,13 @@ class UniformLennardJonesAttractiveForceFieldGenerator final : public ForceField
         const std::vector<std::size_t>& former_group_vec,
         const std::vector<std::size_t>& latter_group_vec,
         const index_pairs_type& ignore_list, const bool use_periodic,
-        const std::size_t ffgen_count,
         const std::vector<std::pair<std::string, std::string>> ignore_group_pairs = {},
         const std::vector<std::optional<std::string>> group_vec = {})
         : system_size_(system_size), eps_(eps), sigma_(sigma),
           ignore_list_(ignore_list), use_periodic_(use_periodic),
           former_group_size_(former_group_vec.size()),
           latter_group_size_(latter_group_vec.size()),
-          ffgen_id_(fmt::format("ULJ{}", ffgen_count))
+          ffgen_id_(fmt::format("ULJ{}", ffid.gen()))
     {
         cutoff_correction_ =
             4.0*(std::pow(1.0 / cutoff_ratio, 12) - std::pow(1.0 / cutoff_ratio, 6));

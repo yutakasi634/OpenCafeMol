@@ -7,6 +7,7 @@
 #include <OpenMM.h>
 #include <fmt/core.h>
 #include "ForceFieldGeneratorBase.hpp"
+#include "ForceFieldIDGenerator.hpp"
 
 class GoContactForceFieldGenerator final : public ForceFieldGeneratorBase
 {
@@ -17,9 +18,9 @@ class GoContactForceFieldGenerator final : public ForceFieldGeneratorBase
     GoContactForceFieldGenerator(
         const std::vector<indices_type>& indices_vec,
         const std::vector<double>& ks, const std::vector<double>& r0s,
-        const bool use_periodic, const std::size_t ffgen_id)
+        const bool use_periodic)
         : indices_vec_(indices_vec), ks_(ks), r0s_(r0s),
-          use_periodic_(use_periodic), ffgen_id_(fmt::format("GC{}", ffgen_id))
+          use_periodic_(use_periodic), ffgen_id_(fmt::format("GC{}", ffid.gen()))
     {
         if(!(indices_vec.size() == ks.size() && ks.size() == r0s.size()))
         {

@@ -2,9 +2,12 @@
 #define OPEN_AICG2_PLUS_DEBYE_HUCKEL_FORCE_FIELD_GENERATOR_HPP
 
 #include <OpenMM.h>
+
 #include <fmt/core.h>
+
 #include "src/util/Constants.hpp"
 #include "ForceFieldGeneratorBase.hpp"
+#include "ForceFieldIDGenerator.hpp"
 
 class DebyeHuckelForceFieldGenerator final : public ForceFieldGeneratorBase
 {
@@ -17,12 +20,12 @@ class DebyeHuckelForceFieldGenerator final : public ForceFieldGeneratorBase
         const double temperature, const double cutoff_ratio,
         const std::vector<std::optional<double>>& charges,
         const index_pairs_type& ignore_list,
-        const bool use_periodic, const std::size_t ffgen_id,
+        const bool use_periodic,
         const std::vector<std::pair<std::string, std::string>> ignore_group_pairs = {},
         const std::vector<std::optional<std::string>> group_vec = {})
         : ionic_strength_(ionic_strength), temperature_(temperature),
           cutoff_ratio_(cutoff_ratio), charges_(charges), ignore_list_(ignore_list),
-          use_periodic_(use_periodic), ffgen_id_(fmt::format("DH{}", ffgen_id))
+          use_periodic_(use_periodic), ffgen_id_(fmt::format("DH{}", ffid.gen()))
     {
         const double epsk = calc_dielectric_water(temperature_, ionic_strength_); // dimensionless
         const double eps0 = Constant::eps0 / Constant::elementary_charge

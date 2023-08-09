@@ -4,6 +4,7 @@
 #include <OpenMM.h>
 #include <fmt/core.h>
 #include "ForceFieldGeneratorBase.hpp"
+#include "ForceFieldIDGenerator.hpp"
 
 // The formulation of this potential is
 //        /                 -ε                , r <= 2^(1/6)*σ
@@ -21,11 +22,11 @@ class iSoLFAttractiveForceFieldGenerator final : public ForceFieldGeneratorBase
         const std::vector<std::optional<double>> epsilons,
         const std::vector<std::optional<double>> omegas,
         const index_pairs_type& ignore_list,
-        const bool use_periodic, const std::size_t ffgen_id,
+        const bool use_periodic,
         const std::vector<std::pair<std::string, std::string>> ignore_group_pairs = {},
         const std::vector<std::optional<std::string>> group_vec = {})
         : sigmas_(sigmas), epsilons_(epsilons), omegas_(omegas), ignore_list_(ignore_list),
-          use_periodic_(use_periodic), ffgen_id_(fmt::format("iSA{}", ffgen_id))
+          use_periodic_(use_periodic), ffgen_id_(fmt::format("iSA{}", ffid.gen()))
     {
         assert(this->sigmas_.size() == this->epsilons_.size());
         assert(this->sigmas_.size() == this->omegas_.size());

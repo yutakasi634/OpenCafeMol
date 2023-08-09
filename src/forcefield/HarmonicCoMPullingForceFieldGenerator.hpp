@@ -8,6 +8,7 @@
 #include <OpenMM.h>
 #include <fmt/core.h>
 #include "ForceFieldGeneratorBase.hpp"
+#include "ForceFieldIDGenerator.hpp"
 
 class HarmonicCoMPullingForceFieldGenerator : public ForceFieldGeneratorBase
 {
@@ -15,9 +16,9 @@ class HarmonicCoMPullingForceFieldGenerator : public ForceFieldGeneratorBase
     HarmonicCoMPullingForceFieldGenerator(
         const double k, const double v0,
         const std::vector<int>& first_group, const std::vector<int>& second_group,
-        const bool use_periodic, const std::size_t ffgen_id)
+        const bool use_periodic)
         : k_(k), v0_(v0), first_group_(first_group), second_group_(second_group),
-          use_periodic_(use_periodic), ffgen_id_(fmt::format("HCP{}", ffgen_id))
+          use_periodic_(use_periodic), ffgen_id_(fmt::format("HCP{}", ffid.gen()))
     {}
 
     std::unique_ptr<OpenMM::Force> generate() const noexcept override

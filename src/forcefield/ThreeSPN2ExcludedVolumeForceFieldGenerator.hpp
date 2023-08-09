@@ -8,6 +8,7 @@
 #include <string>
 #include <OpenMM.h>
 #include "ForceFieldGeneratorBase.hpp"
+#include "ForceFieldIDGenerator.hpp"
 #include "src/util/Constants.hpp"
 
 class ThreeSPN2ExcludedVolumeForceFieldGenerator final : public ForceFieldGeneratorBase
@@ -19,10 +20,10 @@ class ThreeSPN2ExcludedVolumeForceFieldGenerator final : public ForceFieldGenera
   public:
     ThreeSPN2ExcludedVolumeForceFieldGenerator(const double eps, const double cutoff,
         const std::vector<std::optional<double>>& radiuses,
-        const index_pairs_type& ignore_list, const bool use_periodic,
-        const std::size_t ffgen_count = 0)
+        const index_pairs_type& ignore_list, const bool use_periodic)
         : eps_(eps), cutoff_(cutoff), radiuses_(radiuses), ignore_list_(ignore_list),
-          use_periodic_(use_periodic), ffgen_id_str_(std::to_string(ffgen_count))
+          use_periodic_(use_periodic),
+          ffgen_id_(fmt::format("TSPN2_EXV{}", ffid.gen()))
     {}
 
     std::unique_ptr<OpenMM::Force> generate() const noexcept override
@@ -34,8 +35,8 @@ class ThreeSPN2ExcludedVolumeForceFieldGenerator final : public ForceFieldGenera
 
         const std::map<std::string, std::string> ff_params =
         {
-            {"epsilon",  "TSPN2_EXV" + ffgen_id_str_ + "_epsilon"},
-            {"sigma",    "TSPN2_EXV" + ffgen_id_str_ + "_sigma"},
+            {"epsilon",  ffgen_id_ + "_epsilon"},
+            {"sigma",    ffgen_id_ + "_sigma"},
         };
 
         for(const auto& param : ff_params)
@@ -117,7 +118,7 @@ class ThreeSPN2ExcludedVolumeForceFieldGenerator final : public ForceFieldGenera
     index_pairs_type                    ignore_list_;
     std::vector<interaction_group_type> interaction_groups_;
     bool                                use_periodic_;
-    std::string                         ffgen_id_str_;
+    std::string                         ffgen_id_;
 };
 
 

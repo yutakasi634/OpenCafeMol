@@ -238,7 +238,6 @@ Simulator make_simulator_from_genesis_inputs(
 
     std::cerr << "reading forcefield tables..." << std::endl;
     Topology topology(top_data.at("atoms").size());
-    std::size_t custom_ffgen_count = 0;
     if(top_data.find("bonds") != top_data.end())
     {
         HarmonicBondForceFieldGenerator ff_gen =
@@ -260,12 +259,11 @@ Simulator make_simulator_from_genesis_inputs(
         // make force field generator for AICG2+ angle
         GaussianBondForceFieldGenerator aicg_ff_gen =
             read_genesis_gaussian_bond_ff_generator(
-                    top_data.at("angles"), use_periodic, custom_ffgen_count);
+                    top_data.at("angles"), use_periodic);
         if(aicg_ff_gen.indices().size() != 0)
         {
             system_gen.add_ff_generator(
                     std::make_unique<GaussianBondForceFieldGenerator>(aicg_ff_gen));
-            ++custom_ffgen_count;
         }
         else
         {
@@ -279,14 +277,12 @@ Simulator make_simulator_from_genesis_inputs(
                 read_genesis_flexible_local_angle_ff_generator(top_data.at("angles"),
                                                                top_data.at("atoms"),
                                                                aa_type_table.first,
-                                                               use_periodic,
-                                                               custom_ffgen_count);
+                                                               use_periodic);
             if(fla_ff_gen.indices().size() != 0)
             {
                 system_gen.add_ff_generator(
                         std::make_unique<FlexibleLocalAngleForceFieldGenerator>(
                             fla_ff_gen));
-                ++custom_ffgen_count;
             }
             else
             {
@@ -300,12 +296,11 @@ Simulator make_simulator_from_genesis_inputs(
         // make force field generator for AICG2+ dihedral
         GaussianDihedralForceFieldGenerator aicg_ff_gen =
             read_genesis_gaussian_dihedral_ff_generator(
-                    top_data.at("dihedrals"), use_periodic, custom_ffgen_count);
+                    top_data.at("dihedrals"), use_periodic);
         if(aicg_ff_gen.indices().size() != 0)
         {
             system_gen.add_ff_generator(
                     std::make_unique<GaussianDihedralForceFieldGenerator>(aicg_ff_gen));
-            ++custom_ffgen_count;
         }
         else
         {
@@ -319,14 +314,12 @@ Simulator make_simulator_from_genesis_inputs(
                  read_genesis_flexible_local_dihedral_ff_generator(top_data.at("dihedrals"),
                                                                    top_data.at("atoms"),
                                                                    aa_type_pair_table.first,
-                                                                   use_periodic,
-                                                                   custom_ffgen_count);
+                                                                   use_periodic);
              if(fld_ff_gen.indices().size() != 0)
              {
                  system_gen.add_ff_generator(
                      std::make_unique<FlexibleLocalDihedralForceFieldGenerator>(
                          fld_ff_gen));
-                 ++custom_ffgen_count;
              }
              else
              {
@@ -339,12 +332,11 @@ Simulator make_simulator_from_genesis_inputs(
     {
         GoContactForceFieldGenerator ff_gen =
             read_genesis_go_contact_ff_generator(
-                    top_data.at("pairs"), topology, use_periodic, custom_ffgen_count);
+                    top_data.at("pairs"), topology, use_periodic);
         if(ff_gen.indices().size() != 0)
         {
             system_gen.add_ff_generator(
                     std::make_unique<GoContactForceFieldGenerator>(ff_gen));
-            ++custom_ffgen_count;
         }
         else
         {
@@ -370,11 +362,10 @@ Simulator make_simulator_from_genesis_inputs(
             std::stoi(moleculetype_data[0].substr(17, 6));
         ExcludedVolumeForceFieldGenerator ff_gen =
             read_genesis_exv_ff_generator(top_data.at("atomtypes"),
-                top_data.at("atoms"), topology, use_periodic, custom_ffgen_count,
+                top_data.at("atoms"), topology, use_periodic,
                 ignore_particle_within_bond);
         system_gen.add_ff_generator(
                 std::make_unique<ExcludedVolumeForceFieldGenerator>(ff_gen));
-        ++custom_ffgen_count;
     }
     else
     {
