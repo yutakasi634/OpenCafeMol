@@ -1592,7 +1592,7 @@ const LennardJonesAttractiveForceFieldGenerator
 read_toml_lennard_jones_attractive_ff_generator(
         const toml::value& global_ff_data, const std::size_t system_size,
         const Topology& topology, const std::vector<std::optional<std::string>>& group_vec,
-        const bool use_periodic,  const std::size_t ffgen_id)
+        const bool use_periodic)
 {
     using index_pairs_type = LennardJonesAttractiveForceFieldGenerator::index_pairs_type;
 
@@ -1641,7 +1641,7 @@ read_toml_lennard_jones_attractive_ff_generator(
     }
 
     return LennardJonesAttractiveForceFieldGenerator(cutoff_ratio,
-            epsilon_vec, sigma_vec, ignore_list, use_periodic, ffgen_id,
+            epsilon_vec, sigma_vec, ignore_list, use_periodic,
             ignore_group_pairs, group_vec);
 }
 
@@ -1657,7 +1657,7 @@ const LennardJonesRepulsiveForceFieldGenerator
 read_toml_lennard_jones_repulsive_ff_generator(
         const toml::value& global_ff_data, const std::size_t system_size,
         const Topology& topology, const std::vector<std::optional<std::string>>& group_vec,
-        const bool use_periodic,  const std::size_t ffgen_id)
+        const bool use_periodic)
 {
     using index_pairs_type = LennardJonesRepulsiveForceFieldGenerator::index_pairs_type;
 
@@ -1706,7 +1706,7 @@ read_toml_lennard_jones_repulsive_ff_generator(
     }
 
     return LennardJonesRepulsiveForceFieldGenerator(cutoff_ratio,
-            epsilon_vec, sigma_vec, ignore_list, use_periodic, ffgen_id,
+            epsilon_vec, sigma_vec, ignore_list, use_periodic,
             ignore_group_pairs, group_vec);
 }
 

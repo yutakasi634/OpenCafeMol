@@ -16,11 +16,10 @@ class LennardJonesRepulsiveForceFieldGenerator final : public ForceFieldGenerato
         const std::vector<std::optional<double>> epsilons,
         const std::vector<std::optional<double>> sigmas,
         const index_pairs_type& ignore_list, const bool use_periodic,
-        const std::size_t ffgen_id,
         const std::vector<std::pair<std::string, std::string>> ignore_group_pairs = {},
         const std::vector<std::optional<std::string>> group_vec = {})
         : cutoff_ratio_(cutoff_ratio), epsilons_(epsilons), sigmas_(sigmas),
-          use_periodic_(use_periodic), ffgen_id_(fmt::format("LJRP{}", ffgen_id))
+          use_periodic_(use_periodic), ffgen_id_(fmt::format("LJRP{}", ffid.gen()))
     {
         assert(this->epsilons_.size() == this->sigmas_.size());
 

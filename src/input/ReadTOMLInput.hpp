@@ -459,12 +459,10 @@ SystemGenerator read_toml_system(const toml::value& data)
                 {
                     LennardJonesAttractiveForceFieldGenerator ff_gen =
                         read_toml_lennard_jones_attractive_ff_generator(
-                            global_ff, system_size,
-                            topology, group_vec, use_periodic, custom_ffgen_count);
+                            global_ff, system_size, topology, group_vec, use_periodic);
                     system_gen.add_ff_generator(
                         std::make_unique<
                             LennardJonesAttractiveForceFieldGenerator>(ff_gen));
-                    ++custom_ffgen_count;
                 }
             }
 
@@ -577,12 +575,10 @@ SystemGenerator read_toml_system(const toml::value& data)
             {
                 LennardJonesRepulsiveForceFieldGenerator ff_gen =
                     read_toml_lennard_jones_repulsive_ff_generator(
-                         global_ff, system_size,
-                         topology, group_vec, use_periodic, custom_ffgen_count);
+                         global_ff, system_size, topology, group_vec, use_periodic);
                 system_gen.add_ff_generator(
                      std::make_unique<
                          LennardJonesRepulsiveForceFieldGenerator>(ff_gen));
-                ++custom_ffgen_count;
             }
         }
     }
