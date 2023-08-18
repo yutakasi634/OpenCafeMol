@@ -46,39 +46,28 @@ class ThreeSPN2BaseStackingForceFieldGenerator final : public ForceFieldGenerato
     std::unique_ptr<OpenMM::Force> generate() const noexcept override
     {
         // Hinckley et al., J. Chem. Phys. (2013)
-        std::string potential_formula = "rep + f2*attr;"                       // Eq. (8)
-            " rep   = epsilon*(1 - exp(-alpha*(dr)))^2 * step(-dr);"           // Eq. (6)
-            " attr  = epsilon*(1 - exp(-alpha*(dr)))^2 * step( dr) - epsilon;" // Eq. (7)
-            " dr    = distance(p2, p3) - r0;"
+        std::string potential_formula = fmt::format(
+            "rep + f2*attr;"                       // Eq. (8)
+            " rep   = {id}_epsilon*(1 - exp(-{id}_alpha*(dr)))^2 * step(-dr);"   // Eq. (6)
+            " attr  = {id}_epsilon *"
+            "         (1 - exp(-{id}_alpha*(dr)))^2 * step( dr) - {id}_epsilon;" // Eq. (7)
+            " dr    = distance(p2, p3) - {id}_r0;"
             " f2    = max(f*rect2, rect1);"               // Eq. (4)
             " rect1 = step(dt + pi/2) * step(pi/2 - dt);" // 1 when -pi/2 < dt < pi/2, else 0
             " rect2 = step(dt + pi)   * step(pi   - dt);" // 1 when -pi   < dt < pi,   else 0
             " f     = 1 - cos(dt)^2;"
-            " dt    = K_BS * (angle(p1, p2, p3) - t0);"
-            " pi    = 3.1415926535897932385;";
+            " dt    = {id}_K_BS * (angle(p1, p2, p3) - {id}_t0);"
+            " pi    = 3.1415926535897932385;",
+            fmt::arg("id", ffgen_id_));
 
-        const std::map<std::string, std::string> ff_params =
-        {
-            {"epsilon", ffgen_id_ + "_epsilon"},
-            {"r0",      ffgen_id_ + "_r0"},
-            {"t0",      ffgen_id_ + "_t0"},
-            {"alpha",   ffgen_id_ + "_alpha"},
-            {"K_BS",    ffgen_id_ + "_K_BS"},
-        };
-
-        for(const auto& param : ff_params)
-        {
-            potential_formula = std::regex_replace(
-                potential_formula, std::regex(param.first), param.second);
-        }
         auto ccbond_ff = std::make_unique<OpenMM::CustomCompoundBondForce>(3, potential_formula);
 
         ccbond_ff->setUsesPeriodicBoundaryConditions(use_periodic_);
-        ccbond_ff->addPerBondParameter(ff_params.at("epsilon"));
-        ccbond_ff->addPerBondParameter(ff_params.at("r0"));
-        ccbond_ff->addPerBondParameter(ff_params.at("t0"));
-        ccbond_ff->addPerBondParameter(ff_params.at("alpha"));
-        ccbond_ff->addPerBondParameter(ff_params.at("K_BS"));
+        ccbond_ff->addPerBondParameter(fmt::format("{}_epsilon", ffgen_id_));
+        ccbond_ff->addPerBondParameter(fmt::format("{}_r0",      ffgen_id_));
+        ccbond_ff->addPerBondParameter(fmt::format("{}_t0",      ffgen_id_));
+        ccbond_ff->addPerBondParameter(fmt::format("{}_alpha",   ffgen_id_));
+        ccbond_ff->addPerBondParameter(fmt::format("{}_K_BS",    ffgen_id_));
 
         for (std::size_t idx=0; idx < indices_vec_.size(); ++idx)
         {
