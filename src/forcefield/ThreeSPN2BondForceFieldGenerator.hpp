@@ -39,27 +39,16 @@ class ThreeSPN2BondForceFieldGenerator final : public ForceFieldGeneratorBase
 
     std::unique_ptr<OpenMM::Force> generate() const noexcept override
     {
-        std::string potential_formula = "k2 * (r - v0)^2 + 100.0 * k4 * (r - v0)^4";
-
-        const std::map<std::string, std::string> ff_params =
-        {
-            {"k2", ffgen_id_ + "_k2"},
-            {"k4", ffgen_id_ + "_k4"},
-            {"v0", ffgen_id_ + "_v0"},
-        };
-
-        for(const auto& param : ff_params)
-        {
-              potential_formula = std::regex_replace(
-                potential_formula, std::regex(param.first), param.second);
-        }
+        std::string potential_formula = fmt::format(
+            "{id}_k2 * (r - {id}_v0)^2 + 100.0 * {id}_k4 * (r - {id}_v0)^4",
+            fmt::arg("id", ffgen_id_));
 
         auto bond_ff = std::make_unique<OpenMM::CustomBondForce>(potential_formula);
 
         bond_ff->setUsesPeriodicBoundaryConditions(use_periodic_);
-        bond_ff->addPerBondParameter(ff_params.at("k2"));
-        bond_ff->addPerBondParameter(ff_params.at("k4"));
-        bond_ff->addPerBondParameter(ff_params.at("v0"));
+        bond_ff->addPerBondParameter(fmt::format("{}_k2", ffgen_id_));
+        bond_ff->addPerBondParameter(fmt::format("{}_k4", ffgen_id_));
+        bond_ff->addPerBondParameter(fmt::format("{}_v0", ffgen_id_));
 
         for(std::size_t idx=0; idx<indices_vec_.size(); ++idx)
         {
