@@ -49,7 +49,7 @@ class ThreeSPN2BasePairForceFieldGenerator final : public ForceFieldGeneratorBas
             "f1      = 1 - cos(dt1)^2;"
             "f2      = 1 - cos(dt2)^2;"
             "dphi    = dihedral(d2, d1, a1, a2) - {id}_phi0;"
-            "dr      = distance(d1, a1) - {}_r0;"
+            "dr      = distance(d1, a1) - {id}_r0;"
             "dt1     = {id}_K_BP * (angle(d2, d1, a1) - {id}_t01);"
             "dt2     = {id}_K_BP * (angle(a2, a1, d1) - {id}_t02);"
             "pi      = 3.1415926535897932385;",
