@@ -28,27 +28,17 @@ class ThreeSPN2ExcludedVolumeForceFieldGenerator final : public ForceFieldGenera
 
     std::unique_ptr<OpenMM::Force> generate() const noexcept override
     {
-        std::string potential_formula =
-            "(epsilon*((sigma/r)^12 - 2*(sigma/r)^6) + epsilon) * step(sigma - r);"
-            "epsilon = sqrt(epsilon1 * epsilon2);"
-            "sigma   = 0.5*(  sigma1 +   sigma2);";
-
-        const std::map<std::string, std::string> ff_params =
-        {
-            {"epsilon",  ffgen_id_ + "_epsilon"},
-            {"sigma",    ffgen_id_ + "_sigma"},
-        };
-
-        for(const auto& param : ff_params)
-        {
-            potential_formula = std::regex_replace(
-                potential_formula, std::regex(param.first), param.second);
-        }
+        std::string potential_formula = fmt::format(
+            "step(sigma - r)*"
+            "(epsilon*((sigma/r)^12 - 2*(sigma/r)^6) + epsilon);"
+            "epsilon = sqrt({id}_epsilon1 * {id}_epsilon2);"
+            "sigma   = 0.5*({id}_sigma1 + {id}_sigma2);",
+            fmt::arg("id", ffgen_id_));
 
         auto exv_ff = std::make_unique<OpenMM::CustomNonbondedForce>(potential_formula);
 
-        exv_ff->addPerParticleParameter(ff_params.at("epsilon"));
-        exv_ff->addPerParticleParameter(ff_params.at("sigma"));
+        exv_ff->addPerParticleParameter(fmt::format("{}_epsilon", ffgen_id_));
+        exv_ff->addPerParticleParameter(fmt::format("{}_sigma",   ffgen_id_));
 
         double max_radius        = std::numeric_limits<double>::min();
         double second_max_radius = std::numeric_limits<double>::min();
