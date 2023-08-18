@@ -35,10 +35,11 @@ class ThreeSPN2BasePairForceFieldGenerator final : public ForceFieldGeneratorBas
     std::unique_ptr<OpenMM::Force> generate() const override
     {
         // Hinckley et al., J. Chem. Phys. (2013)
-        std::string potential_formula =
+        std::string potential_formula = fmt::format(
             "rep + 1/2*(1 + cos(dphi))*fdt1*fdt2*attr;" // Eq. (9)
-            "rep     = epsilon*(1 - exp(-alpha_BP*dr))^2 * (1 - step(dr));"  // (1-step(dr)) = step(-dr)
-            "attr    = epsilon*(1 - exp(-alpha_BP*dr))^2 * step(dr) - epsilon;"
+            "rep     = {id}_epsilon*(1 - exp(-{id}_alpha_BP*dr))^2 * (1 - step(dr));"  // (1-step(dr)) = step(-dr)
+            "attr    = {id}_epsilon *"
+            "          (1 - exp(-{id}_alpha_BP*dr))^2 * step(dr) - {id}_epsilon;"
             "fdt1    = max(f1*rect0t1, rect1t1);"
             "fdt2    = max(f2*rect0t2, rect1t2);"
             "rect1t1 = step(pi/2 + dt1) * step(pi/2 - dt1);"
@@ -47,28 +48,12 @@ class ThreeSPN2BasePairForceFieldGenerator final : public ForceFieldGeneratorBas
             "rect0t2 = step(pi   + dt2) * step(pi   - dt2);"
             "f1      = 1 - cos(dt1)^2;"
             "f2      = 1 - cos(dt2)^2;"
-            "dphi    = dihedral(d2, d1, a1, a2) - phi0;"
-            "dr      = distance(d1, a1) - r0;"
-            "dt1     = K_BP * (angle(d2, d1, a1) - t01);"
-            "dt2     = K_BP * (angle(a2, a1, d1) - t02);"
-            "pi      = 3.1415926535897932385;";
-
-        const std::map<std::string, std::string> ff_params =
-        {
-            {"epsilon",  ffgen_id_ + "_epsilon"},
-            {"r0",       ffgen_id_ + "_r0"},
-            {"t01",      ffgen_id_ + "_t01"},
-            {"t02",      ffgen_id_ + "_t02"},
-            {"phi0",     ffgen_id_ + "_phi0"},
-            {"alpha_BP", ffgen_id_ + "_alpha_BP"},
-            {"K_BP",     ffgen_id_ + "_K_BP"},
-        };
-
-        for (const auto& param: ff_params)
-        {
-            potential_formula = std::regex_replace(
-                potential_formula, std::regex(param.first), param.second);
-        }
+            "dphi    = dihedral(d2, d1, a1, a2) - {id}_phi0;"
+            "dr      = distance(d1, a1) - {}_r0;"
+            "dt1     = {id}_K_BP * (angle(d2, d1, a1) - {id}_t01);"
+            "dt2     = {id}_K_BP * (angle(a2, a1, d1) - {id}_t02);"
+            "pi      = 3.1415926535897932385;",
+            fmt::arg("id", ffgen_id_));
 
         auto chbond_ff = std::make_unique<OpenMM::CustomHbondForce>(potential_formula);
 
@@ -85,13 +70,13 @@ class ThreeSPN2BasePairForceFieldGenerator final : public ForceFieldGeneratorBas
         // set cutoff
         chbond_ff->setCutoffDistance   (PotentialParameterType::cutoff);
 
-        chbond_ff->addPerDonorParameter(ff_params.at("epsilon"));
-        chbond_ff->addPerDonorParameter(ff_params.at("r0"));
-        chbond_ff->addPerDonorParameter(ff_params.at("t01"));
-        chbond_ff->addPerDonorParameter(ff_params.at("t02"));
-        chbond_ff->addPerDonorParameter(ff_params.at("phi0"));
-        chbond_ff->addPerDonorParameter(ff_params.at("alpha_BP"));
-        chbond_ff->addPerDonorParameter(ff_params.at("K_BP"));
+        chbond_ff->addPerDonorParameter(fmt::format("{}_epsilon",  ffgen_id_));
+        chbond_ff->addPerDonorParameter(fmt::format("{}_r0",       ffgen_id_));
+        chbond_ff->addPerDonorParameter(fmt::format("{}_t01",      ffgen_id_));
+        chbond_ff->addPerDonorParameter(fmt::format("{}_t02",      ffgen_id_));
+        chbond_ff->addPerDonorParameter(fmt::format("{}_phi0",     ffgen_id_));
+        chbond_ff->addPerDonorParameter(fmt::format("{}_alpha_BP", ffgen_id_));
+        chbond_ff->addPerDonorParameter(fmt::format("{}_K_BP",     ffgen_id_));
 
         const std::string bp_kind = base_pair_.first + base_pair_.second;
         const std::vector<double> parameters = {
