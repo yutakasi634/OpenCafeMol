@@ -50,9 +50,10 @@ class ThreeSPN2CrossStackingForceFieldGenerator final : public ForceFieldGenerat
     std::unique_ptr<OpenMM::Force> generate() const noexcept override
     {
         // Hinckley et al., J. Chem. Phys. (2013)
-        std::string potential_formula =
+        std::string potential_formula = fmt::format(
             "fdt3*fdtCS*attr/2;"  // Eq. (10)
-            "attr     = epsilon*(1 - exp(-alpha_CS*dr))^2 * step(dr) - epsilon;"
+            "attr     = {id}_epsilon*"
+            "           (1 - exp(-{id}_alpha_CS*dr))^2 * step(dr) - {id}_epsilon;"
             "fdt3     = max(f1*rect0t3,  rect1t3);"
             "fdtCS    = max(f2*rect0tCS, rect1tCS);"
             "rect0t3  = step(pi   + dt3)  * step(pi   - dt3);"
@@ -61,9 +62,9 @@ class ThreeSPN2CrossStackingForceFieldGenerator final : public ForceFieldGenerat
             "rect1tCS = step(pi/2 + dtCS) * step(pi/2 - dtCS);"
             "f1       = 1 - cos(dt3)^2;"
             "f2       = 1 - cos(dtCS)^2;"
-            "dr       = distance(d1, a3) - r0;"
-            "dt3      = K_BP*(t3  - t03);"
-            "dtCS     = K_CS*(tCS - t0CS);"
+            "dr       = distance(d1, a3) - {id}_r0;"
+            "dt3      = {id}_K_BP*(t3  - {id}_t03);"
+            "dtCS     = {id}_K_CS*(tCS - {id}_t0CS);"
             "tCS      = angle(d2, d1, a3);"
             "t3       = acos(cost3lim);"
             "cost3lim = min(max(cost3, -0.99), 0.99);"
@@ -71,24 +72,8 @@ class ThreeSPN2CrossStackingForceFieldGenerator final : public ForceFieldGenerat
             "t1       = angle(d2, d1, a1);"
             "t2       = angle(d1, a1, a2);"
             "phi      = dihedral(d2, d1, a1, a2);"
-            "pi       = 3.1415926535897932385;";
-
-        const std::map<std::string, std::string> ff_params =
-        {
-            {"epsilon",  ffgen_id_ + "_epsilon"},
-            {"r0",       ffgen_id_ + "_r0"},
-            {"t03",      ffgen_id_ + "_t03"},
-            {"t0CS",     ffgen_id_ + "_t0CS"},
-            {"K_BP",     ffgen_id_ + "_K_BP"},
-            {"K_CS",     ffgen_id_ + "_K_CS"},
-            {"alpha_CS", ffgen_id_ + "_alpha_CS"}
-        };
-
-        for(const auto& param : ff_params)
-        {
-            potential_formula = std::regex_replace(
-                potential_formula, std::regex(param.first), param.second);
-        }
+            "pi       = 3.1415926535897932385;",
+            fmt::arg("id", ffgen_id_));
 
         auto chbond_ff = std::make_unique<OpenMM::CustomHbondForce>(potential_formula);
 
@@ -104,13 +89,13 @@ class ThreeSPN2CrossStackingForceFieldGenerator final : public ForceFieldGenerat
 
         chbond_ff->setCutoffDistance(PotentialParameterType::cutoff);
 
-        chbond_ff->addPerAcceptorParameter(ff_params.at("epsilon"));
-        chbond_ff->addPerAcceptorParameter(ff_params.at("r0"));
-        chbond_ff->addPerAcceptorParameter(ff_params.at("t03"));
-        chbond_ff->addPerAcceptorParameter(ff_params.at("t0CS"));
-        chbond_ff->addPerAcceptorParameter(ff_params.at("K_BP"));
-        chbond_ff->addPerAcceptorParameter(ff_params.at("K_CS"));
-        chbond_ff->addPerAcceptorParameter(ff_params.at("alpha_CS"));
+        chbond_ff->addPerAcceptorParameter(fmt::format("{}_epsilon",  ffgen_id_));
+        chbond_ff->addPerAcceptorParameter(fmt::format("{}_r0",       ffgen_id_));
+        chbond_ff->addPerAcceptorParameter(fmt::format("{}_t03",      ffgen_id_));
+        chbond_ff->addPerAcceptorParameter(fmt::format("{}_t0CS",     ffgen_id_));
+        chbond_ff->addPerAcceptorParameter(fmt::format("{}_K_BP",     ffgen_id_));
+        chbond_ff->addPerAcceptorParameter(fmt::format("{}_K_CS",     ffgen_id_));
+        chbond_ff->addPerAcceptorParameter(fmt::format("{}_alpha_CS", ffgen_id_));
 
         for (size_t i=0; i < donor_indices_vec_.size(); ++i)
         {
