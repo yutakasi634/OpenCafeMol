@@ -25,6 +25,7 @@
 #include "src/forcefield/UniformWeeksChandlerAndersenForceFieldGenerator.hpp"
 #include "src/forcefield/ThreeSPN2BasePairForceFieldGenerator.hpp"
 #include "src/forcefield/ThreeSPN2CrossStackingForceFieldGenerator.hpp"
+#include "src/forcefield/CombinatorialGoContactForceFieldGenerator.hpp"
 #include "src/forcefield/HarmonicCoMPullingForceFieldGenerator.hpp"
 
 // -----------------------------------------------------------------------------
@@ -875,8 +876,9 @@ read_toml_excluded_volume_ff_generator(
     std::vector<std::optional<double>> radius_vec(system_size, std::nullopt);
     for(const auto& param : params)
     {
-        const std::size_t index  = Utility::find_parameter<std::size_t>(param, env, "index") +
-                                   Utility::find_parameter_or<std::size_t>(param, env, "offset", 0);
+        const std::size_t index  =
+            Utility::find_parameter<std::size_t>(param, env, "index") +
+            Utility::find_parameter_or<std::size_t>(param, env, "offset", 0);
         if(topology.size() <= index)
         {
             throw std::runtime_error("[error] read_toml_excluded_volume_ff_generator : index "+std::to_string(index)+" exceeds the system's largest index "+std::to_string(topology.size()-1)+".");
@@ -1710,9 +1712,92 @@ read_toml_lennard_jones_repulsive_ff_generator(
             ignore_group_pairs, group_vec);
 }
 
+// [[forcefields.global]]
+// potential = "CombinatorialGoContact"
+// cutoff    = 1.8
+// parameters = [
+// {indices_pair = [[1, 2, 3], [4, 5, 6]], v0 = 5.0, k = 1.0},
+// ...
+// ]
+CombinatorialGoContactForceFieldGenerator
+read_toml_combinatorial_go_contact_ff_generator(
+        const double cutoff_ratio, const toml::value& contacts_info,
+        const toml::value& env, const Topology& topology,
+        const std::vector<std::pair<std::size_t, std::size_t>>& ignore_list,
+        const bool use_periodic,
+        const std::vector<std::pair<std::string, std::string>>& ignore_group_pairs,
+        const std::vector<std::optional<std::string>>& group_vec)
+{
+    auto indices_pair =
+        Utility::find_parameter<
+            std::pair<std::vector<std::size_t>,
+                      std::vector<std::size_t>>>(contacts_info, env, "indices_pair");
+    const auto offset =
+        Utility::find_parameter_or<std::size_t>(contacts_info, env, "offset", 0);
+    const double k  =
+        Utility::find_parameter<double>(contacts_info, env, "k") * OpenMM::KJPerKcal; // KJ/mol
+    const double r0 =
+        Utility::find_parameter<double>(contacts_info, env, "v0") * OpenMM::NmPerAngstrom; // nm
+
+    std::vector<std::size_t> first_indices, second_indices;
+    for(std::size_t idx : indices_pair.first)
+    {
+        first_indices.push_back(idx + offset);
+    }
+    for(std::size_t idx : indices_pair.second)
+    {
+        second_indices.push_back(idx + offset);
+    }
+
+    return CombinatorialGoContactForceFieldGenerator(
+            k, r0, cutoff_ratio, indices_pair.first, indices_pair.second,
+            ignore_list, use_periodic, ignore_group_pairs, group_vec);
+}
+
+std::vector<CombinatorialGoContactForceFieldGenerator>
+read_toml_combinatorial_go_contact_ff_generators(
+        const toml::value& global_ff_data, const Topology& topology,
+        const std::vector<std::optional<std::string>>& group_vec,
+        const bool use_periodic)
+{
+    using index_pairs_type =
+        CombinatorialGoContactForceFieldGenerator::index_pairs_type;
+
+    const auto& parameters = toml::find<toml::array>(global_ff_data, "parameters");
+    std::cerr << "    Global       : CombinatorialGoContact (" << parameters.size()
+              << " found)" << std::endl;
+
+    const auto& env =
+        global_ff_data.contains("env") ? global_ff_data.at("env") : toml::value{};
+
+    const double cutoff_ratio = toml::find_or(global_ff_data, "cutoff", 1.8);
+
+    // ignore list generation
+    index_pairs_type ignore_list;
+    std::vector<std::pair<std::string, std::string>> ignore_group_pairs;
+    if(global_ff_data.contains("ignore"))
+    {
+        const auto& ignore = toml::find(global_ff_data, "ignore");
+        ignore_list =
+            read_ignore_molecule_and_particles_within(ignore, topology);
+        ignore_group_pairs = read_ignore_group(ignore);
+    }
+
+    std::vector<CombinatorialGoContactForceFieldGenerator> ff_gens;
+    for(const auto& contacts_info : parameters)
+    {
+        CombinatorialGoContactForceFieldGenerator ff_gen =
+            read_toml_combinatorial_go_contact_ff_generator(
+                cutoff_ratio, contacts_info, env, topology, ignore_list,
+                use_periodic, ignore_group_pairs, group_vec);
+        ff_gens.push_back(ff_gen);
+    }
+
+    return ff_gens;
+}
+
 // -----------------------------------------------------------------------------
 // read external force field
-
 HarmonicCoMPullingForceFieldGenerator
 read_toml_harmonic_com_pulling_ff_generator(
         const toml::value& external_ff_param, const bool use_periodic,

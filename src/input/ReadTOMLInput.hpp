@@ -465,6 +465,19 @@ SystemGenerator read_toml_system(const toml::value& data)
                             LennardJonesAttractiveForceFieldGenerator>(ff_gen));
                 }
             }
+            else if(potential == "CombinatorialGoContact")
+            {
+                using potential_type =
+                    CombinatorialGoContactForceFieldGenerator;
+                std::vector<CombinatorialGoContactForceFieldGenerator> ff_gens =
+                    read_toml_combinatorial_go_contact_ff_generators(
+                            global_ff, topology, group_vec, use_periodic);
+
+                for(const auto& ff_gen : ff_gens)
+                {
+                    system_gen.add_ff_generator(std::make_unique<potential_type>(ff_gen));
+                }
+            }
 
             // non-Pair interaction case
             if(interaction == "3SPN2CrossStacking")

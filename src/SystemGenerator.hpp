@@ -86,7 +86,6 @@ class SystemGenerator
         for(auto& ff_gen_ptr : ff_gen_ptrs_)
         {
             const std::string ff_name = ff_gen_ptr->name();
-            std::cerr << "    " << ff_name << std::endl;
             std::unique_ptr<OpenMM::Force> ff_ptr = ff_gen_ptr->generate();
 
             // set forcegroup id
@@ -97,6 +96,10 @@ class SystemGenerator
             else if(ff_name.find("FlexibleLocalDihedral") != std::string::npos)
             {
                 ff_ptr->setForceGroup(ffname_groupid_map_.at("FlexibleLocalDihedral"));
+            }
+            else if(ff_name.find("CombinatorialGoContact") != std::string::npos)
+            {
+                ff_ptr->setForceGroup(ffname_groupid_map_.at("CombinatorialGoContact"));
             }
             else
             {
