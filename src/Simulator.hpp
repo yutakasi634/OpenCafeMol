@@ -15,9 +15,11 @@ class Simulator
         const std::map<std::string, std::string>& platform_properties,
         const std::vector<OpenMM::Vec3>& initial_position,
         const std::size_t total_step, const std::size_t save_step,
-        std::vector<std::unique_ptr<ObserverBase>>& observers, bool output_progress = true)
+        std::vector<std::unique_ptr<ObserverBase>>& observers,
+        bool energy_minimization = false, bool output_progress = true)
         : Simulator(system_gen, integrator_gen, platform, platform_properties,
-                    total_step, save_step, observers, output_progress)
+                    total_step, save_step, observers,
+                    energy_minimization, output_progress)
     {
         this->initialize(initial_position);
     }
@@ -27,10 +29,12 @@ class Simulator
         OpenMM::Platform& platform,
         const std::map<std::string, std::string>& platform_properties,
         const std::size_t total_step, const std::size_t save_step,
-        std::vector<std::unique_ptr<ObserverBase>>& observers, bool output_progress = true)
+        std::vector<std::unique_ptr<ObserverBase>>& observers,
+        bool energy_minimization = false, bool output_progress = true)
         : system_ptr_(system_gen.generate().release()), integrator_ptr_(integrator_gen.generate()),
           context_(*system_ptr_, *integrator_ptr_, platform, platform_properties),
-          total_step_(total_step), save_step_(save_step), output_progress_(output_progress),
+          total_step_(total_step), save_step_(save_step),
+          energy_minimization_(energy_minimization), output_progress_(output_progress),
           progress_bar_(/* width of bar = */ 50)
     {
         std::cerr << "initializing simulator..." << std::endl;
@@ -51,6 +55,11 @@ class Simulator
     {
         // Set starting positions of the atoms.
         context_.setPositions(initial_position);
+        if(energy_minimization_)
+        {
+            std::cerr << "energy minimization in progress..." << std::endl;
+            OpenMM::LocalEnergyMinimizer::minimize(context_);
+        }
     }
 
     void run()
@@ -92,6 +101,7 @@ class Simulator
     std::size_t                                total_step_;
     std::size_t                                save_step_;
     std::vector<std::unique_ptr<ObserverBase>> observers_;
+    bool                                       energy_minimization_;
     bool                                       output_progress_;
     ProgressBar                                progress_bar_;
 };

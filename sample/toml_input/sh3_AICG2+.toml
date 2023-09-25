@@ -19,6 +19,7 @@ delta_t       = 0.01
 total_step    = 1000
 save_step     = 100
 seed          = 12345
+energy_minimization = true
 
 [[systems]]
 attributes.temperature = 300.0

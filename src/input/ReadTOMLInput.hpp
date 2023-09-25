@@ -715,6 +715,8 @@ Simulator read_toml_input(const std::string& toml_file_name)
     const std::size_t  total_step      = toml::find<std::size_t>(simulator_table, "total_step");
     const std::size_t  save_step       = toml::find<std::size_t>(simulator_table, "save_step");
     const double       delta_t         = toml::find<double>(simulator_table, "delta_t");
+    const bool         energy_minimization =
+        toml::find_or<bool>(simulator_table, "energy_minimization", false);
 
     // read system table
     const auto& systems     = toml::find(data, "systems");
@@ -801,7 +803,7 @@ Simulator read_toml_input(const std::string& toml_file_name)
 
     return Simulator(system_gen, *integrator_gen, platform, platform_properties,
                initial_position_in_nm, total_step, save_step,
-               observers, dump_progress_bar);
+               observers, energy_minimization, dump_progress_bar);
 }
 
 #endif // OPEN_AICG2_PLUS_READ_TOML_INPUT_HPP

@@ -178,7 +178,7 @@ class DebyeHuckelForceFieldGenerator final : public ForceFieldGeneratorBase
         }
 
         // set cutoff
-        std::cerr << "   DebyeHuckel : cutoff disntace is " << abs_cutoff_
+        std::cerr << "    DebyeHuckel : cutoff disntace is " << abs_cutoff_
                   << " nm" << std::endl;
         dh_ff->setCutoffDistance(abs_cutoff_);
 
