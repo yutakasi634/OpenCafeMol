@@ -1618,10 +1618,10 @@ read_toml_lennard_jones_attractive_ff_generator(
             throw std::runtime_error("[error] read_toml_lennard_jones_attractive_ff_generator : index "+std::to_string(index)+" exceeds the system's largest index "+std::to_string(topology.size()-1)+".");
         }
 
-        const double epsilon =
+        const double sigma =
             Utility::find_parameter<double>(param, env, "sigma") *
             OpenMM::NmPerAngstrom; // nm
-        const double sigma =
+        const double epsilon =
             Utility::find_parameter<double>(param, env, "epsilon") *
             OpenMM::KJPerKcal; // KJPermol
 
