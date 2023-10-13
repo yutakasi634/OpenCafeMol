@@ -78,9 +78,14 @@ std::vector<std::string> preprocess_top_file(
     while(std::getline(ifs, line))
     {
         // TODO: add case for define macro
-        if(std::regex_match(line, std::regex("^\\s*$")) || std::regex_match(line, std::regex("^;.*")))
+        if(std::regex_match(line, std::regex("^\\s*$")) || std::regex_match(line, std::regex("^\\s*;.*")))
         {
             continue; // skip blank or comment line
+        }
+        else if(std::regex_match(line, std::regex("^.*;.*"))) // remove comment
+        {
+            const std::size_t semicolon_position = line.find_first_of(";");
+            file_contents.push_back(line.substr(0, semicolon_position));
         }
         else if(std::regex_match(line, result, std::regex("^#include \"(\\S*)\"\\s*")))
         {
