@@ -355,20 +355,25 @@ Simulator make_simulator_from_genesis_inputs(
         {
             throw std::runtime_error("[error] There is no `[ moleculetype ]` section. Genesis input mode needs this section.");
         }
-        const std::vector<std::string>& moleculetype_data = top_data.at("moleculetype");
-        if(moleculetype_data.size() != 1)
+        const std::vector<std::string>& moleculetype_data =
+            top_data.at("moleculetype");
+
+        const std::size_t first_nrexcl =
+            std::stoi(moleculetype_data[0].substr(13, 10));
+        for(const auto& nrexcl_str : moleculetype_data)
         {
-            throw std::runtime_error("[error] `[moleculetype]` section have " +
-                   std::to_string(moleculetype_data.size()) +
-                   " lines. Genesis input mode intends this section have only 1 line." );
+            const std::size_t nrexcl = std::stoi(nrexcl_str.substr(13, 10));
+            if(nrexcl != first_nrexcl)
+            {
+                throw std::runtime_error(
+                    "[error] all nrexcl need to be same in `[moleculetype]`"
+                    " section.");
+            }
         }
 
-        const std::size_t ignore_particle_within_bond =
-            std::stoi(moleculetype_data[0].substr(17, 6));
         ExcludedVolumeForceFieldGenerator ff_gen =
             read_genesis_exv_ff_generator(top_data.at("atomtypes"),
-                top_data.at("atoms"), topology, use_periodic,
-                ignore_particle_within_bond);
+                top_data.at("atoms"), topology, use_periodic, first_nrexcl);
         system_gen.add_ff_generator(
                 std::make_unique<ExcludedVolumeForceFieldGenerator>(ff_gen));
     }
