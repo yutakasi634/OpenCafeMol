@@ -388,13 +388,45 @@ Simulator make_simulator_from_genesis_inputs(
     // read [OUTPUT] section
     const std::map<std::string, std::string>& output_section = inpfile_data.at("OUTPUT");
     const std::string& dcdfile_name = output_section.at("dcdfile");
-    const std::string& pdbfile_name = output_section.at("pdbfile");
+
     std::size_t file_suffix_from = dcdfile_name.rfind(".");
     if(file_suffix_from == std::string::npos)
     {
         file_suffix_from = dcdfile_name.size();
     }
     const std::string file_prefix  = dcdfile_name.substr(0, file_suffix_from);
+
+    std::string pdbfile_name;
+    if(output_section.find("pdbfile") != output_section.end())
+    {
+        pdbfile_name = output_section.at("pdbfile");
+        // dump initial configuration to pdb file
+        std::cerr << "    output initial state file : " << pdbfile_name
+                  << std::endl;
+        Utility::clear_file(pdbfile_name);
+        std::ofstream ofs(pdbfile_name, std::ios::app);
+        ofs << "MODEL     0" << std::endl;
+        for(std::size_t idx=0; idx<initial_position_in_nm.size(); ++idx)
+        {
+            ofs << std::setprecision(3);
+            ofs << "ATOM  "                     //                          1-6
+                << std::setw(5) << idx+1 << " " // atom serial number       7-12
+                << atom_name_vec[idx] << " "    // atom name               13-17
+                << res_name_vec [idx] << "  "   // residue name            18-22
+                << "   1    ";                  // residue sequence number 23-30
+            ofs << std::setw(8) << std::fixed
+                << std::setw(8) << std::fixed
+                << initial_position_in_nm[idx][0]*OpenMM::AngstromsPerNm
+                << std::setw(8) << std::fixed
+                << initial_position_in_nm[idx][1]*OpenMM::AngstromsPerNm
+                << std::setw(8) << std::fixed
+                << initial_position_in_nm[idx][2]*OpenMM::AngstromsPerNm
+                << "  1.00  0.00" << std::endl;
+        }
+        ofs << "ENDMDL" << std::endl; // end of frame
+        ofs.close();
+    }
+
     const std::string enefile_name = file_prefix + ".ene";
 
     // read [DYNAMICS] section
@@ -413,27 +445,6 @@ Simulator make_simulator_from_genesis_inputs(
                 file_prefix, nsteps, crdout_period, timestep, use_periodic));
     observers.push_back(std::make_unique<EnergyObserver>(file_prefix, system_gen));
 
-    // dump initial configuration to pdb file
-    std::cerr << "    output initial state file : " << pdbfile_name << std::endl;
-    Utility::clear_file(pdbfile_name);
-    std::ofstream ofs(pdbfile_name, std::ios::app);
-    ofs << "MODEL     0" << std::endl;
-    for(std::size_t idx=0; idx<initial_position_in_nm.size(); ++idx)
-    {
-        ofs << std::setprecision(3);
-        ofs << "ATOM  "                     //                          1-6
-            << std::setw(5) << idx+1 << " " // atom serial number       7-12
-            << atom_name_vec[idx] << " "    // atom name               13-17
-            << res_name_vec [idx] << "  "   // residue name            18-22
-            << "   1    ";                  // residue sequence number 23-30
-        ofs << std::setw(8) << std::fixed
-            << std::setw(8) << std::fixed << initial_position_in_nm[idx][0]*OpenMM::AngstromsPerNm
-            << std::setw(8) << std::fixed << initial_position_in_nm[idx][1]*OpenMM::AngstromsPerNm
-            << std::setw(8) << std::fixed << initial_position_in_nm[idx][2]*OpenMM::AngstromsPerNm
-            << "  1.00  0.00" << std::endl;
-    }
-    ofs << "ENDMDL" << std::endl; // end of frame
-    ofs.close();
 
     // read [PLATFORM] section (set `CUDA` if it does not exist)
     std::string platform_name = "CUDA";
