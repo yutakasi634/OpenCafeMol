@@ -65147,7 +65147,6 @@ parameters = [
 interaction = "Pair"
 potential   = "DebyeHuckel"
 ignore.particles_within.bond = 3
-ignore.particles_within.contact = 1
 parameters = [
 {index =     0, charge =    1.0000},
 {index =     4, charge =   -1.0000},
