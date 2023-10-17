@@ -18,7 +18,8 @@ class LennardJonesAttractiveForceFieldGenerator final : public ForceFieldGenerat
         const index_pairs_type& ignore_list, const bool use_periodic,
         const std::vector<std::pair<std::string, std::string>> ignore_group_pairs = {},
         const std::vector<std::optional<std::string>> group_vec = {})
-        : cutoff_ratio_(cutoff_ratio), epsilons_(epsilons), sigmas_(sigmas),
+        : cutoff_ratio_(cutoff_ratio), epsilons_(epsilons),
+          sigmas_(sigmas), ignore_list_(ignore_list),
           use_periodic_(use_periodic), ffgen_id_(fmt::format("LJAT{}", ffid.gen()))
     {
         assert(this->epsilons_.size() == this->sigmas_.size());
