@@ -14,6 +14,7 @@
 #include "src/forcefield/CosineDihedralForceFieldGenerator.hpp"
 #include "src/forcefield/FlexibleLocalDihedralForceFieldGenerator.hpp"
 #include "src/forcefield/ThreeSPN2BaseStackingForceFieldGenerator.hpp"
+#include "src/forcefield/ThreeSPN2BasePairLocalForceFieldGenerator.hpp"
 #include "src/forcefield/ExcludedVolumeForceFieldGenerator.hpp"
 #include "src/forcefield/ThreeSPN2ExcludedVolumeForceFieldGenerator.hpp"
 #include "src/forcefield/WeeksChandlerAndersenForceFieldGenerator.hpp"
@@ -1259,6 +1260,81 @@ read_toml_uniform_lennard_jones_attractive_ff_generator(
     return UniformLennardJonesAttractiveForceFieldGenerator(
         system_size, epsilon, sigma, cutoff, former_participants, latter_participants,
         ignore_list, use_periodic, ignore_group_pairs, group_vec);
+}
+
+template<typename PotentialParameterType>
+const ThreeSPN2BasePairLocalForceFieldGenerator<PotentialParameterType>
+read_toml_3spn2_base_pair_local_ff_generator(
+    const toml::value& local_ff_data, Topology& topology,
+    const std::pair<std::string, std::string> base_pair,
+    const bool use_periodic
+)
+{
+    using index_pairs_type = std::vector<std::pair<std::size_t, std::size_t>>;
+    const std::string base0 = base_pair.first;
+    const std::string base1 = base_pair.second;
+
+    if (! ((base0 == "A" && base1 == "T") || (base0 == "T" && base1 == "A") ||
+           (base0 == "G" && base1 == "C") || (base0 == "C" && base1 == "G")))
+    {
+        throw std::runtime_error(
+            "[error] invalid base pair type " + base0 + "-" + base1 + " here. " +
+            "One of the A-T, T-A, G-C, C-G is expected.");
+    }
+
+    // [[forcefields.local]]
+    // interaction = "3SPN2BasePairLocal"
+    // potential   = "3SPN2"
+    // ignore.particles_within.nucleotide = 3
+    // parameters  = [ # {{{
+    // {nucleotide_pair=[{       S = 0, B = 1, Base = "A"},{P = 187, S = 188, B = 189, Base = "T"}]},
+    // {nucleotide_pair=[{P = 2, S = 3, B = 4, Base = "T"},{P = 184, S = 185, B = 186, Base = "A"}]},
+
+    const auto& params = toml::find<toml::array>(local_ff_data, "parameters");
+    const auto& env    = local_ff_data.contains("env") ? local_ff_data.at("env") : toml::value{};
+
+    std::vector<std::array<std::size_t, 4>> indices_vec;
+
+    for (const auto& param: params)
+    {
+        const auto nucleotide_pair = toml::find<toml::array>(param, "nucleotide_pair");
+
+        if (nucleotide_pair.size() != 2)
+        {
+            throw std::runtime_error(
+                "[error] invalid toml array size."
+                "The array size of nucleotide_pair must be 2.");
+        }
+
+        const auto base_strand0 = toml::find<std::string>(nucleotide_pair[0], "Base");
+        const auto base_strand1 = toml::find<std::string>(nucleotide_pair[1], "Base");
+
+        if ((base_strand0 == base0) && (base_strand1 == base1))
+        {
+            indices_vec.push_back({
+                Utility::find_parameter<size_t>(nucleotide_pair[0], env, "S"),
+                Utility::find_parameter<size_t>(nucleotide_pair[0], env, "B"),
+                Utility::find_parameter<size_t>(nucleotide_pair[1], env, "B"),
+                Utility::find_parameter<size_t>(nucleotide_pair[1], env, "S")
+            });
+        }
+    }
+
+    // ignore list generation
+    index_pairs_type ignore_list;
+    if(local_ff_data.contains("ignore"))
+    {
+        const auto& ignore = toml::find(local_ff_data, "ignore");
+        ignore_list = read_ignore_molecule_and_particles_within(ignore, topology);
+    }
+
+    std::cerr << "    3SPN2BasePairLocal   : " + PotentialParameterType::name + " BasePair "
+          << base0 + "-" + base1
+          << " (" << indices_vec.size() << " pairs found)"
+          << std::endl;
+
+    return ThreeSPN2BasePairLocalForceFieldGenerator<PotentialParameterType>(
+        indices_vec, base_pair, ignore_list, use_periodic);
 }
 
 template<typename PotentialParameterType>

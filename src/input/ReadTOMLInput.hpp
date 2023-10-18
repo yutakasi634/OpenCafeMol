@@ -289,6 +289,51 @@ SystemGenerator read_toml_system(const toml::value& data)
                             std::make_unique<ThreeSPN2BaseStackingForceFieldGenerator>(
                                 ff_gen));
             }
+            else if(interaction == "3SPN2BasePairLocal")
+            {
+                const std::vector<std::pair<std::string, std::string>> base_pairs =
+                        {{"A", "T"}, {"G", "C"}};
+
+                if(potential == "3SPN2")
+                {
+                    using parameter_type = ThreeSPN2BasePairPotentialParameter;
+                    using potential_type =
+                        ThreeSPN2BasePairLocalForceFieldGenerator<parameter_type>;
+
+                    for (const auto& pair : base_pairs)
+                    {
+                        potential_type ff_gen =
+                            read_toml_3spn2_base_pair_local_ff_generator<parameter_type>(
+                                local_ff, topology, pair, use_periodic);
+                        system_gen.add_ff_generator(
+                            std::make_unique<potential_type>(ff_gen));
+                    }
+                }
+                else if(potential == "3SPN2C")
+                {
+                    using parameter_type = ThreeSPN2CBasePairPotentialParameter;
+                    using potential_type =
+                        ThreeSPN2BasePairLocalForceFieldGenerator<parameter_type>;
+
+                    for (const auto& pair : base_pairs)
+                    {
+                        potential_type ff_gen =
+                            read_toml_3spn2_base_pair_local_ff_generator<parameter_type>(
+                                local_ff, topology, pair, use_periodic);
+                        system_gen.add_ff_generator(
+                            std::make_unique<potential_type>(ff_gen));
+                    }
+                }
+                else
+                {
+                    throw std::runtime_error(
+                        "[error] invalid potential " + potential + " found."
+                        "Expected value is one of the following."
+                        "- \"3SPN2\" : The general 3SPN2 parameter set."
+                        "- \"3SPN2C\": The parameter set optimized to reproduce sequence-dependent curveture of dsDNA."
+                    );
+              }
+            }
         }
     }
     topology.make_molecule("bond");
