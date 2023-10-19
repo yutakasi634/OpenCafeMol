@@ -10,6 +10,7 @@
 #include "ReadTOMLForceFieldGenerator.hpp"
 #include "src/forcefield/MonteCarloAnisotropicBarostatGenerator.hpp"
 #include "src/forcefield/MonteCarloMembraneBarostatGenerator.hpp"
+#include "src/input/Utility.hpp"
 
 SystemGenerator read_toml_system(const toml::value& data)
 {
@@ -691,6 +692,7 @@ Simulator read_toml_input(const std::string& toml_file_name)
     // read toml toml file
     std::cerr << "parsing " << toml_file_name << "..." << std::endl;
     auto data = toml::parse(toml_file_name);
+    expand_include(data);
 
     // read files table
     const auto&        files         = toml::find(data, "files");
