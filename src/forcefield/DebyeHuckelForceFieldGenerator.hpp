@@ -30,8 +30,10 @@ class DebyeHuckelForceFieldGenerator final : public ForceFieldGeneratorBase
         const double epsk = calc_dielectric_water(temperature_, ionic_strength_); // dimensionless
         const double eps0 = Constant::eps0 / Constant::elementary_charge
                                            / Constant::elementary_charge; // [mol/KJ/nm]
-        std::cerr << "        eps0 is " << eps0 << " mol/KJ/nm" << std::endl;
-        std::cerr << "        epsk is " << epsk << " (dimensionless)" << std::endl;
+        std::cerr << std::scientific << std::setprecision(2)
+                  << "        eps0 is " << eps0 << " mol/KJ/nm" << std::endl;
+        std::cerr << std::fixed
+                  << "        epsk is " << epsk << " (dimensionless)" << std::endl;
 
         inv_4_pi_eps0_epsk_ = 1.0 / (4.0 * Constant::pi * eps0 * epsk); // [KJ nm/mol]
 
