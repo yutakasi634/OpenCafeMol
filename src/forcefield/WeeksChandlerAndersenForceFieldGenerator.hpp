@@ -189,7 +189,8 @@ class WeeksChandlerAndersenForceFieldGenerator final : public ForceFieldGenerato
         // set cutoff
         const double cutoff_distance =
             (max_sigma + second_max_sigma) * 0.5 * std::pow(2.0, 1.0/6.0);
-        std::cerr << "        cutoff disntace is " << cutoff_distance << " nm" << std::endl;
+        std::cerr << "    WeeksChandlerAndersen        : cutoff disntace is "
+                  << cutoff_distance << " nm" << std::endl;
         wca_ff->setCutoffDistance(cutoff_distance);
 
         // set exclusion list

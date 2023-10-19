@@ -191,6 +191,8 @@ class LennardJonesAttractiveForceFieldGenerator final : public ForceFieldGenerat
         // set cutoff
         const double cutoff_distance =
             (max_sigma + second_max_sigma) * 0.5 * cutoff_ratio_;
+        std::cerr << "    LennardJonesAttractive       : cutoff distance is "
+                  << cutoff_distance << " nm" << std::endl;
         ljattr_ff->setCutoffDistance(cutoff_distance);
         ljattr_ff->setUseSwitchingFunction(true);
         ljattr_ff->setSwitchingDistance(0.9*cutoff_distance);
