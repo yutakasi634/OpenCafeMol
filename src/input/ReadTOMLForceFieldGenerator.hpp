@@ -1318,6 +1318,15 @@ read_toml_3spn2_base_pair_local_ff_generator(
                 Utility::find_parameter<size_t>(nucleotide_pair[1], env, "S")
             });
         }
+        else if ((base_strand0 == base1) && (base_strand1 == base0))
+        {
+            indices_vec.push_back({
+                Utility::find_parameter<size_t>(nucleotide_pair[1], env, "S"),
+                Utility::find_parameter<size_t>(nucleotide_pair[1], env, "B"),
+                Utility::find_parameter<size_t>(nucleotide_pair[0], env, "B"),
+                Utility::find_parameter<size_t>(nucleotide_pair[0], env, "S")
+            });
+        }
     }
 
     // ignore list generation
