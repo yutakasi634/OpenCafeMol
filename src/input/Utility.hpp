@@ -14,6 +14,13 @@ inline void merge_toml_tables(toml::value& table, const toml::value& other)
             {
                 merge_toml_tables(table.at(kv.first), kv.second);
             }
+            else if(table.at(kv.first).is_array() && kv.second.is_array())
+            {
+                toml::array        arr       = table.at(kv.first).as_array();
+                const toml::array& other_arr = kv.second.as_array();
+                arr.insert(arr.end(), other_arr.begin(), other_arr.end());
+                table.at(kv.first) = arr;
+            }
             else
             {
                 throw std::runtime_error(toml::format_error("value \"" +
@@ -47,13 +54,14 @@ inline void expand_include(toml::value& v)
             {
                 for(auto fname : toml::find<std::vector<std::string>>(v, "include"))
                 {
-                    std::cerr << "expanding file " << fname << std::endl;
+                    std::cerr << "    expanding file " << fname << std::endl;
                     merge_toml_tables(v, toml::parse(fname));
                 }
             }
             else
             {
                 const auto& fname = toml::find<std::string>(v, "include");
+                std::cerr << "    expanding file " << fname << std::endl;
                 merge_toml_tables(v, toml::parse(fname));
             }
         }
