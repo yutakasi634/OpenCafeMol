@@ -2,6 +2,7 @@
 #define OPEN_AICG2_PLUS_READ_TOML_FORCE_FIELD_GENERATOR_HPP
 
 #include <OpenMM.h>
+#include "Utility.hpp"
 #include "src/util/Utility.hpp"
 #include "src/util/Constants.hpp"
 #include "src/forcefield/HarmonicBondForceFieldGenerator.hpp"
@@ -45,10 +46,12 @@ read_toml_harmonic_bond_ff_generator(
     for(const auto& param : params)
     {
         auto indices =
-            Utility::find_parameter<std::pair<std::size_t, std::size_t>>(param, env, "indices");
-        const auto offset = Utility::find_parameter_or<std::size_t>(param, env, "offset", 0);
-        indices.first  += offset;
-        indices.second += offset;
+            Utility::find_parameter<std::pair<std::size_t, std::size_t>>(
+                    param, env, "indices");
+        const auto offset =
+            Utility::find_parameter_or<toml::value>(
+                    param, env, "offset", toml::value(0));
+        add_offset(indices, offset);
 
         if(topology.size() <= indices.first)
         {
@@ -98,10 +101,12 @@ read_toml_gaussian_bond_ff_generator(
     for(const auto& param : params)
     {
         auto indices =
-            Utility::find_parameter<std::pair<std::size_t, std::size_t>>(param, env, "indices");
-        const auto offset = Utility::find_parameter_or<std::size_t>(param, env, "offset", 0);
-        indices.first  += offset;
-        indices.second += offset;
+            Utility::find_parameter<std::pair<std::size_t, std::size_t>>(
+                    param, env, "indices");
+        const auto offset =
+            Utility::find_parameter_or<toml::value>(
+                    param, env, "offset", toml::value(0));
+        add_offset(indices, offset);
 
         if(topology.size() <= indices.first)
         {
@@ -151,10 +156,12 @@ read_toml_go_contact_ff_generator(
     for(const auto& param : params)
     {
         auto indices =
-            Utility::find_parameter<std::pair<std::size_t, std::size_t>>(param, env, "indices");
-        const auto offset = Utility::find_parameter_or<std::size_t>(param, env, "offset", 0);
-        indices.first  += offset;
-        indices.second += offset;
+            Utility::find_parameter<std::pair<std::size_t, std::size_t>>(
+                    param, env, "indices");
+        const auto offset =
+            Utility::find_parameter_or<toml::value>(
+                    param, env, "offset", toml::value(0));
+        add_offset(indices, offset);
 
         if(topology.size() <= indices.first)
         {
@@ -184,6 +191,7 @@ read_toml_go_contact_ff_generator(
     return GoContactForceFieldGenerator(indices_vec, ks, r0s, use_periodic);
 }
 
+// TODO: enable to use offset
 const ThreeSPN2BondForceFieldGenerator
 read_toml_3spn2_bond_ff_generator(
         const toml::value& local_ff_data, Topology& topology,
@@ -200,10 +208,12 @@ read_toml_3spn2_bond_ff_generator(
     for(const auto& param : params)
     {
         auto indices =
-            Utility::find_parameter<std::pair<std::size_t, std::size_t>>(param, env, "indices");
-        const auto offset = Utility::find_parameter_or<std::size_t>(param, env, "offset", 0);
-        indices.first  += offset;
-        indices.second += offset;
+            Utility::find_parameter<std::pair<std::size_t, std::size_t>>(
+                    param, env, "indices");
+        const auto offset =
+            Utility::find_parameter_or<toml::value>(
+                    param, env, "offset", toml::value(0));
+        add_offset(indices, offset);
 
         const double v0 =
             Utility::find_parameter<double>(param, env, "v0") * OpenMM::NmPerAngstrom; // nm
@@ -250,9 +260,12 @@ read_toml_harmonic_angle_ff_generator(
     for(const auto& param : params)
     {
         auto indices =
-            Utility::find_parameter<std::array<std::size_t, 3>>(param, env, "indices");
-        const auto offset = Utility::find_parameter_or<std::size_t>(param, env, "offset", 0);
-        for(auto& idx : indices) { idx += offset; }
+            Utility::find_parameter<std::array<std::size_t, 3>>(
+                    param, env, "indices");
+        const auto offset =
+            Utility::find_parameter_or<toml::value>(
+                    param, env, "offset", toml::value(0));
+        add_offset(indices, offset);
 
         for(auto idx : indices)
         {
@@ -314,9 +327,12 @@ read_toml_flexible_local_angle_ff_generator(
         if(y.substr(3, 3) == aa_type) // y is like "y1_PHE"
         {
             auto indices =
-                Utility::find_parameter<std::array<std::size_t, 3>>(param, env, "indices");
-            const auto offset = Utility::find_parameter_or<std::size_t>(param, env, "offset", 0);
-            for(auto& idx : indices) { idx += offset; }
+                Utility::find_parameter<std::array<std::size_t, 3>>(
+                        param, env, "indices");
+            const auto offset =
+                Utility::find_parameter_or<toml::value>(
+                        param, env, "offset", toml::value(0));
+            add_offset(indices, offset);
 
             for(auto idx : indices)
             {
@@ -363,9 +379,12 @@ read_toml_gaussian_dihedral_ff_generator(
     for(const auto& param : params)
     {
         auto indices =
-            Utility::find_parameter<std::array<std::size_t, 4>>(param, env, "indices");
-        const auto offset = Utility::find_parameter_or<std::size_t>(param, env, "offset", 0);
-        for(auto& idx : indices) { idx += offset; }
+            Utility::find_parameter<std::array<std::size_t, 4>>(
+                    param, env, "indices");
+        const auto offset =
+            Utility::find_parameter_or<toml::value>(
+                    param, env, "offset", toml::value(0));
+        add_offset(indices, offset);
 
         for(auto idx : indices)
         {
@@ -415,9 +434,12 @@ read_toml_cosine_dihedral_ff_generator(
     for(const auto& param : params)
     {
         auto indices =
-            Utility::find_parameter<std::array<std::size_t, 4>>(param, env, "indices");
-        const auto offset = Utility::find_parameter_or<std::size_t>(param, env, "offset", 0);
-        for(auto& idx : indices) { idx += offset; }
+            Utility::find_parameter<std::array<std::size_t, 4>>(
+                    param, env, "indices");
+        const auto offset =
+            Utility::find_parameter_or<toml::value>(
+                    param, env, "offset", toml::value(0));
+        add_offset(indices, offset);
 
         for(auto idx : indices)
         {
@@ -472,9 +494,12 @@ read_toml_flexible_local_dihedral_ff_generator(
     {
         for(const auto& param : params)
         {
-            auto indices = toml::find<std::array<std::size_t, 4>>(param, "indices");
-            const auto offset = Utility::find_parameter_or<std::size_t>(param, env, "offset", 0);
-            for(auto& idx : indices) { idx += offset; }
+            auto indices =
+                toml::find<std::array<std::size_t, 4>>(param, "indices");
+            const auto offset =
+                Utility::find_parameter_or<toml::value>(
+                        param, env, "offset", toml::value(0));
+            add_offset(indices, offset);
 
             const std::string coef = toml::find<std::string>(param, "coef");
             const double      k    =
@@ -514,9 +539,12 @@ read_toml_flexible_local_dihedral_ff_generator(
             for(const auto& param : params)
             {
                 auto indices =
-                    Utility::find_parameter<std::array<std::size_t, 4>>(param, env, "indices");
-                const auto offset = Utility::find_parameter_or<std::size_t>(param, env, "offset", 0);
-                for(auto& idx : indices) { idx += offset; }
+                    Utility::find_parameter<std::array<std::size_t, 4>>(
+                            param, env, "indices");
+                const auto offset =
+                    Utility::find_parameter_or<toml::value>(
+                            param, env, "offset", toml::value(0));
+                add_offset(indices, offset);
 
                 const std::string coef    = toml::find<std::string>(param, "coef");
                 const double      k       =
@@ -579,6 +607,7 @@ read_toml_flexible_local_dihedral_ff_generator(
                indices_vec, ks, fourier_table, aa_pair_name, use_periodic);
 }
 
+// TODO: enable to use offset
 const ThreeSPN2BaseStackingForceFieldGenerator
 read_toml_3spn2_base_stacking_ff_generator(
         const toml::value& local_ff_data, Topology& topology,
@@ -876,9 +905,13 @@ read_toml_excluded_volume_ff_generator(
     std::vector<std::optional<double>> radius_vec(system_size, std::nullopt);
     for(const auto& param : params)
     {
-        const std::size_t index  =
-            Utility::find_parameter<std::size_t>(param, env, "index") +
-            Utility::find_parameter_or<std::size_t>(param, env, "offset", 0);
+        std::size_t index =
+            Utility::find_parameter<std::size_t>(param, env, "index");
+        const auto offset =
+            Utility::find_parameter_or<toml::value>(
+                    param, env, "offset", toml::value(0));
+        add_offset(index, offset);
+
         if(topology.size() <= index)
         {
             throw std::runtime_error("[error] read_toml_excluded_volume_ff_generator : index "+std::to_string(index)+" exceeds the system's largest index "+std::to_string(topology.size()-1)+".");
@@ -907,6 +940,7 @@ read_toml_excluded_volume_ff_generator(
             ignore_group_pairs, group_vec);
 }
 
+// TODO: enable to use offset
 const ThreeSPN2ExcludedVolumeForceFieldGenerator
 read_toml_3spn2_excluded_volume_ff_generator(
     const toml::value& global_ff_data, const std::size_t system_size, const Topology& topology,
@@ -928,8 +962,13 @@ read_toml_3spn2_excluded_volume_ff_generator(
     std::vector<std::optional<double>> radius_vec(system_size, std::nullopt);
     for(const auto& param : params)
     {
-        const auto index  = Utility::find_parameter   <std::size_t>(param, env, "index") +
-                            Utility::find_parameter_or<std::size_t>(param, env, "offset", 0);
+        std::size_t index  =
+            Utility::find_parameter<std::size_t>(param, env, "index");
+        const auto offset =
+            Utility::find_parameter_or<toml::value>(
+                    param, env, "offset", toml::value(0));
+        add_offset(index, offset);
+
         const auto kind   = toml::find<std::string>(param, "kind");
         radius_vec[index] = ThreeSPN2ExcludedVolumePotentialParameter::sigma.at(kind);
     }
@@ -1001,9 +1040,13 @@ read_toml_weeks_chandler_andersen_ff_generator(
     std::vector<std::optional<double>> eps_vec  (system_size, std::nullopt);
     for(const auto& param : params)
     {
-        const std::size_t index =
-            Utility::find_parameter<std::size_t>(param, env, "index") +
-            Utility::find_parameter_or<std::size_t>(param, env, "offset", 0);
+        std::size_t index =
+            Utility::find_parameter<std::size_t>(param, env, "index");
+        const auto offset =
+            Utility::find_parameter_or<toml::value>(
+                    param, env, "offset", toml::value(0));
+        add_offset(index, offset);
+
         if(topology.size() <= index)
         {
             throw std::runtime_error("[error] read_toml_weeks_chandler_andersen_ff_generator : index "+std::to_string(index)+" exceeds the system's largest index "+std::to_string(topology.size()-1)+".");
@@ -1054,8 +1097,13 @@ read_toml_uniform_weeks_chandler_andersen_ff_generator(
     for(const auto& param : params)
     {
         const std::string& particle_name = toml::find<std::string>(param, "name");
-        const std::size_t  index = Utility::find_parameter<std::size_t>(param, env, "index") +
-                                   Utility::find_parameter_or<std::size_t>(param, env, "offset", 0);
+        std::size_t  index =
+            Utility::find_parameter<std::size_t>(param, env, "index");
+        const auto offset =
+            Utility::find_parameter_or<toml::value>(
+                    param, env, "offset", toml::value(0));
+        add_offset(index, offset);
+
         if(topology.size() <= index)
         {
             throw std::runtime_error("[error] read_toml_uniform_weeks_chandler_andersen_ff_generator : index "+std::to_string(index)+" exceeds the system's largest index "+std::to_string(topology.size()-1)+".");
@@ -1109,8 +1157,13 @@ read_toml_debye_huckel_ff_generator(
     std::vector<std::optional<double>> charge_vec(system_size, std::nullopt);
     for(const auto& param : params)
     {
-        const std::size_t index  = Utility::find_parameter<std::size_t>(param, env, "index") +
-                                   Utility::find_parameter_or<std::size_t>(param, env, "offset", 0);
+        std::size_t index  =
+            Utility::find_parameter<std::size_t>(param, env, "index");
+        const auto offset =
+            Utility::find_parameter_or<toml::value>(
+                    param, env, "offset", toml::value(0));
+        add_offset(index, offset);
+
         if(topology.size() <= index)
         {
             throw std::runtime_error("[error] read_toml_debye_huckel_ff_generator : index "+std::to_string(index)+" exceeds the system's largest index "+std::to_string(topology.size()-1)+".");
@@ -1154,8 +1207,13 @@ read_toml_isolf_attractive_ff_generator(
     std::vector<std::optional<double>> omega_vec(system_size, std::nullopt);
     for(const auto& param : params)
     {
-        const std::size_t index = Utility::find_parameter<std::size_t>(param, env, "index") +
-                                  Utility::find_parameter_or<std::size_t>(param, env, "offset", 0);
+        std::size_t index =
+            Utility::find_parameter<std::size_t>(param, env, "index");
+        const auto offset =
+            Utility::find_parameter_or<toml::value>(
+                    param, env, "offset", toml::value(0));
+        add_offset(index, offset);
+
         if(topology.size() <= index)
         {
             throw std::runtime_error("[error] read_toml_isolf_attractive_ff_generator : index "+std::to_string(index)+" exceeds the system's largest index "+std::to_string(topology.size()-1)+".");
@@ -1223,8 +1281,13 @@ read_toml_uniform_lennard_jones_attractive_ff_generator(
     for(const auto& param : params)
     {
         const std::string& particle_name = toml::find<std::string>(param, "name");
-        const std::size_t  index = Utility::find_parameter<std::size_t>(param, env, "index") +
-                                   Utility::find_parameter_or<std::size_t>(param, env, "offset", 0);
+        std::size_t index =
+            Utility::find_parameter<std::size_t>(param, env, "index");
+        const auto offset =
+            Utility::find_parameter_or<toml::value>(
+                    param, env, "offset", toml::value(0));
+        add_offset(index, offset);
+
         if(topology.size() <= index)
         {
             throw std::runtime_error("[error] read_toml_uniform_lennard_jones_attractive_ff_generator : index "+std::to_string(index)+" exceeds the system's largest index "+std::to_string(topology.size()-1)+".");
@@ -1261,6 +1324,7 @@ read_toml_uniform_lennard_jones_attractive_ff_generator(
         ignore_list, use_periodic, ignore_group_pairs, group_vec);
 }
 
+// TODO: enable to use offset
 template<typename PotentialParameterType>
 const ThreeSPN2BasePairForceFieldGenerator<PotentialParameterType>
 read_toml_3spn2_base_pair_ff_generator(
@@ -1386,6 +1450,7 @@ read_toml_3spn2_base_pair_ff_generator(
         use_periodic);
 }
 
+// TODO: enable to use offset
 template<typename PotentialParameterType>
 const ThreeSPN2CrossStackingForceFieldGenerator<PotentialParameterType>
 read_toml_3spn2_cross_stacking_ff_generator(
