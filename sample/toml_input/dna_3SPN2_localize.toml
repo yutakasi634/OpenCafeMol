@@ -17,8 +17,8 @@ name = "Reference" # to run on CI
 boundary_type = "Unlimited"
 delta_t       = 0.3
 seed          = 12345
-total_step    = 10
-save_step     = 1
+total_step    = 1000
+save_step     = 10
 
 [[systems]]
 attributes.temperature    = 300.0
@@ -987,6 +987,9 @@ interaction = "3SPN2CrossStackingLocal"
 potential   = "3SPN2"
 ignore.particles_within.nucleotide = 3
 parameters  = [ # {{{
+# the order of nucleotide_group array must be
+# nucleotide_group = [{reference   nucleotide}, {base-pairing   nucleotide},
+#                     {neighboring nucleotide}, {cross-stacking nucleotide}]}
 {nucleotide_group=[{         S =   0, B =   1, Base = "A"}, {P = 187, S = 188, B = 189, Base = "T"},
                    {P =   2, S =   3, B =   4, Base = "T"}, {P = 184, S = 185, B = 186, Base = "A"}]},
 {nucleotide_group=[{P =   2, S =   3, B =   4, Base = "T"}, {P = 184, S = 185, B = 186, Base = "A"},
