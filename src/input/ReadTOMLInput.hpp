@@ -334,6 +334,57 @@ SystemGenerator read_toml_system(const toml::value& data)
                     );
               }
             }
+            else if(interaction == "3SPN2CrossStackingLocal")
+            {
+                const std::vector<std::pair<std::string, std::string>> base_pairs = {
+                    {"A", "T"}, {"T", "A"}, {"G", "C"}, {"C", "G"}
+                };
+
+                if (potential == "3SPN2")
+                {
+                    using parameter_type = ThreeSPN2CrossStackingPotentialParameter;
+                    using potential_type =
+                        ThreeSPN2CrossStackingLocalForceFieldGenerator<parameter_type>;
+                    for (const auto& bp_kind: base_pairs)
+                    {
+                        // Cross stacking of sense-strand
+                        potential_type ff_gen_sense =
+                            read_toml_3spn2_cross_stacking_local_ff_generator<parameter_type>(
+                                local_ff, topology, bp_kind, "sense", use_periodic);
+                        system_gen.add_ff_generator(
+                            std::make_unique<potential_type>(ff_gen_sense));
+
+                        // Cross stacking of antisense-strand
+                        potential_type ff_gen_antisense =
+                            read_toml_3spn2_cross_stacking_local_ff_generator<parameter_type>(
+                                local_ff, topology, bp_kind, "antisense", use_periodic);
+                        system_gen.add_ff_generator(
+                            std::make_unique<potential_type>(ff_gen_antisense));
+                    }
+                }
+                if (potential == "3SPN2C")
+                {
+                    using parameter_type = ThreeSPN2CCrossStackingPotentialParameter;
+                    using potential_type =
+                        ThreeSPN2CrossStackingLocalForceFieldGenerator<parameter_type>;
+                    for (const auto& bp_kind: base_pairs)
+                    {
+                        // Cross stacking of sense-strand
+                        potential_type ff_gen_sense =
+                            read_toml_3spn2_cross_stacking_local_ff_generator<parameter_type>(
+                                local_ff, topology, bp_kind, "sense", use_periodic);
+                        system_gen.add_ff_generator(
+                            std::make_unique<potential_type>(ff_gen_sense));
+
+                        // Cross stacking of antisense-strand
+                        potential_type ff_gen_antisense =
+                            read_toml_3spn2_cross_stacking_local_ff_generator<parameter_type>(
+                                local_ff, topology, bp_kind, "antisense", use_periodic);
+                        system_gen.add_ff_generator(
+                            std::make_unique<potential_type>(ff_gen_antisense));
+                    }
+                }
+            }
         }
     }
     topology.make_molecule("bond");

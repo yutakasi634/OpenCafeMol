@@ -15,6 +15,7 @@
 #include "src/forcefield/FlexibleLocalDihedralForceFieldGenerator.hpp"
 #include "src/forcefield/ThreeSPN2BaseStackingForceFieldGenerator.hpp"
 #include "src/forcefield/ThreeSPN2BasePairLocalForceFieldGenerator.hpp"
+#include "src/forcefield/ThreeSPN2CrossStackingLocalForceFieldGenerator.hpp"
 #include "src/forcefield/ExcludedVolumeForceFieldGenerator.hpp"
 #include "src/forcefield/ThreeSPN2ExcludedVolumeForceFieldGenerator.hpp"
 #include "src/forcefield/WeeksChandlerAndersenForceFieldGenerator.hpp"
@@ -1468,6 +1469,142 @@ read_toml_3spn2_base_pair_ff_generator(
 
     return ThreeSPN2BasePairForceFieldGenerator<PotentialParameterType>(
         indices_donor, indices_acceptor, base_pair, ignore_list,
+        use_periodic);
+}
+
+template<typename PotentialParameterType>
+const ThreeSPN2CrossStackingLocalForceFieldGenerator<PotentialParameterType>
+read_toml_3spn2_cross_stacking_local_ff_generator(
+    const toml::value& local_ff_data, Topology& topology,
+    const std::pair<std::string, std::string> bp_kind, const std::string& strand_kind,
+    const bool use_periodic
+)
+{
+    using index_pairs_type = std::vector<std::pair<std::size_t, std::size_t>>;
+
+    // ================================================================
+    // cross stacking
+    //
+    //  Sense                   Anti-sense
+    //    5'                        3'
+    //    ^    /               \    |
+    //    | P o                o P  |  P : a phosphate site
+    //    |    \    B0    Bp   /    |  S : a sugar site
+    //    |  S  o -- o===o -- o S   |  B0: the reference nucleobase
+    //    |    /      \ /     \     |  Bp: the base-pairing nucleobase
+    //    | P o        X       o P  |
+    //    |    \      / \     /     |
+    //    |     o -- o===o -- o     |  Bn: the neighboring nucleobase
+    //    |    /    Bn   Bc   \     |  Bc: the cross-stacking nucleobase
+    //    | P o                o P  |
+    //    |    \              /     v
+    //    3'                        5'
+
+    // [[forcefields.local]]
+    // interaction = "3SPN2CrossStackingLocal"
+    // potential   = "3SPN2"
+    // ignore.particles_within.nucleotide = 3
+    // parameters  = [ # {{{
+    // {nucleotide_group=[{P =   2, S =   3, B =   4, Base = "T"}, {P = 184, S = 185, B = 186, Base = "A"},
+    //                    {P =   5, S =   6, B =   7, Base = "A"}, {P = 187, S = 188, B = 189, Base = "T"}]},
+    // here, the order of nucleotide_group must be
+    //  {nucleotide_group = [{the reference   nucleotide}, {the base pairing   nucleotide},
+    //                       {the neighboring nucleotide}, {the cross-stacking nucleotide}]}
+
+    const auto& params = toml::find<toml::array>(local_ff_data, "parameters");
+    const auto& env    = local_ff_data.contains("env") ? local_ff_data.at("env") : toml::value{};
+
+    std::vector<std::array<std::size_t, 6>> indices_vec;
+    std::vector<std::string>                base_kind_vec;
+
+    for (const auto& param: params)
+    {
+        const auto nucleotide_group = toml::find<toml::array>(param, "nucleotide_group");
+
+        if (nucleotide_group.size() != 4)
+        {
+            throw std::runtime_error(
+                "[error] invalid toml array size."
+                "The array size of nucleotide_group must be 4.");
+        }
+
+        const auto base_0 = toml::find<std::string>(nucleotide_group[0], "Base"); // reference
+        const auto base_p = toml::find<std::string>(nucleotide_group[1], "Base"); // base-pairing
+        const auto base_n = toml::find<std::string>(nucleotide_group[2], "Base"); // neighboring
+        const auto base_c = toml::find<std::string>(nucleotide_group[3], "Base"); // cross-stacking
+
+        if(strand_kind == "sense") // Base^{5'}↑
+        {
+            if (base_0 == bp_kind.first && base_p == bp_kind.second)
+            {
+                indices_vec.push_back({                                // d: donor, a:acceptor
+                    Utility::find_parameter<size_t>(nucleotide_group[0], env, "S"), // p1 (=d2)
+                    Utility::find_parameter<size_t>(nucleotide_group[0], env, "B"), // p2 (=d1)
+                    Utility::find_parameter<size_t>(nucleotide_group[1], env, "B"), // p3 (=a1)
+                    Utility::find_parameter<size_t>(nucleotide_group[1], env, "S"), // p4 (=a2)
+                    Utility::find_parameter<size_t>(nucleotide_group[2], env, "B"), // p5 (=d3)
+                    Utility::find_parameter<size_t>(nucleotide_group[3], env, "B"), // p6 (=a3)
+                });
+                base_kind_vec.push_back(base_0 + base_c + "5");
+            }
+            if (base_c == bp_kind.first && base_n == bp_kind.second)
+            {
+                indices_vec.push_back({                                // d: donor, a:acceptor
+                    Utility::find_parameter<size_t>(nucleotide_group[3], env, "S"), // p1 (=d2)
+                    Utility::find_parameter<size_t>(nucleotide_group[3], env, "B"), // p2 (=d1)
+                    Utility::find_parameter<size_t>(nucleotide_group[2], env, "B"), // p3 (=a1)
+                    Utility::find_parameter<size_t>(nucleotide_group[2], env, "S"), // p4 (=a2)
+                    Utility::find_parameter<size_t>(nucleotide_group[1], env, "B"), // p5 (=d3)
+                    Utility::find_parameter<size_t>(nucleotide_group[0], env, "B"), // p6 (=a3)
+                });
+                base_kind_vec.push_back(base_c + base_0 + "5");
+            }
+        }
+        else if (strand_kind == "antisense") // Base^{3'}↓
+        {
+            if (base_0 == bp_kind.first && base_p == bp_kind.second)
+            {
+                indices_vec.push_back({                                // d: donor, a:acceptor
+                    Utility::find_parameter<size_t>(nucleotide_group[1], env, "S"), // p1 (=d2)
+                    Utility::find_parameter<size_t>(nucleotide_group[1], env, "B"), // p2 (=d1)
+                    Utility::find_parameter<size_t>(nucleotide_group[0], env, "B"), // p3 (=a1)
+                    Utility::find_parameter<size_t>(nucleotide_group[0], env, "S"), // p4 (=a2)
+                    Utility::find_parameter<size_t>(nucleotide_group[3], env, "B"), // p5 (=d3)
+                    Utility::find_parameter<size_t>(nucleotide_group[2], env, "B"), // p6 (=a3)
+                });
+                base_kind_vec.push_back(base_p + base_n + "3");
+            }
+            if (base_c == bp_kind.first && base_n == bp_kind.second)
+            {
+                indices_vec.push_back({                                // d: donor, a:acceptor
+                    Utility::find_parameter<size_t>(nucleotide_group[2], env, "S"), // p1 (=d2)
+                    Utility::find_parameter<size_t>(nucleotide_group[2], env, "B"), // p2 (=d1)
+                    Utility::find_parameter<size_t>(nucleotide_group[3], env, "B"), // p3 (=a1)
+                    Utility::find_parameter<size_t>(nucleotide_group[3], env, "S"), // p4 (=a2)
+                    Utility::find_parameter<size_t>(nucleotide_group[0], env, "B"), // p5 (=d3)
+                    Utility::find_parameter<size_t>(nucleotide_group[1], env, "B"), // p6 (=a3)
+                });
+                base_kind_vec.push_back(base_n + base_p + "3");
+            }
+        }
+    }
+
+    // ignore list generation
+    index_pairs_type ignore_list;
+    if(local_ff_data.contains("ignore"))
+    {
+        const auto& ignore = toml::find(local_ff_data, "ignore");
+        ignore_list = read_ignore_molecule_and_particles_within(ignore, topology);
+    }
+
+    std::cerr << "    3SPN2CrossStackingLocal   : " + PotentialParameterType::name + " CrossStacking "
+              << bp_kind.first + "-" + bp_kind.second <<" in "
+              << strand_kind << " strand "
+              << " (" << indices_vec.size() << " pairs found)"
+              << std::endl;
+
+    return ThreeSPN2CrossStackingLocalForceFieldGenerator<PotentialParameterType>(
+        indices_vec, base_kind_vec, bp_kind, ignore_list,
         use_periodic);
 }
 
