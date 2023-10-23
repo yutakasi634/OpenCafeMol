@@ -17,18 +17,15 @@ class ThreeSPN2CrossStackingLocalForceFieldGenerator final : public ForceFieldGe
 {
   public:
     using indices_type     = std::array<std::size_t, 6>;
-    using index_pairs_type = std::vector<std::pair<std::size_t, std::size_t>>;
 
   public:
     ThreeSPN2CrossStackingLocalForceFieldGenerator(
         const std::vector<indices_type>& indices_vec,
         const std::vector<std::string>&  base_kind_vec,
         const std::pair<std::string, std::string>& base_pair,
-        const index_pairs_type& ignore_list,
         const bool use_periodic)
         : indices_vec_(indices_vec),
           base_kind_vec_(base_kind_vec), base_pair_(base_pair),
-          ignore_list_(ignore_list),
           use_periodic_(use_periodic),
           ffgen_id_(fmt::format("TSPN2_CSL{}", ffid.gen()))
     {
@@ -123,7 +120,6 @@ class ThreeSPN2CrossStackingLocalForceFieldGenerator final : public ForceFieldGe
     std::vector<indices_type>           indices_vec_;
     std::vector<std::string>            base_kind_vec_;
     std::pair<std::string, std::string> base_pair_;
-    index_pairs_type                    ignore_list_;
     bool                                use_periodic_;
     std::string                         ffgen_id_;
 };

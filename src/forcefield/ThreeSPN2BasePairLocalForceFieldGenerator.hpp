@@ -16,16 +16,14 @@ class ThreeSPN2BasePairLocalForceFieldGenerator final : public ForceFieldGenerat
 {
   public:
     using indices_type     = std::array<std::size_t, 4>;
-    using index_pairs_type = std::vector<std::pair<std::size_t, std::size_t>>;
 
   public:
     ThreeSPN2BasePairLocalForceFieldGenerator(
         const std::vector<indices_type>& indices_vec,
         const std::pair<std::string, std::string>& base_pair,
-        const index_pairs_type& ignore_list,
         const bool use_periodic)
         : indices_vec_(indices_vec),
-          base_pair_(base_pair), ignore_list_(ignore_list),
+          base_pair_(base_pair),
           use_periodic_(use_periodic),
           ffgen_id_(fmt::format("TSPN2BPL{}", ffid.gen()))
     {}
@@ -99,7 +97,6 @@ class ThreeSPN2BasePairLocalForceFieldGenerator final : public ForceFieldGenerat
   private:
     std::vector<indices_type> indices_vec_;
     std::pair<std::string, std::string> base_pair_;
-    index_pairs_type          ignore_list_;
     bool                      use_periodic_;
     std::string               ffgen_id_;
 };

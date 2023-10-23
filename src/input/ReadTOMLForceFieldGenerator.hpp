@@ -1271,7 +1271,6 @@ read_toml_3spn2_base_pair_local_ff_generator(
     const bool use_periodic
 )
 {
-    using index_pairs_type = std::vector<std::pair<std::size_t, std::size_t>>;
     const std::string base0 = base_pair.first;
     const std::string base1 = base_pair.second;
 
@@ -1330,21 +1329,13 @@ read_toml_3spn2_base_pair_local_ff_generator(
         }
     }
 
-    // ignore list generation
-    index_pairs_type ignore_list;
-    if(local_ff_data.contains("ignore"))
-    {
-        const auto& ignore = toml::find(local_ff_data, "ignore");
-        ignore_list = read_ignore_molecule_and_particles_within(ignore, topology);
-    }
-
     std::cerr << "    3SPN2BasePairLocal   : " + PotentialParameterType::name + " BasePair "
           << base0 + "-" + base1
           << " (" << indices_vec.size() << " pairs found)"
           << std::endl;
 
     return ThreeSPN2BasePairLocalForceFieldGenerator<PotentialParameterType>(
-        indices_vec, base_pair, ignore_list, use_periodic);
+        indices_vec, base_pair, use_periodic);
 }
 
 template<typename PotentialParameterType>
@@ -1480,8 +1471,6 @@ read_toml_3spn2_cross_stacking_local_ff_generator(
     const bool use_periodic
 )
 {
-    using index_pairs_type = std::vector<std::pair<std::size_t, std::size_t>>;
-
     // ================================================================
     // cross stacking
     //
@@ -1589,14 +1578,6 @@ read_toml_3spn2_cross_stacking_local_ff_generator(
         }
     }
 
-    // ignore list generation
-    index_pairs_type ignore_list;
-    if(local_ff_data.contains("ignore"))
-    {
-        const auto& ignore = toml::find(local_ff_data, "ignore");
-        ignore_list = read_ignore_molecule_and_particles_within(ignore, topology);
-    }
-
     std::cerr << "    3SPN2CrossStackingLocal   : " + PotentialParameterType::name + " CrossStacking "
               << bp_kind.first + "-" + bp_kind.second <<" in "
               << strand_kind << " strand "
@@ -1604,8 +1585,7 @@ read_toml_3spn2_cross_stacking_local_ff_generator(
               << std::endl;
 
     return ThreeSPN2CrossStackingLocalForceFieldGenerator<PotentialParameterType>(
-        indices_vec, base_kind_vec, bp_kind, ignore_list,
-        use_periodic);
+        indices_vec, base_kind_vec, bp_kind, use_periodic);
 }
 
 template<typename PotentialParameterType>
