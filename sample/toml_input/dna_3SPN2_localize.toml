@@ -883,7 +883,7 @@ potential   = "3SPN2"
 # these two are separated by 3 nucleotides,
 # so this pair of bases can interact via this potential.
 #
-
+topology    = "none"
 parameters  = [ # {{{
 {nucleotide_pair=[{         S =   0, B =   1, Base = "A"}, {P = 187, S = 188, B = 189, Base = "T"}]},
 {nucleotide_pair=[{P =   2, S =   3, B =   4, Base = "T"}, {P = 184, S = 185, B = 186, Base = "A"}]},
@@ -985,7 +985,7 @@ parameters  = [ # {{{
 [[forcefields.local]]
 interaction = "3SPN2CrossStackingLocal"
 potential   = "3SPN2"
-
+topology    = "none"
 parameters  = [ # {{{
 # the order of nucleotide_group array must be
 # nucleotide_group = [{reference   nucleotide}, {base-pairing   nucleotide},

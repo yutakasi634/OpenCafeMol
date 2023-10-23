@@ -1329,6 +1329,11 @@ read_toml_3spn2_base_pair_local_ff_generator(
         }
     }
 
+    if(local_ff_data.contains("topology"))
+    {
+        topology.add_edges(indices_vec, toml::find<std::string>(local_ff_data, "topology"));
+    }
+
     std::cerr << "    3SPN2BasePairLocal   : " + PotentialParameterType::name + " BasePair "
           << base0 + "-" + base1
           << " (" << indices_vec.size() << " pairs found)"
@@ -1576,6 +1581,11 @@ read_toml_3spn2_cross_stacking_local_ff_generator(
                 base_kind_vec.push_back(base_n + base_p + "3");
             }
         }
+    }
+
+    if(local_ff_data.contains("topology"))
+    {
+        topology.add_edges(indices_vec, toml::find<std::string>(local_ff_data, "topology"));
     }
 
     std::cerr << "    3SPN2CrossStackingLocal   : " + PotentialParameterType::name + " CrossStacking "
