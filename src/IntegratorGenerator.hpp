@@ -30,8 +30,7 @@ class LangevinIntegratorGenerator final: public IntegratorGeneratorBase
         auto integrator = std::make_unique<OpenMM::LangevinIntegrator>(
                 this->temperature_,
                 this->friction_coeff_,
-                this->delta_t_ * Constant::cafetime
-            );
+                this->delta_t_);
         integrator->setRandomNumberSeed(this->seed_);
 
         return integrator;
@@ -46,7 +45,7 @@ class LangevinIntegratorGenerator final: public IntegratorGeneratorBase
             << this->temperature_ << " K\n";
         oss << "    delta t     : "
             << std::setw(7) << std::fixed << std::setprecision(3)
-            << this->delta_t_ / Constant::cafetime << " cafetime\n";
+            << this->delta_t_ << " ps\n";
         oss << "    gamma       : "
             << std::setw(7) << std::fixed << std::setprecision(3)
             << this->friction_coeff_ << " ps^-1\n";
