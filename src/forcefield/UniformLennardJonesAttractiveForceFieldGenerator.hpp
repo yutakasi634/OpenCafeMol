@@ -149,8 +149,7 @@ class UniformLennardJonesAttractiveForceFieldGenerator final : public ForceField
     {
         const std::string potential_formula = fmt::format(
             "{id}_epsilon *"
-            "(step(r-threthold)*4*(sigma_r_12 - sigma_r_6) - step(threthold-r) -"
-            " {id}_cutoff_correction);"
+            "    (step(r-threthold)*4*(sigma_r_12 - sigma_r_6) - step(threthold-r));"
             "sigma_r_12 = sigma_r_6^2;"
             "sigma_r_6  = sigma_r^6;"
             "sigma_r    = {id}_sigma/r;"
@@ -161,7 +160,6 @@ class UniformLennardJonesAttractiveForceFieldGenerator final : public ForceField
 
         uljattr_ff->addGlobalParameter(fmt::format("{}_epsilon", ffgen_id_), eps_);
         uljattr_ff->addGlobalParameter(fmt::format("{}_sigma", ffgen_id_), sigma_);
-        uljattr_ff->addGlobalParameter(fmt::format("{}_cutoff_correction", ffgen_id_), cutoff_correction_);
 
         for(std::size_t idx=0; idx<system_size_; ++idx)
         {
@@ -184,9 +182,11 @@ class UniformLennardJonesAttractiveForceFieldGenerator final : public ForceField
         }
 
         // set cutoff
-        std::cerr << "   UniformLennardJonesAttractive : cutoff disntace is "
+        std::cerr << "    UniformLennardJonesAttractive : cutoff disntace is "
                   << abs_cutoff_ << " nm" << std::endl;
         uljattr_ff->setCutoffDistance(abs_cutoff_);
+        uljattr_ff->setUseSwitchingFunction(true);
+        uljattr_ff->setSwitchingDistance(0.9*abs_cutoff_);
 
         // set excludion list
         for(const auto& pair : ignore_list_)
