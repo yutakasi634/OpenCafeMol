@@ -35,7 +35,10 @@
 HarmonicBondForceFieldGenerator
 read_toml_harmonic_bond_ff_generator(
         const toml::value& local_ff_data, Topology& topology, const bool use_periodic)
-{
+
+    check_keys_available(local_ff_data,
+            {"interaction", "potential", "topology", "parameters", "env"});
+
     const auto& params = toml::find<toml::array>(local_ff_data, "parameters");
     const auto& env = local_ff_data.contains("env") ? local_ff_data.at("env") : toml::value{};
 
@@ -90,6 +93,9 @@ read_toml_gaussian_bond_ff_generator(
         const toml::value& local_ff_data, Topology& topology,
         const bool use_periodic)
 {
+    check_keys_available(local_ff_data,
+            {"interaction", "potential", "topology", "parameters", "env"});
+
     const auto& params = toml::find<toml::array>(local_ff_data, "parameters");
     const auto& env = local_ff_data.contains("env") ? local_ff_data.at("env") : toml::value{};
 
@@ -145,6 +151,9 @@ read_toml_go_contact_ff_generator(
         const toml::value& local_ff_data, Topology& topology,
         const bool use_periodic)
 {
+    check_keys_available(local_ff_data,
+            {"interaction", "potential", "topology", "parameters", "env"});
+
     // TODO: enable to optimization based on cutoff
     const auto& params = toml::find<toml::array>(local_ff_data, "parameters");
     const auto& env = local_ff_data.contains("env") ? local_ff_data.at("env") : toml::value{};
@@ -197,6 +206,9 @@ read_toml_3spn2_bond_ff_generator(
         const toml::value& local_ff_data, Topology& topology,
         const bool use_periodic)
 {
+    check_keys_available(local_ff_data,
+            {"interaction", "potential", "topology", "parameters", "env"});
+
     const auto& params = toml::find<toml::array>(local_ff_data, "parameters");
     const auto& env = local_ff_data.contains("env") ? local_ff_data.at("env") : toml::value{};
 
@@ -250,6 +262,9 @@ const HarmonicAngleForceFieldGenerator
 read_toml_harmonic_angle_ff_generator(
         const toml::value& local_ff_data, Topology& topology, const bool use_periodic)
 {
+    check_keys_available(local_ff_data,
+            {"interaction", "potential", "topology", "parameters", "env"});
+
     const auto& params = toml::find<toml::array>(local_ff_data, "parameters");
     const auto& env = local_ff_data.contains("env") ? local_ff_data.at("env") : toml::value{};
 
@@ -315,6 +330,9 @@ read_toml_flexible_local_angle_ff_generator(
         const std::array<double, 10> spline_table, Topology& topology,
         const bool use_periodic)
 {
+    check_keys_available(local_ff_data,
+            {"interaction", "potential", "topology", "parameters", "env"});
+
     const auto& params = toml::find<toml::array>(local_ff_data, "parameters");
     const auto& env = local_ff_data.contains("env") ? local_ff_data.at("env") : toml::value{};
 
@@ -367,9 +385,12 @@ read_toml_gaussian_dihedral_ff_generator(
         const toml::value& local_ff_data, Topology& topology,
         const bool use_periodic)
 {
+    check_keys_available(local_ff_data,
+            {"interaction", "potential", "topology", "parameters", "env"});
 
     const auto& params = toml::find<toml::array>(local_ff_data, "parameters");
-    const auto& env = local_ff_data.contains("env") ? local_ff_data.at("env") : toml::value{};
+    const auto& env
+        = local_ff_data.contains("env") ? local_ff_data.at("env") : toml::value{};
 
     std::vector<std::array<std::size_t, 4>> indices_vec;
     std::vector<double>                     ks;
@@ -422,6 +443,8 @@ read_toml_cosine_dihedral_ff_generator(
         const toml::value& local_ff_data, Topology& topology,
         const bool use_periodic)
 {
+    check_keys_available(local_ff_data,
+            {"interaction", "potential", "topology", "parameters", "env"});
 
     const auto& params = toml::find<toml::array>(local_ff_data, "parameters");
     const auto& env = local_ff_data.contains("env") ? local_ff_data.at("env") : toml::value{};
@@ -484,6 +507,9 @@ read_toml_flexible_local_dihedral_ff_generator(
         const std::array<double, 7> fourier_table, Topology& topology,
         const bool use_periodic)
 {
+    check_keys_available(local_ff_data,
+            {"interaction", "potential", "topology", "parameters", "env"});
+
     const auto& params = toml::find<toml::array>(local_ff_data, "parameters");
     const auto& env = local_ff_data.contains("env") ? local_ff_data.at("env") : toml::value{};
 
@@ -623,6 +649,9 @@ read_toml_3spn2_base_stacking_ff_generator(
     //     # ...
     // ]
 
+    check_keys_available(local_ff_data,
+            {"interaction", "potential", "topology", "parameters", "env"});
+
     const auto pot = toml::find<std::string>(local_ff_data, "potential");
     if (! (pot == "3SPN2" || pot == "3SPN2C"))
     {
@@ -635,7 +664,8 @@ read_toml_3spn2_base_stacking_ff_generator(
     }
 
     const auto& params = toml::find<toml::array>(local_ff_data, "parameters");
-    const auto& env = local_ff_data.contains("env") ? local_ff_data.at("env") : toml::value{};
+    const auto& env =
+        local_ff_data.contains("env") ? local_ff_data.at("env") : toml::value{};
 
     struct Nucleotide
     {
@@ -893,6 +923,10 @@ read_toml_excluded_volume_ff_generator(
     const Topology& topology, const std::vector<std::optional<std::string>>& group_vec,
     const bool use_periodic)
 {
+    check_keys_available(global_ff_data,
+            {"interaction", "potential", "ignore", "env",
+             "cutoff", "parameters", "epsilon"});
+
     using index_pairs_type = std::vector<std::pair<std::size_t, std::size_t>>;
 
     const double eps =
@@ -940,16 +974,19 @@ read_toml_excluded_volume_ff_generator(
             ignore_group_pairs, group_vec);
 }
 
-// TODO: enable to use offset
 const ThreeSPN2ExcludedVolumeForceFieldGenerator
 read_toml_3spn2_excluded_volume_ff_generator(
     const toml::value& global_ff_data, const std::size_t system_size, const Topology& topology,
     const bool use_periodic)
 {
+    check_keys_available(global_ff_data,
+            {"interaction", "potential", "ignore", "cutoff", "parameters", "env"});
+
     using index_pairs_type = std::vector<std::pair<std::size_t, std::size_t>>;
 
     const auto&  params = toml::find<toml::array>(global_ff_data, "parameters");
-    const auto&  env    = global_ff_data.contains("env") ? global_ff_data.at("env") : toml::value{};
+    const auto&  env
+        = global_ff_data.contains("env") ? global_ff_data.at("env") : toml::value{};
 
     const auto   eps    = ThreeSPN2ExcludedVolumePotentialParameter::epsilon;
     const auto   cutoff = toml::find_or(global_ff_data, "cutoff", 2.0);
@@ -1025,12 +1062,26 @@ read_toml_3spn2_excluded_volume_ff_generator(
             eps, cutoff, radius_vec, ignore_list, use_periodic);
 }
 
+// WCA input is like below
+// [[forcefields.global]]
+// potential   = "WCA"
+// ignore.particles_within = {bond = 1, angle = 1}
+// env.popc_epsilon = 0.416
+// env.popc_sigma_T = 7.111
+// env.popc_sigma_H = 4.62215
+// parameters = [
+//     {index =     0, sigma = "popc_sigma_H", epsilon = "popc_epsilon"},
+//     # ...
+// ]
 const WeeksChandlerAndersenForceFieldGenerator
 read_toml_weeks_chandler_andersen_ff_generator(
         const toml::value& global_ff_data, const std::size_t system_size, const Topology& topology,
         const std::vector<std::optional<std::string>>& group_vec,
         const bool use_periodic)
 {
+    check_keys_available(global_ff_data,
+            {"interaction", "potential", "ignore", "parameters", "env"});
+
     using index_pairs_type = WeeksChandlerAndersenForceFieldGenerator::index_pairs_type;
 
     const auto& params = toml::find<toml::array>(global_ff_data, "parameters");
@@ -1080,6 +1131,17 @@ read_toml_weeks_chandler_andersen_ff_generator(
             ignore_group_pairs, group_vec);
 }
 
+// UniformWeeksChandlerAndersen input is like below
+//[[forcefields.global]]
+//interaction = "Pair"
+//potential   = "WCA"
+//table.ASP.Head = {sigma =   4.1260, epsilon =   0.4996}
+//# ...
+//parameters = [
+//    {index =     0, name = "Head"},
+//    {index =     1, name =  "ASP"},
+//    # ...
+//]
 const UniformWeeksChandlerAndersenForceFieldGenerator
 read_toml_uniform_weeks_chandler_andersen_ff_generator(
         const toml::value& global_ff_data, const std::size_t system_size,
@@ -1088,6 +1150,9 @@ read_toml_uniform_weeks_chandler_andersen_ff_generator(
         const std::vector<std::optional<std::string>>& group_vec,
         const bool use_periodic)
 {
+    check_keys_available(global_ff_data,
+            {"interaction", "potential", "ignore", "parameters", "table", "env"});
+
     const auto& params = toml::find<toml::array>(global_ff_data, "parameters");
     const auto& env = global_ff_data.contains("env") ? global_ff_data.at("env") : toml::value{};
 
@@ -1140,6 +1205,15 @@ read_toml_uniform_weeks_chandler_andersen_ff_generator(
             ignore_list, use_periodic, ignore_group_pairs, group_vec);
 }
 
+// DebyeHuckel input is like below
+// [[forcefields.global]]
+// interaction = "Pair"
+// potential   = "DebyeHuckel"
+// ignore.particles_within.bond = 3
+// parameters = [ # {{{
+//     {index =   2, charge = -0.6},
+//     # ...
+// ]
 const DebyeHuckelForceFieldGenerator
 read_toml_debye_huckel_ff_generator(
     const toml::value& global_ff_data, const std::size_t system_size,
@@ -1147,6 +1221,9 @@ read_toml_debye_huckel_ff_generator(
     const std::vector<std::optional<std::string>>& group_vec,
     const bool use_periodic)
 {
+    check_keys_available(global_ff_data,
+            {"interaction", "potential", "ignore", "cutoff", "parameters", "env"});
+
     using index_pairs_type = DebyeHuckelForceFieldGenerator::index_pairs_type;
 
     const double cutoff = toml::find_or(global_ff_data, "cutoff", 5.5);
@@ -1169,7 +1246,7 @@ read_toml_debye_huckel_ff_generator(
             throw std::runtime_error("[error] read_toml_debye_huckel_ff_generator : index "+std::to_string(index)+" exceeds the system's largest index "+std::to_string(topology.size()-1)+".");
         }
 
-        const double      charge = Utility::find_parameter<double>(param, env, "charge");
+        const double charge = Utility::find_parameter<double>(param, env, "charge");
         charge_vec[index] = charge;
     }
 
@@ -1191,12 +1268,26 @@ read_toml_debye_huckel_ff_generator(
             ignore_group_pairs, group_vec);
 }
 
+// iSoLFAttractive input is like below
+// [[forcefields.global]]
+// potential   = "iSoLFAttractive"
+// ignore.particles_within = {bond = 1, angle = 1}
+// env.popc_epsilon = 0.416
+// env.popc_omega   = 9.867
+// env.popc_sigma_T = 7.111
+// parameters = [
+//     {index =     2, sigma = "popc_sigma_T", epsilon = "popc_epsilon", omega = "popc_omega"},
+//     # ...
+// ]
 const iSoLFAttractiveForceFieldGenerator
 read_toml_isolf_attractive_ff_generator(
     const toml::value& global_ff_data, const std::size_t system_size, const Topology& topology,
     const std::vector<std::optional<std::string>>& group_vec,
     const bool use_periodic)
 {
+    check_keys_available(global_ff_data,
+            {"interaction", "potential", "ignore", "parameters", "env"});
+
     using index_pairs_type = iSoLFAttractiveForceFieldGenerator::index_pairs_type;
 
     const auto& params = toml::find<toml::array>(global_ff_data, "parameters");
@@ -1270,6 +1361,9 @@ read_toml_uniform_lennard_jones_attractive_ff_generator(
         const std::vector<std::optional<std::string>>& group_vec,
         const bool use_periodic)
 {
+    check_keys_available(global_ff_data,
+            {"interaction", "potential", "ignore", "table", "cutoff", "parameters", "env"});
+
     const auto& params = toml::find<toml::array>(global_ff_data, "parameters");
     const auto& env = global_ff_data.contains("env") ? global_ff_data.at("env") : toml::value{};
 
@@ -1333,6 +1427,9 @@ read_toml_3spn2_base_pair_ff_generator(
         const bool use_periodic)
 {
     using index_pairs_type = std::vector<std::pair<std::size_t, std::size_t>>;
+
+    check_keys_available(global_ff_data,
+            {"interaction", "potential", "ignore", "parameters", "env"});
 
     const std::string donor    = base_pair.first;
     const std::string acceptor = base_pair.second;
@@ -1459,6 +1556,9 @@ read_toml_3spn2_cross_stacking_ff_generator(
         const bool use_periodic)
 {
     using index_pairs_type = std::vector<std::pair<std::size_t, std::size_t>>;
+
+    check_keys_available(global_ff_data,
+            {"interaction", "potential", "ignore", "parameters", "env"});
 
     if (! ((bp_kind.first == "A" && bp_kind.second == "T" )||
            (bp_kind.first == "T" && bp_kind.second == "A" )||
@@ -1649,8 +1749,9 @@ read_toml_3spn2_cross_stacking_ff_generator(
 
 
 // [[forcefields.global]]
-// potential = "LennardJonesAttractive"
-// cutoff    = 5.0
+// interaction = "Pair"
+// potential   = "LennardJonesAttractive"
+// cutoff      = 5.0
 // parameters = [
 // {index = 1, offset = 10, epsilon = 1.0, sigma = 1.0},
 // ...
@@ -1663,6 +1764,8 @@ read_toml_lennard_jones_attractive_ff_generator(
 {
     using index_pairs_type = LennardJonesAttractiveForceFieldGenerator::index_pairs_type;
 
+    check_keys_available(global_ff_data,
+            {"interaction", "potential", "ignore", "cutoff", "parameters", "env"});
 
     const auto& params = toml::find<toml::array>(global_ff_data, "parameters");
     const auto& env =
@@ -1714,8 +1817,9 @@ read_toml_lennard_jones_attractive_ff_generator(
 
 
 // [[forcefields.global]]
-// potential = "LennardJonesRepulsive"
-// cutoff    = 5.0
+// interaction = "Pair"
+// potential   = "LennardJonesRepulsive"
+// cutoff      = 5.0
 // parameters = [
 // {index = 1, offset = 10, epsilon = 1.0, sigma = 1.0},
 // ...
@@ -1728,6 +1832,8 @@ read_toml_lennard_jones_repulsive_ff_generator(
 {
     using index_pairs_type = LennardJonesRepulsiveForceFieldGenerator::index_pairs_type;
 
+    check_keys_available(global_ff_data,
+            {"interaction", "potential", "ignore", "cutoff", "parameters", "env"});
 
     const auto& params = toml::find<toml::array>(global_ff_data, "parameters");
     const auto& env =
@@ -1777,13 +1883,6 @@ read_toml_lennard_jones_repulsive_ff_generator(
             ignore_group_pairs, group_vec);
 }
 
-// [[forcefields.global]]
-// potential = "CombinatorialGoContact"
-// cutoff    = 1.8
-// parameters = [
-// {indices_pair = [[1, 2, 3], [4, 5, 6]], v0 = 5.0, k = 1.0},
-// ...
-// ]
 CombinatorialGoContactForceFieldGenerator
 read_toml_combinatorial_go_contact_ff_generator(
         const double cutoff_ratio, const toml::value& contacts_info,
@@ -1797,6 +1896,7 @@ read_toml_combinatorial_go_contact_ff_generator(
         Utility::find_parameter<
             std::pair<std::vector<std::size_t>,
                       std::vector<std::size_t>>>(contacts_info, env, "indices_pair");
+
     const auto offset =
         Utility::find_parameter_or<std::size_t>(contacts_info, env, "offset", 0);
     const double k  =
@@ -1819,6 +1919,17 @@ read_toml_combinatorial_go_contact_ff_generator(
             ignore_list, use_periodic, ignore_group_pairs, group_vec);
 }
 
+// CombinatorialGocontact table is like below
+// [[forcefields.global]]
+// interaction = "CombinatorialGoContact"
+// potential   = "CombinatorialGoContact"
+// topology    = "contact"
+// cutoff      = 2.0
+// parameters = [
+//     {indices_pair = [[ 0, 1, 2], [ 3, 4]], k = 0.3384, v0 = 9.3485},
+//     # ...
+// ]
+// TODO: enable to add topology information
 std::vector<CombinatorialGoContactForceFieldGenerator>
 read_toml_combinatorial_go_contact_ff_generators(
         const toml::value& global_ff_data, const Topology& topology,
@@ -1827,6 +1938,9 @@ read_toml_combinatorial_go_contact_ff_generators(
 {
     using index_pairs_type =
         CombinatorialGoContactForceFieldGenerator::index_pairs_type;
+
+    check_keys_available(global_ff_data,
+            {"interaction", "potential", "ignore", "cutoff", "parameters", "env"});
 
     const auto& parameters = toml::find<toml::array>(global_ff_data, "parameters");
     std::cerr << "    Global       : CombinatorialGoContact (" << parameters.size()

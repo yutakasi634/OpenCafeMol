@@ -64,6 +64,7 @@ inline void expand_include(toml::value& v)
                 std::cerr << "    expanding file " << fname << std::endl;
                 merge_toml_tables(v, toml::parse(fname));
             }
+            v.as_table().erase("include");
         }
     }
     else if(v.is_array()) // handle an array of tables
@@ -137,6 +138,33 @@ void add_offset(std::array<std::size_t, N>& indices, const toml::value& offset)
     {
         for(auto& i : indices) {i += offset.as_integer();}
     }
+}
+
+// This check all the keys in a table are found in a list.
+//     If there is a key that is not found in the range, it warns about the
+// corresponding value will be ignored.
+//
+// Use it as the following.
+// ```cpp
+// check_keys_available(table, {"foo", "bar", "baz"});
+// ```
+inline bool check_keys_available(const toml::value& table,
+                                 std::initializer_list<std::string> list)
+{
+    bool all_available = true;
+    for(const auto& kv : table.as_table())
+    {
+        if(list.end() == std::find(list.begin(), list.end(), kv.first))
+        {
+            std::cerr << "\033[33m[warning]\033[m"
+                      << " unknown value \"" << kv.first << "\" found. this "
+                      << kv.second.type() << " will never be used."
+                      << std::endl;
+            all_available = false;
+        }
+    }
+
+    return all_available;
 }
 
 #endif // OPEN_AICG2_PLUS_INPUT_UTILITY_HPP
