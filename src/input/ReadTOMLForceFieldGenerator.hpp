@@ -27,6 +27,8 @@
 #include "src/forcefield/ThreeSPN2BasePairForceFieldGenerator.hpp"
 #include "src/forcefield/ThreeSPN2CrossStackingForceFieldGenerator.hpp"
 #include "src/forcefield/CombinatorialGoContactForceFieldGenerator.hpp"
+#include "src/forcefield/PullingForceFieldGenerator.hpp"
+#include "src/forcefield/PositionRestraintForceFieldGenerator.hpp"
 #include "src/forcefield/HarmonicCoMPullingForceFieldGenerator.hpp"
 
 // -----------------------------------------------------------------------------
@@ -35,7 +37,7 @@
 HarmonicBondForceFieldGenerator
 read_toml_harmonic_bond_ff_generator(
         const toml::value& local_ff_data, Topology& topology, const bool use_periodic)
-
+{
     check_keys_available(local_ff_data,
             {"interaction", "potential", "topology", "parameters", "env"});
 
@@ -1978,18 +1980,145 @@ read_toml_combinatorial_go_contact_ff_generators(
 
 // -----------------------------------------------------------------------------
 // read external force field
+
+// PullingForce input is like below
+// [[forcefields.external]]
+// interaction = "PullingForce"
+// parameters = [
+//     {index = 0, force = [1.0, 0.0, 0.0]},
+//     {index = 1, force = [0.0, 1.0, 0.0]},
+//     # ...
+// ]
+PullingForceFieldGenerator
+read_toml_pulling_ff_generator(
+        const toml::value& external_ff_data, const Topology& topology,
+        const bool use_periodic)
+{
+    using parameter_type = PullingForceFieldGenerator::parameter_type;
+
+    check_keys_available(external_ff_data, {"interaction", "parameters", "env"});
+
+    const auto& params = toml::find<toml::array>(external_ff_data, "parameters");
+    const auto& env =
+        external_ff_data.contains("env") ? external_ff_data.at("env") : toml::value{};
+
+    std::vector<parameter_type> idx_force_vec;
+    for(const auto& param : params)
+    {
+        std::size_t index =
+            Utility::find_parameter<std::size_t>(param, env, "index");
+        const auto offset =
+            Utility::find_parameter_or<toml::value>(
+                    param, env, "offset", toml::value(0));
+        add_offset(index, offset);
+        if(topology.size() <= index)
+        {
+            throw std::runtime_error("[error] read_toml_pulling_ff_generator : index " +
+                std::to_string(index) + " exceeds the system's largest index " +
+                std::to_string(topology.size()-1) + ".");
+        }
+        const std::array<double, 3> force_kcal_vec =
+            Utility::find_parameter<std::array<double, 3>>(param, env, "force"); // [kcal/(mol Å)]
+        std::array<double, 3> force_kj_vec;
+        for(std::size_t idx = 0; idx < 3; idx++)
+        {
+            force_kj_vec[idx] =
+                force_kcal_vec[idx] * OpenMM::KJPerKcal * OpenMM::AngstromsPerNm;
+        }
+        idx_force_vec.push_back({index, force_kj_vec});
+    }
+
+    std::cerr << "    External      : Pulling (" << params.size()
+              << " found)" << std::endl;
+
+    return PullingForceFieldGenerator(idx_force_vec, use_periodic);
+}
+
+// PositionRestraint input is like below
+// [[forcefields.external]]
+// interaction = "PositionRestraint"
+// potential   = "Harmonic"
+// parameters = [
+//     {index = 0, position = [0.0, 0.0, 0.0], k = 0.1, v0 = 10.0},
+//     # ...
+// ]
+PositionRestraintForceFieldGenerator
+read_toml_position_restraint_ff_generator(
+        const toml::value& external_ff_data, const Topology& topology)
+{
+    check_keys_available(external_ff_data,
+            {"interaction", "potential", "parameters", "env"});
+
+    const auto& params = toml::find<toml::array>(external_ff_data, "parameters");
+    const auto& env =
+        external_ff_data.contains("env") ? external_ff_data.at("env") : toml::value{};
+
+    std::vector<std::size_t>           indices;
+    std::vector<std::array<double, 3>> positions;
+    std::vector<double>                ks;
+    std::vector<double>                v0s;
+    for(const auto& param : params)
+    {
+        std::size_t index =
+            Utility::find_parameter<std::size_t>(param, env, "index");
+        const auto offset =
+            Utility::find_parameter_or<toml::value>(
+                    param, env, "offset", toml::value(0));
+        add_offset(index, offset);
+        if(topology.size() <= index)
+        {
+            throw std::runtime_error(
+                "[error] read_toml_position_restraint_ff_generator : index " +
+                std::to_string(index) + " exceeds the system's largest index " +
+                std::to_string(topology.size()-1) + ".");
+        }
+        std::array<double, 3> position =
+            Utility::find_parameter<std::array<double, 3>>(param, env, "position"); // [Å]
+        const double k =
+            Utility::find_parameter<double>(param, env, "k" ) * OpenMM::KJPerKcal *
+            OpenMM::AngstromsPerNm * OpenMM::AngstromsPerNm; // [kJ/(mol nm^2)]
+        const double v0 =
+            Utility::find_parameter<double>(param, env, "v0") * OpenMM::NmPerAngstrom; // [Nm]
+        for(std::size_t idx = 0; idx < 3; idx++)
+        {
+            position[idx] = position[idx] * OpenMM::NmPerAngstrom; // [Nm]
+        }
+
+        indices  .push_back(index);
+        positions.push_back(position);
+        ks       .push_back(k);
+        v0s      .push_back(v0);
+    }
+
+    std::cerr << "    External      : PositionRestraint (" << params.size()
+              << " found)" << std::endl;
+
+    return PositionRestraintForceFieldGenerator(indices, positions, ks, v0s);
+}
+
+// HarmonicCoMPulling input is like below
+// [[forcefields.external]]
+// interaction = "CoMPulingForce"
+// potential   = "Harmonic"
+// parameters = [
+//     {k = 10.0, v0 = 0.0, indices_pair = [[0, 1], [2, 3]]},
+//     # ...
+// ]
 HarmonicCoMPullingForceFieldGenerator
 read_toml_harmonic_com_pulling_ff_generator(
-        const toml::value& external_ff_param, const bool use_periodic,
+        const toml::value& external_ff_data, const bool use_periodic,
         const toml::value& env)
 {
+    check_keys_available(external_ff_data,
+            {"interaction", "potential", "parameters", "env"});
+
     std::vector<int> first_group_indices;
     std::vector<int> second_group_indices;
 
-    const double k  = Utility::find_parameter<double>(external_ff_param, env, "k");
-    const double v0 = Utility::find_parameter<double>(external_ff_param, env, "v0");
+    const double k  = Utility::find_parameter<double>(external_ff_data, env, "k");
+    const double v0 = Utility::find_parameter<double>(external_ff_data, env, "v0");
 
-    const auto& indices_pair = toml::find<toml::array>(external_ff_param, "indices_pair");
+    const auto& indices_pair = toml::find<toml::array>(external_ff_data, "indices_pair");
     for(const auto& idx : indices_pair.at(0).as_array())
     {
         first_group_indices.push_back(toml::get<std::size_t>(idx));

@@ -609,19 +609,46 @@ SystemGenerator read_toml_system(const toml::value& data)
 
         for(const auto& external_ff : externals)
         {
-            const std::string potential = toml::find<std::string>(external_ff, "potential");
-            if(potential == "Harmonic")
+            const std::string interaction =
+                toml::find<std::string>(external_ff, "interaction");
+            if(interaction == "CoMPullingForce")
             {
-                const auto& env =
-                    external_ff.contains("env") ? external_ff.at("env") : toml::value{};
-                const auto& params = toml::find<toml::array>(external_ff, "parameters");
-                for(const auto& param : params)
+                const std::string potential   =
+                    toml::find<std::string>(external_ff, "potential");
+                if(potential == "Harmonic")
                 {
-                    HarmonicCoMPullingForceFieldGenerator ff_gen =
-                        read_toml_harmonic_com_pulling_ff_generator(
-                                param, use_periodic, env);
+                    const auto& env =
+                        external_ff.contains("env") ? external_ff.at("env") : toml::value{};
+                    const auto& params = toml::find<toml::array>(external_ff, "parameters");
+                    for(const auto& param : params)
+                    {
+                        HarmonicCoMPullingForceFieldGenerator ff_gen =
+                            read_toml_harmonic_com_pulling_ff_generator(
+                                    param, use_periodic, env);
+                        system_gen.add_ff_generator(
+                                std::make_unique<HarmonicCoMPullingForceFieldGenerator>(
+                                    ff_gen));
+                    }
+                }
+            }
+            else if(interaction == "PullingForce")
+            {
+                PullingForceFieldGenerator ff_gen =
+                    read_toml_pulling_ff_generator(external_ff, topology, use_periodic);
+                system_gen.add_ff_generator(
+                    std::make_unique<PullingForceFieldGenerator>(ff_gen));
+            }
+            else if(interaction == "PositionRestraint")
+            {
+                const std::string potential =
+                    toml::find<std::string>(external_ff, "potential");
+                if(potential == "Harmonic")
+                {
+                    PositionRestraintForceFieldGenerator ff_gen =
+                        read_toml_position_restraint_ff_generator(external_ff, topology);
                     system_gen.add_ff_generator(
-                            std::make_unique<HarmonicCoMPullingForceFieldGenerator>(ff_gen));
+                            std::make_unique<PositionRestraintForceFieldGenerator>(
+                                ff_gen));
                 }
             }
         }
