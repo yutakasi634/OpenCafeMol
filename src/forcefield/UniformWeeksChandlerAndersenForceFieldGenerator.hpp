@@ -104,6 +104,7 @@ class UniformWeeksChandlerAndersenForceFieldGenerator final : public ForceFieldG
                 for(const auto& latter_name_set : latter_related_group_map)
                 {
                     const std::set<int>& second_group = latter_name_set.second;
+                    if(second_group.empty()) { continue; }
                     interaction_groups_.push_back({ former_others, second_group });
                 }
 
@@ -117,12 +118,12 @@ class UniformWeeksChandlerAndersenForceFieldGenerator final : public ForceFieldG
             {
                 const std::set<int>& first_group = former_name_set.second;
                 if(first_group.empty()) { continue; }
-                const std::string&   first_name  = former_name_set.first;
                 if(!latter_others.empty())
                 {
                     interaction_groups_.push_back({ first_group, latter_others });
                 }
 
+                const std::string& first_name = former_name_set.first;
                 for(const auto& latter_name_set : latter_related_group_map)
                 {
                     const std::string& second_name = latter_name_set.first;
