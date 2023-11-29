@@ -123,7 +123,9 @@ class LennardJonesAttractiveForceFieldGenerator final : public ForceFieldGenerat
     std::unique_ptr<OpenMM::Force> generate() const override
     {
         const std::string potential_formula = fmt::format(
-            "step(r-threthold) * epsilon * 4 * (sigma_r_12 - sigma_r_6);"
+            "epsilon *"
+            "    (step(r-threthold) * 4 * (sigma_r_12 - sigma_r_6) -"
+            "     step(threthold-r));"
             "sigma_r_12 = sigma_r_6^2;"
             "sigma_r_6  = sigma_r^6;"
             "sigma_r    = sigma/r;"
