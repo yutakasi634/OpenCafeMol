@@ -50,14 +50,16 @@ SystemGenerator read_toml_system(const toml::value& data)
         const auto upper_bound = toml::find<std::array<double, 3>>(boundary_shape, "upper");
         if(lower_bound[0] != 0.0 || lower_bound[1] != 0.0 || lower_bound[2] != 0.0)
         {
-            std::cerr << "[warning] Lower bound of periodic boundary box is not (0.0, 0.0, 0.0). "
+            std::cerr << "\033[33m[warning]\033[m"
+                      << " Lower bound of periodic boundary box is not (0.0, 0.0, 0.0). "
                          "OpenAICG2+ only support the case lower bound is origin, "
                          "so the simulation box will be moved to satisfy this condition. "
                          "In this case, specified lower bound is ("
                       << std::fixed << std::setprecision(2)
                       << std::setw(7) << lower_bound[0] << ", "
                       << std::setw(7) << lower_bound[1] << ", "
-                      << std::setw(7) << lower_bound[2] << ")" << std::endl;
+                      << std::setw(7) << lower_bound[2] << ")"
+                      << std::endl;
         }
 
         const double xlength = (upper_bound[0] - lower_bound[0]) * OpenMM::NmPerAngstrom;
@@ -355,8 +357,10 @@ SystemGenerator read_toml_system(const toml::value& data)
                                         group_vec, use_periodic);
                                 if(ff_gen.former_group_size() == 0 || ff_gen.latter_group_size() == 0)
                                 {
-                                    std::cerr << "        "
-                                        << "[warning] this force field generation will be skipped"
+                                    std::cerr
+                                        << "        "
+                                        << "\033[33m[warning]\033[m"
+                                        << " this force field generation will be skipped"
                                         << std::endl;
                                     continue;
                                 }
@@ -442,8 +446,10 @@ SystemGenerator read_toml_system(const toml::value& data)
                                         global_ff, system_size, sigma, epsilon, name_pair,
                                         topology, group_vec, use_periodic);
                                 if(ff_gen.former_group_size() == 0 ||ff_gen.latter_group_size() == 0)                                {
-                                    std::cerr << "        "
-                                        << "[warning] this force field generation will be skipped"
+                                    std::cerr
+                                        << "        "
+                                        << "\033[33m[warning]\033[m"
+                                        << " this force field generation will be skipped"
                                         << std::endl;
                                     continue;
                                 }

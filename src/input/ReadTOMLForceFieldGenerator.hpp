@@ -856,9 +856,10 @@ read_ignore_molecule_and_particles_within(const toml::value& ignore_table, const
     {
         if(ignore_molecule_flag)
         {
-            std::cerr <<
-                "[warning] ignore molecule \"Intra\" or \"Self\" was defined,"
-                "so this ignore particle within bond will be ignored." << std::endl;
+            std::cerr << "\033[33m[warning]\033[m"
+                      << " ignore molecule \"Intra\" or \"Self\" was defined,"
+                         "so this ignore particle within bond will be ignored."
+                      << std::endl;
         }
 
         const auto particle_within =
