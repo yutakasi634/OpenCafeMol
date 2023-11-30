@@ -43,7 +43,6 @@ inline void expand_include(toml::value& v)
     {
         for(auto& kv : v.as_table())
         {
-            if(kv.first == "include") {continue;}
             expand_include(kv.second);
         }
 
