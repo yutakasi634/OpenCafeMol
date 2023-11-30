@@ -62,13 +62,13 @@ class ThreeSPN2BasePairLocalForceFieldGenerator final : public ForceFieldGenerat
         ccbond_ff->addPerBondParameter(fmt::format("{}_alpha_BP", ffgen_id_));
         ccbond_ff->addPerBondParameter(fmt::format("{}_K_BP",     ffgen_id_));
 
-        for (std::size_t idx=0; idx<indices_vec_.size(); ++idx)
+        for(const auto& indices : indices_vec_)
         {
             const std::vector<int> particles = {
-                static_cast<int>(indices_vec_[idx][0]),
-                static_cast<int>(indices_vec_[idx][1]),
-                static_cast<int>(indices_vec_[idx][2]),
-                static_cast<int>(indices_vec_[idx][3]),
+                static_cast<int>(indices[0]),
+                static_cast<int>(indices[1]),
+                static_cast<int>(indices[2]),
+                static_cast<int>(indices[3]),
             };
 
             const std::string bp_kind = base_pair_.first + base_pair_.second;

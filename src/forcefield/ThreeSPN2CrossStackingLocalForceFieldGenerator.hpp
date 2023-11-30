@@ -83,13 +83,14 @@ class ThreeSPN2CrossStackingLocalForceFieldGenerator final : public ForceFieldGe
 
         for (std::size_t idx=0; idx<indices_vec_.size(); ++idx)
         {
+            const indices_type& indices = indices_vec_[idx];
             const std::vector<int> particles = {
-                static_cast<int>(indices_vec_[idx][0]),
-                static_cast<int>(indices_vec_[idx][1]),
-                static_cast<int>(indices_vec_[idx][2]),
-                static_cast<int>(indices_vec_[idx][3]),
-                static_cast<int>(indices_vec_[idx][4]),
-                static_cast<int>(indices_vec_[idx][5]),
+                static_cast<int>(indices[0]),
+                static_cast<int>(indices[1]),
+                static_cast<int>(indices[2]),
+                static_cast<int>(indices[3]),
+                static_cast<int>(indices[4]),
+                static_cast<int>(indices[5]),
             };
 
             const auto&       bpbc = base_kind_vec_[idx];
