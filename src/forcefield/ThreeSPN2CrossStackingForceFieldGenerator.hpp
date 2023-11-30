@@ -113,7 +113,7 @@ class ThreeSPN2CrossStackingForceFieldGenerator final : public ForceFieldGenerat
             const size_t a3_base_c = acceptor_indices_vec_.at(i).at(2);
 
             const auto& bpbc = base_kind_acceptors_vec_[i];
-
+                
             const std::vector<double> parameters = {
                 PotentialParameterType::epsilon_CS.at(bpbc),
                 PotentialParameterType::r0_CS     .at(bpbc),
@@ -196,12 +196,12 @@ struct ThreeSPN2CrossStackingPotentialParameter
     };
 
     inline static const std::map<std::string, double> epsilon_CS = { //[kJ/mol]
-        // sense strand
+        // sense strand ("XY5" X=B0, Y=Bc)
         {"AA5", 2.186}, {"AT5", 2.774}, {"AG5", 2.833}, {"AC5", 1.951},
         {"TA5", 2.774}, {"TT5", 2.186}, {"TG5", 2.539}, {"TC5", 2.980},
         {"GA5", 2.833}, {"GT5", 2.539}, {"GG5", 3.774}, {"GC5", 1.129},
         {"CA5", 1.951}, {"CT5", 2.980}, {"CG5", 1.129}, {"CC5", 4.802},
-        // anti-sense strand
+        // anti-sense strand ("XY5" X=B0, Y=Bc)
         {"AA3", 2.186}, {"AT3", 2.774}, {"AG3", 2.980}, {"AC3", 2.539},
         {"TA3", 2.774}, {"TT3", 2.186}, {"TG3", 1.951}, {"TC3", 2.833},
         {"GA3", 2.980}, {"GT3", 1.951}, {"GG3", 4.802}, {"GC3", 1.129},
@@ -209,7 +209,7 @@ struct ThreeSPN2CrossStackingPotentialParameter
     };
 
     inline static const std::map<std::string, double> r0_CS = { // [nm]
-        // sense strand
+        // sense strand ("XY5" X=B0, Y=Bc)
         {"AA5", 6.208 * OpenMM::NmPerAngstrom},
         {"AT5", 6.876 * OpenMM::NmPerAngstrom},
         {"AG5", 6.072 * OpenMM::NmPerAngstrom},
@@ -226,7 +226,7 @@ struct ThreeSPN2CrossStackingPotentialParameter
         {"CT5", 7.453 * OpenMM::NmPerAngstrom},
         {"CG5", 6.688 * OpenMM::NmPerAngstrom},
         {"CC5", 7.409 * OpenMM::NmPerAngstrom},
-        // anti-sense strand
+        // anti-sense strand ("XY5" X=B0, Y=Bc)
         {"AA3", 5.435 * OpenMM::NmPerAngstrom},
         {"AT3", 6.295 * OpenMM::NmPerAngstrom},
         {"AG3", 5.183 * OpenMM::NmPerAngstrom},
@@ -263,7 +263,7 @@ struct ThreeSPN2CrossStackingPotentialParameter
         {"CT5", 159.08 * OpenMM::RadiansPerDegree},
         {"CG5", 150.53 * OpenMM::RadiansPerDegree},
         {"CC5", 157.17 * OpenMM::RadiansPerDegree},
-        // anti-sense strand
+        // anti-sense strand ("XY5" X=B0, Y=Bc)
         {"AA3", 116.88 * OpenMM::RadiansPerDegree},
         {"AT3", 121.74 * OpenMM::RadiansPerDegree},
         {"AG3", 114.23 * OpenMM::RadiansPerDegree},
@@ -300,12 +300,12 @@ struct ThreeSPN2CCrossStackingPotentialParameter
     };
 
     inline static const std::map<std::string, double> epsilon_CS = { // [kJ/mol]
-        // sense strand
+        // sense strand ("XY5" X=B0, Y=Bc)
         {"AA5", 1.882},  {"AT5", 2.388},  {"AG5", 2.439},  {"AC5", 1.680},
         {"TA5", 2.388},  {"TT5", 1.882},  {"TG5", 2.187},  {"TC5", 2.566},
         {"GA5", 2.439},  {"GT5", 2.187},  {"GG5", 3.250},  {"GC5", 0.972},
         {"CA5", 1.680},  {"CT5", 2.566},  {"CG5", 0.972},  {"CC5", 4.135},
-        // anti-sense strand
+        // anti-sense strand ("XY5" X=B0, Y=Bc)
         {"AA3", 1.882},  {"AT3", 2.388},  {"AG3", 2.566},  {"AC3", 2.187},
         {"TA3", 2.388},  {"TT3", 1.882},  {"TG3", 1.680},  {"TC3", 2.439},
         {"GA3", 2.566},  {"GT3", 1.680},  {"GG3", 4.135},  {"GC3", 0.972},
@@ -313,7 +313,7 @@ struct ThreeSPN2CCrossStackingPotentialParameter
     };
 
     inline static const std::map<std::string, double> r0_CS = { // [nm]
-        // sense strand
+        // sense strand ("XY5" X=B0, Y=Bc)
         {"AA5", 6.420 * OpenMM::NmPerAngstrom},
         {"AT5", 6.770 * OpenMM::NmPerAngstrom},
         {"AG5", 6.270 * OpenMM::NmPerAngstrom},
@@ -330,7 +330,7 @@ struct ThreeSPN2CCrossStackingPotentialParameter
         {"CT5", 7.080 * OpenMM::NmPerAngstrom},
         {"CG5", 6.860 * OpenMM::NmPerAngstrom},
         {"CC5", 6.790 * OpenMM::NmPerAngstrom},
-        // anti-sense strand
+        // anti-sense strand ("XY5" X=B0, Y=Bc)
         {"AA3", 5.580 * OpenMM::NmPerAngstrom},
         {"AT3", 6.140 * OpenMM::NmPerAngstrom},
         {"AG3", 5.630 * OpenMM::NmPerAngstrom},
@@ -367,7 +367,7 @@ struct ThreeSPN2CCrossStackingPotentialParameter
         {"CT5", 157.72 * OpenMM::RadiansPerDegree},
         {"CG5", 151.65 * OpenMM::RadiansPerDegree},
         {"CC5", 154.49 * OpenMM::RadiansPerDegree},
-        // anti-sense strand
+        // anti-sense strand ("XY5" X=B0, Y=Bc)
         {"AA3", 116.34 * OpenMM::RadiansPerDegree},
         {"AT3", 119.61 * OpenMM::RadiansPerDegree},
         {"AG3", 115.19 * OpenMM::RadiansPerDegree},
