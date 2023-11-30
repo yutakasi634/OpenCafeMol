@@ -426,6 +426,24 @@ SystemGenerator read_toml_system(const toml::value& data)
                 {
                     std::vector<std::pair<std::string, std::string>> treated_pair;
                     const auto& table = toml::find(global_ff, "table");
+
+                    std::cerr << "    Global        : UniformWeeksChandlerAndersen"
+                              << std::endl;
+
+                    // ignore list generation
+                    using index_pairs_type =
+                        UniformWeeksChandlerAndersenForceFieldGenerator::index_pairs_type;
+                    index_pairs_type ignore_list;
+                    std::vector<std::pair<std::string, std::string>> ignore_group_pairs;
+                    if(global_ff.contains("ignore"))
+                    {
+                        const auto& ignore = toml::find(global_ff, "ignore");
+                        ignore_list        =
+                            read_ignore_molecule_and_particles_within(ignore, topology);
+                        ignore_group_pairs = read_ignore_group(ignore);
+                    }
+
+
                     for(const auto& [first_key, first_table] : table.as_table())
                     {
                         for(const auto& [second_key, second_table] : first_table.as_table())
@@ -449,7 +467,8 @@ SystemGenerator read_toml_system(const toml::value& data)
                                     OpenMM::KJPerKcal; // KJPermol
                                 UniformWeeksChandlerAndersenForceFieldGenerator ff_gen =
                                     read_toml_uniform_weeks_chandler_andersen_ff_generator(
-                                        global_ff, system_size, sigma, epsilon, name_pair, topology,
+                                        global_ff, system_size, sigma, epsilon, name_pair,
+                                        topology, ignore_list, ignore_group_pairs,
                                         group_vec, use_periodic);
                                 if(ff_gen.former_group_size() == 0 || ff_gen.latter_group_size() == 0)
                                 {
@@ -516,6 +535,23 @@ SystemGenerator read_toml_system(const toml::value& data)
                 {
                     std::vector<std::pair<std::string, std::string>> treated_pair;
                     const auto& table = toml::find(global_ff, "table");
+
+                    std::cerr << "    Global        : UniformLennardJonesAttractive"
+                              << std::endl;
+
+                    // ignore list generation
+                    using index_pairs_type =
+                        UniformLennardJonesAttractiveForceFieldGenerator::index_pairs_type;
+                    index_pairs_type ignore_list;
+                    std::vector<std::pair<std::string, std::string>> ignore_group_pairs;
+                    if(global_ff.contains("ignore"))
+                    {
+                        const auto& ignore = toml::find(global_ff, "ignore");
+                        ignore_list        =
+                            read_ignore_molecule_and_particles_within(ignore, topology);
+                        ignore_group_pairs = read_ignore_group(ignore);
+                    }
+
                     for(const auto& [first_key, first_table] : table.as_table())
                     {
                         for(const auto& [second_key, second_table] : first_table.as_table())
@@ -540,7 +576,8 @@ SystemGenerator read_toml_system(const toml::value& data)
                                 UniformLennardJonesAttractiveForceFieldGenerator ff_gen =
                                     read_toml_uniform_lennard_jones_attractive_ff_generator(
                                         global_ff, system_size, sigma, epsilon, name_pair,
-                                        topology, group_vec, use_periodic);
+                                        topology, ignore_list, ignore_group_pairs,
+                                        group_vec, use_periodic);
                                 if(ff_gen.former_group_size() == 0 ||ff_gen.latter_group_size() == 0)                                {
                                     std::cerr
                                         << "        "
