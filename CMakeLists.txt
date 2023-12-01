@@ -13,6 +13,15 @@ include_directories(${PROJECT_SOURCE_DIR})
 include(CheckCXXCompilerFlag)
 
 # =============================================================================
+# library flags
+set(OPEN_AICG2PLUS_LIBRARY_FLAGS "")
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 8.0 AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
+        set(OPEN_AICG2PLUS_LIBRARY_FLAGS "${OPEN_AICG2PLUS_LIBRARY_FLAGS} -lstdc++fs")
+    endif()
+endif()
+
+# =============================================================================
 # warning flags
 
 set(OPEN_AICG2PLUS_WARNING_FLAGS "")
