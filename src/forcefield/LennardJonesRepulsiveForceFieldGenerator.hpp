@@ -188,7 +188,7 @@ class LennardJonesRepulsiveForceFieldGenerator final : public ForceFieldGenerato
         // set cutoff
         const double cutoff_distance =
             (max_sigma + second_max_sigma) * 0.5 * cutoff_ratio_;
-        std::cerr << "    LennardJonesRepulsive        : cutoff distance is "
+        std::cerr << "    LennardJonesRepulsive         : cutoff distance is "
                   << cutoff_distance << " nm" << std::endl;
         ljrepu_ff->setCutoffDistance(cutoff_distance);
 

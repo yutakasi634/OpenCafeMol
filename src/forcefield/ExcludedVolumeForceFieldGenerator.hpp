@@ -174,7 +174,7 @@ class ExcludedVolumeForceFieldGenerator final: public ForceFieldGeneratorBase
         // set cutoff
         const double cutoff_distance   = (max_radius + second_max_radius)*cutoff_;
         const double cutoff_correction = std::pow(1.0 / cutoff_distance, 12);
-        std::cerr << "    ExcludedVolume               : cutoff disntace is "
+        std::cerr << "    ExcludedVolume                : cutoff disntace is "
                   << cutoff_distance << " nm" << std::endl;
         exv_ff->setCutoffDistance(cutoff_distance);
         exv_ff->addGlobalParameter(fmt::format("{}_cutoff_correction", ffgen_id_), cutoff_correction);

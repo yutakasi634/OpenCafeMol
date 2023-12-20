@@ -218,7 +218,7 @@ class iSoLFAttractiveForceFieldGenerator final : public ForceFieldGeneratorBase
         const double cutoff_distance =
             (max_sigma + second_max_sigma) * 0.5 * std::pow(2.0, 1.0/6.0) +
             (max_omega + second_max_omega) * 0.5;
-        std::cerr << "    iSoLFAttractive              : cutoff disntace is "
+        std::cerr << "    iSoLFAttractive               : cutoff disntace is "
                   << cutoff_distance << " nm" << std::endl;
         isa_ff->setCutoffDistance(cutoff_distance);
 
