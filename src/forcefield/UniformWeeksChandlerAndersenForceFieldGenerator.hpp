@@ -176,7 +176,7 @@ class UniformWeeksChandlerAndersenForceFieldGenerator final : public ForceFieldG
 
         // set cutoff
         const double cutoff_distance = sigma_ * std::pow(2.0, 1.0/6.0);
-        std::cerr << "    UniformWeeksChandlerAndersen : cutoff disntace is "
+        std::cerr << "    UniformWeeksChandlerAndersen  : cutoff disntace is "
                   << cutoff_distance << " nm" << std::endl;
         uwca_ff->setCutoffDistance(cutoff_distance);
 
