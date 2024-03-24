@@ -68,7 +68,7 @@ class ProgressBar
             if(residual < 60.0)
             {
                 std::snprintf(buf.data(), 6, "%5.1f", residual);
-                os << buf.data() << " seconds remaning  ";
+                os << buf.data() << " seconds remaining  ";
             }
             else if(residual < 60.0 * 60.0)
             {
