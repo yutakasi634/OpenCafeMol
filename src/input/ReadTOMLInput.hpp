@@ -75,7 +75,11 @@ SystemGenerator read_toml_system(const toml::value& data)
     {
         const auto& ensemble = toml::find(attr, "ensemble");
         const auto& type     = toml::find<std::string>(ensemble, "type");
-        if(type == "NPT")
+        if(type == "NVT")
+        {
+            std::cerr << "    ensemble type is NVT" << std::endl;
+        }
+        else if(type == "NPT")
         {
             std::cerr << "    ensemble type is NPT with anisotropic barostat" << std::endl;
             const auto& default_pressure =
