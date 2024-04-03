@@ -2245,6 +2245,7 @@ parameters = [
 ]
 
 [[forcefields.global]]
+interaction = "Pair"
 potential   = "iSoLFAttractive"
 ignore.particles_within = {bond = 1, angle = 1}
 ignore.group.inter = [
