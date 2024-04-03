@@ -846,6 +846,41 @@ std::vector<OpenMM::Vec3> read_toml_initial_conf(const toml::value& data)
     return initPosInNm;
 }
 
+std::vector<OpenMM::Vec3> read_toml_initial_vel(const toml::value& data)
+{
+    const auto& systems   = toml::find(data, "systems");
+    const auto& particles = toml::find<toml::array>(systems[0], "particles");
+
+    std::size_t system_size = particles.size();
+    std::vector<OpenMM::Vec3> initVelInNmPs(system_size); // [nm/ps]
+    if(particles.at(1).contains("vel") || particles.at(1).contains("velocity"))
+    {
+        for(std::size_t i=0; i<system_size; ++i)
+        {
+            // set velocity
+            const auto& p = particles.at(i);
+            if(p.contains("vel") || p.contains("velocity"))
+            {
+                const auto vec =
+                    toml::get<std::array<double, 3>>(
+                            Utility::find_either(p, "vel", "velocity"));
+                initVelInNmPs[i] =
+                    OpenMM::Vec3(vec[0]*OpenMM::NmPerAngstrom/Constant::cafetime,
+                                 vec[1]*OpenMM::NmPerAngstrom/Constant::cafetime,
+                                 vec[2]*OpenMM::NmPerAngstrom/Constant::cafetime);
+            }
+            else
+            {
+                throw std::runtime_error(
+                        "[error] All particle need to have velocity,"
+                        " because first particle in system has velocity.");
+            }
+        }
+    }
+
+    return initVelInNmPs;
+}
+
 Simulator read_toml_input(const std::string& toml_file_name)
 {
     std::size_t file_path_len  = toml_file_name.rfind("/")+1;
@@ -898,7 +933,8 @@ Simulator read_toml_input(const std::string& toml_file_name)
     const std::vector<OpenMM::Vec3> initial_position_in_nm(read_toml_initial_conf(data));
     SystemGenerator system_gen = read_toml_system(data);
 
-    const auto integrator_gen = read_toml_integrator_gen(data);
+    std::unique_ptr<IntegratorGeneratorBase> integrator_gen_ptr =
+        read_toml_integrator_gen(data);
 
     // construct observers
     const bool use_periodic =
@@ -975,10 +1011,25 @@ Simulator read_toml_input(const std::string& toml_file_name)
     }
 
     OpenMM::Platform& platform = OpenMM::Platform::getPlatformByName(platform_name);
+    Simulator simulator =
+        Simulator(system_gen, std::move(integrator_gen_ptr),
+                  platform, platform_properties,
+                  initial_position_in_nm, total_step, save_step,
+                  observers, energy_minimization, dump_progress_bar);
 
-    return Simulator(system_gen, *integrator_gen, platform, platform_properties,
-               initial_position_in_nm, total_step, save_step,
-               observers, energy_minimization, dump_progress_bar);
+    const auto& particles = toml::find<toml::array>(systems[0], "particles");
+    if(particles.at(1).contains("vel") || particles.at(1).contains("velocity"))
+    {
+        const std::vector<OpenMM::Vec3>
+            initial_vel_in_nmps(read_toml_initial_vel(data));
+        simulator.set_velocity(initial_vel_in_nmps);
+    }
+    else
+    {
+        simulator.set_velocity();
+    }
+
+    return simulator;
 }
 
 #endif // OPEN_AICG2_PLUS_READ_TOML_INPUT_HPP

@@ -12,6 +12,7 @@ class IntegratorGeneratorBase
 
     virtual std::unique_ptr<OpenMM::Integrator> generate() const = 0;
     virtual std::string dump_info() const = 0;
+    virtual double temperature() const = 0;
 };
 
 class LangevinIntegratorGenerator final: public IntegratorGeneratorBase
@@ -62,6 +63,8 @@ class LangevinIntegratorGenerator final: public IntegratorGeneratorBase
         }
         return oss.str();
     }
+
+    double temperature() const override { return temperature_; }
 
   private:
 

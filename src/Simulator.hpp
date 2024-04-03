@@ -10,14 +10,16 @@ class Simulator
 {
   public:
     Simulator(
-        const SystemGenerator& system_gen, const IntegratorGeneratorBase& integrator_gen,
+        const SystemGenerator& system_gen,
+        std::unique_ptr<IntegratorGeneratorBase>&& integrator_gen_ptr,
         OpenMM::Platform& platform,
         const std::map<std::string, std::string>& platform_properties,
         const std::vector<OpenMM::Vec3>& initial_position,
         const std::size_t total_step, const std::size_t save_step,
         std::vector<std::unique_ptr<ObserverBase>>& observers,
         bool energy_minimization = false, bool output_progress = true)
-        : Simulator(system_gen, integrator_gen, platform, platform_properties,
+        : Simulator(system_gen, std::move(integrator_gen_ptr),
+                    platform, platform_properties,
                     total_step, save_step, observers,
                     energy_minimization, output_progress)
     {
@@ -25,13 +27,16 @@ class Simulator
     }
 
     Simulator(
-        const SystemGenerator& system_gen, const IntegratorGeneratorBase& integrator_gen,
+        const SystemGenerator& system_gen,
+        std::unique_ptr<IntegratorGeneratorBase>&& integrator_gen_ptr,
         OpenMM::Platform& platform,
         const std::map<std::string, std::string>& platform_properties,
         const std::size_t total_step, const std::size_t save_step,
         std::vector<std::unique_ptr<ObserverBase>>& observers,
         bool energy_minimization = false, bool output_progress = true)
-        : system_ptr_(system_gen.generate().release()), integrator_ptr_(integrator_gen.generate()),
+        : system_ptr_(system_gen.generate().release()),
+          integrator_gen_ptr_(std::move(integrator_gen_ptr)),
+          integrator_ptr_(integrator_gen_ptr_->generate().release()),
           context_(*system_ptr_, *integrator_ptr_, platform, platform_properties),
           total_step_(total_step), save_step_(save_step),
           energy_minimization_(energy_minimization), output_progress_(output_progress),
@@ -41,7 +46,7 @@ class Simulator
         std::cerr << "    total step : " << total_step_ << " step" << std::endl;
         std::cerr << "    save step  : " << save_step_  << " step" << std::endl;
         std::cerr << "integrator information" << std::endl;
-        std::cerr << integrator_gen.dump_info();
+        std::cerr << integrator_gen_ptr_->dump_info();
 
         std::cerr << "initializing observers..." << std::endl;
         for(auto& observer : observers)
@@ -60,6 +65,16 @@ class Simulator
             std::cerr << "energy minimization in progress..." << std::endl;
             OpenMM::LocalEnergyMinimizer::minimize(context_);
         }
+    }
+
+    void set_velocity()
+    {
+        context_.setVelocitiesToTemperature(integrator_gen_ptr_->temperature());
+    }
+
+    void set_velocity(const std::vector<OpenMM::Vec3>& initial_velocity)
+    {
+        context_.setVelocities(initial_velocity);
     }
 
     void run()
@@ -96,6 +111,7 @@ class Simulator
 
   private:
     std::unique_ptr<OpenMM::System>            system_ptr_;
+    std::unique_ptr<IntegratorGeneratorBase>   integrator_gen_ptr_;
     std::unique_ptr<OpenMM::Integrator>        integrator_ptr_;
     OpenMM::Context                            context_;
     std::size_t                                total_step_;

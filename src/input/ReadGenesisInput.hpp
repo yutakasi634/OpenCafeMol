@@ -437,7 +437,8 @@ Simulator make_simulator_from_genesis_inputs(
 
     // read [ENSEMBLE] section
     const std::map<std::string, std::string> ensemble_section = inpfile_data.at("ENSEMBLE");
-    const auto integrator_gen = read_genesis_integrator_gen(dynamics_section, ensemble_section);
+    auto integrator_gen_ptr =
+        read_genesis_integrator_gen(dynamics_section, ensemble_section);
 
     // construct observers
     std::vector<std::unique_ptr<ObserverBase>> observers;
@@ -487,7 +488,8 @@ Simulator make_simulator_from_genesis_inputs(
 
     OpenMM::Platform& platform = OpenMM::Platform::getPlatformByName(platform_name);
 
-    return Simulator(system_gen, *integrator_gen, platform, platform_properties,
+    return Simulator(system_gen, std::move(integrator_gen_ptr),
+                     platform, platform_properties,
                      initial_position_in_nm, nsteps, crdout_period, observers);
 }
 
