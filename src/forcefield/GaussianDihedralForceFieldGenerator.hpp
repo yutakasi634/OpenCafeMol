@@ -25,7 +25,7 @@ class GaussianDihedralForceFieldGenerator final : public ForceFieldGeneratorBase
              system_size == sigmas.size()))
         {
             std::ostringstream oss;
-            oss << "[error] GoContactForceFieldGenerator : "
+            oss << "[error] GaussianDihedralForceFieldGenerator : "
                    "parameter number of "
                    "indices_vec (" << indices_vec.size() << "), "
                    "k ("           << ks.size()          << "), "
