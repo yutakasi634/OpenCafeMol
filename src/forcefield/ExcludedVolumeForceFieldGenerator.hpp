@@ -155,7 +155,7 @@ class ExcludedVolumeForceFieldGenerator final: public ForceFieldGeneratorBase
         }
 
         // if interaction_groups size is 0, no interaction group will be added,
-        // so all the particle inthe system will be considerd as participant
+        // so all the particle in the system will be considerd as participant
         for(const auto& group_pair : interaction_groups_)
         {
             exv_ff->addInteractionGroup(group_pair.first, group_pair.second);
