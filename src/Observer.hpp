@@ -94,35 +94,55 @@ class DCDObserver final : public ObserverBase
   public:
     DCDObserver(const std::string& file_prefix, const std::size_t total_step,
         const std::size_t save_interval, const float delta_t, const bool use_periodic)
-        : dcd_filename_(file_prefix+".dcd"), total_step_(total_step), delta_t_(delta_t),
+        : pos_filename_(file_prefix+"_position.dcd"),
+          vel_filename_(file_prefix+"_velocity.dcd"),
+          total_step_(total_step), delta_t_(delta_t),
           save_interval_(save_interval), use_periodic_(use_periodic)
     {
-        Utility::clear_file(dcd_filename_);
-        std::cerr << "    output trajectory file    : " << dcd_filename_ << std::endl;
+        Utility::clear_file(pos_filename_);
+        std::cerr << "    output trajectory file    : " << pos_filename_ << std::endl;
+        Utility::clear_file(vel_filename_);
+        std::cerr << "    output velocity file      : " << vel_filename_ << std::endl;
     }
 
     void initialize(const std::unique_ptr<OpenMM::System>& system_ptr) override
     {
-        std::ofstream ofs(dcd_filename_, std::ios::binary | std::ios::app);
-        write_dcd_header(ofs, system_ptr);
-        ofs.close();
+        // position file
+        std::ofstream pos_ofs(pos_filename_, std::ios::binary | std::ios::app);
+        write_dcd_header(pos_ofs, system_ptr);
+        pos_ofs.close();
+
+        // velocity file
+        std::ofstream vel_ofs(vel_filename_, std::ios::binary | std::ios::app);
+        write_dcd_header(vel_ofs, system_ptr);
+        vel_ofs.close();
 
         // buffer to convert dcd coordinate format
         const std::size_t num_of_particles(system_ptr->getNumParticles());
-        buffer_x_.resize(num_of_particles);
-        buffer_y_.resize(num_of_particles);
-        buffer_z_.resize(num_of_particles);
+        buffer_pos_x_.resize(num_of_particles);
+        buffer_pos_y_.resize(num_of_particles);
+        buffer_pos_z_.resize(num_of_particles);
+        buffer_vel_x_.resize(num_of_particles);
+        buffer_vel_y_.resize(num_of_particles);
+        buffer_vel_z_.resize(num_of_particles);
+
         return;
     }
 
     void output(const std::size_t step, const OpenMM::Context& context) override
     {
         // output position
-        std::ofstream ofs(dcd_filename_, std::ios::binary | std::ios::app);
-        OpenMM::State pos = context.getState(OpenMM::State::Positions,
-                                             use_periodic_);
-        write_dcd_frame(ofs, pos);
-        ofs.close();
+        std::ofstream pos_ofs(pos_filename_, std::ios::binary | std::ios::app);
+        OpenMM::State pos = context.getState(OpenMM::State::Positions, use_periodic_);
+        write_dcd_frame(pos_ofs, pos);
+        pos_ofs.close();
+
+        // output velocity
+        std::ofstream vel_ofs(vel_filename_, std::ios::binary | std::ios::app);
+        OpenMM::State vel = context.getState(OpenMM::State::Velocities, use_periodic_);
+        write_dcd_velocity(vel_ofs, vel);
+        vel_ofs.close();
+
         return;
     }
 
@@ -130,14 +150,18 @@ class DCDObserver final : public ObserverBase
     std::string name() const { return "DCDObserver"; }
 
   private:
-    std::string        dcd_filename_;
+    std::string        pos_filename_;
+    std::string        vel_filename_;
     std::size_t        total_step_;
     float              delta_t_;
     std::size_t        save_interval_;
     bool               use_periodic_;
-    std::vector<float> buffer_x_;
-    std::vector<float> buffer_y_;
-    std::vector<float> buffer_z_;
+    std::vector<float> buffer_pos_x_;
+    std::vector<float> buffer_pos_y_;
+    std::vector<float> buffer_pos_z_;
+    std::vector<float> buffer_vel_x_;
+    std::vector<float> buffer_vel_y_;
+    std::vector<float> buffer_vel_z_;
 
   private:
     void write_dcd_header(
@@ -191,7 +215,7 @@ class DCDObserver final : public ObserverBase
             const std::int32_t number_of_lines(1);
             Utility::write_as_bytes(ofs, number_of_lines);
 
-            const char comment[80] = "OpenAICG2+ -- written by Yutaka Murata 2022";
+            const char comment[80] = "OpenMoCa -- written by Yutaka Murata 2022";
 
             ofs.write(comment, 80);
 
@@ -242,9 +266,9 @@ class DCDObserver final : public ObserverBase
         // Reference atomic position in the OpenMM State.
         const std::vector<OpenMM::Vec3>& pos_in_nm = state.getPositions();
 
-        assert(this->buffer_x_.size() == pos_in_nm.size());
-        assert(this->buffer_y_.size() == pos_in_nm.size());
-        assert(this->buffer_z_.size() == pos_in_nm.size());
+        assert(this->buffer_pos_x_.size() == pos_in_nm.size());
+        assert(this->buffer_pos_y_.size() == pos_in_nm.size());
+        assert(this->buffer_pos_z_.size() == pos_in_nm.size());
 
         // write periodic box information
         if(use_periodic_) { write_unitcell(ofs, state); }
@@ -253,26 +277,26 @@ class DCDObserver final : public ObserverBase
         {
             for(std::size_t idx=0; idx<pos_in_nm.size(); ++idx)
             {
-                this->buffer_x_[idx] = static_cast<float>(pos_in_nm[idx][0]*OpenMM::AngstromsPerNm);
-                this->buffer_y_[idx] = static_cast<float>(pos_in_nm[idx][1]*OpenMM::AngstromsPerNm);
-                this->buffer_z_[idx] = static_cast<float>(pos_in_nm[idx][2]*OpenMM::AngstromsPerNm);
+                this->buffer_pos_x_[idx] = static_cast<float>(pos_in_nm[idx][0]*OpenMM::AngstromsPerNm);
+                this->buffer_pos_y_[idx] = static_cast<float>(pos_in_nm[idx][1]*OpenMM::AngstromsPerNm);
+                this->buffer_pos_z_[idx] = static_cast<float>(pos_in_nm[idx][2]*OpenMM::AngstromsPerNm);
             }
             const std::int32_t block_size(sizeof(float) * pos_in_nm.size());
             {
                 Utility::write_as_bytes(ofs, block_size);
-                ofs.write(reinterpret_cast<const char*>(this->buffer_x_.data()),
+                ofs.write(reinterpret_cast<const char*>(this->buffer_pos_x_.data()),
                           block_size);
                 Utility::write_as_bytes(ofs, block_size);
             }
             {
                 Utility::write_as_bytes(ofs, block_size);
-                ofs.write(reinterpret_cast<const char*>(this->buffer_y_.data()),
+                ofs.write(reinterpret_cast<const char*>(this->buffer_pos_y_.data()),
                           block_size);
                 Utility::write_as_bytes(ofs, block_size);
             }
             {
                 Utility::write_as_bytes(ofs, block_size);
-                ofs.write(reinterpret_cast<const char*>(this->buffer_z_.data()),
+                ofs.write(reinterpret_cast<const char*>(this->buffer_pos_z_.data()),
                           block_size);
                 Utility::write_as_bytes(ofs, block_size);
             }
@@ -280,6 +304,45 @@ class DCDObserver final : public ObserverBase
         return;
     }
 
+    void write_dcd_velocity(std::ofstream& ofs, const OpenMM::State& state)
+    {
+        // Reference atomic velocity in the OpenMM State.
+        const std::vector<OpenMM::Vec3>& vel_in_nmps = state.getVelocities();
+
+        assert(this->buffer_vel_x_.size() == vel_in_nmps.size());
+        assert(this->buffer_vel_y_.size() == vel_in_nmps.size());
+        assert(this->buffer_vel_z_.size() == vel_in_nmps.size());
+
+        // write velocity
+        {
+            for(std::size_t idx=0; idx<vel_in_nmps.size(); ++idx)
+            {
+                this->buffer_vel_x_[idx] = static_cast<float>(vel_in_nmps[idx][0]*OpenMM::AngstromsPerNm*Constant::cafetime);
+                this->buffer_vel_y_[idx] = static_cast<float>(vel_in_nmps[idx][1]*OpenMM::AngstromsPerNm*Constant::cafetime);
+                this->buffer_vel_z_[idx] = static_cast<float>(vel_in_nmps[idx][2]*OpenMM::AngstromsPerNm*Constant::cafetime);
+            }
+            const std::int32_t block_size(sizeof(float) * vel_in_nmps.size());
+            {
+                Utility::write_as_bytes(ofs, block_size);
+                ofs.write(reinterpret_cast<const char*>(this->buffer_vel_x_.data()),
+                          block_size);
+                Utility::write_as_bytes(ofs, block_size);
+            }
+            {
+                Utility::write_as_bytes(ofs, block_size);
+                ofs.write(reinterpret_cast<const char*>(this->buffer_vel_y_.data()),
+                          block_size);
+                Utility::write_as_bytes(ofs, block_size);
+            }
+            {
+                Utility::write_as_bytes(ofs, block_size);
+                ofs.write(reinterpret_cast<const char*>(this->buffer_vel_z_.data()),
+                          block_size);
+                Utility::write_as_bytes(ofs, block_size);
+            }
+        }
+        return;
+    }
 };
 
 class EnergyObserver final : public ObserverBase
