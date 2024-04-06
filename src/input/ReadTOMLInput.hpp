@@ -420,7 +420,7 @@ SystemGenerator read_toml_system(const toml::value& data)
             {
                 ThreeSPN2ExcludedVolumeForceFieldGenerator ff_gen =
                     read_toml_3spn2_excluded_volume_ff_generator(
-                        global_ff, system_size, topology, use_periodic);
+                        global_ff, system_size, topology, group_vec, use_periodic);
                 system_gen.add_ff_generator(
                         std::make_unique<ThreeSPN2ExcludedVolumeForceFieldGenerator>(ff_gen));
             }
