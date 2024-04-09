@@ -32531,7 +32531,7 @@ parameters = [
 interaction = "Pair"
 potential   = "LennardJonesRepulsive"
 ignore.particles_within.bond = 1
-cutoff    = 5.0
+cutoff    = 6.19
 parameters = [
 {index =     0, epsilon = 0.20000, sigma = 6.18},
 {index =     1, epsilon = 0.20000, sigma = 5.04},
@@ -48839,7 +48839,7 @@ parameters = [
 interaction = "Pair"
 potential   = "LennardJonesAttractive"
 ignore.particles_within.bond = 1
-cutoff      = 5.0
+cutoff      = 6.19
 parameters = [
 {index =     0, epsilon = 0.14918, sigma = 6.18},
 {index =     1, epsilon = 0.00022, sigma = 5.04},
