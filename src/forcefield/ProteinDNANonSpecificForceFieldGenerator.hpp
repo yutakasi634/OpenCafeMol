@@ -85,7 +85,7 @@ class ProteinDNANonSpecificForceFieldGenerator final : public ForceFieldGenerato
             "K         = pi/(2 * {id}_delta);"
             "phi       = angle(p2, p4, p5);"
             "theta     = acos(cost1lim);"           // angle between vecots CA_N->CA_C and CA->P
-            "cost1lim  = min(max(cost1, -1), 1);"
+            "cost1lim  = min(max(cost1, -0.99999), 0.99999);"
             "cost1     = sin(t1)*sin(t2)*cos(phi1) - cos(t1)*cos(t2);"
             "t1        = angle(p3, p1, p4);"
             "t2        = angle(p1, p4, p2);"
@@ -119,8 +119,6 @@ class ProteinDNANonSpecificForceFieldGenerator final : public ForceFieldGenerato
                     static_cast<int>(idxs_dna[1]), // Sugar3 (DNA)
                 };
 
-                std::cout << "KJPerKcal = " << OpenMM::KJPerKcal << std::endl;
-                std::cout << "KcalPerKJ = " << OpenMM::KcalPerKJ << std::endl;
                 const std::vector<double> parameters = {
                     sigma_,
                     delta_,
