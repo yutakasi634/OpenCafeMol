@@ -69,7 +69,7 @@ class ProteinDNANonSpecificForceFieldGenerator final : public ForceFieldGenerato
         */
         
         std::string potential_formula = fmt::format(
-            "- {id}_k * kT * kJ2kcal * f_r * g_theta * g_phi;"
+            "- {id}_k * kT * kcal2kJ * f_r * g_theta * g_phi;"
             "f_r       = exp(-dr^2/ (2 * {id}_sigma * {id}_sigma));"
             "g_theta   = max(g1*rect0t, rect1t);"
             "g_phi     = max(g2*rect0p, rect1p);"
@@ -90,7 +90,7 @@ class ProteinDNANonSpecificForceFieldGenerator final : public ForceFieldGenerato
             "t1        = angle(p3, p1, p4);"
             "t2        = angle(p1, p4, p2);"
             "phi1      = dihedral(p3, p1, p4, p2);" // p3->p1 (vector CA_N -> CA_C), p2->p4 (vector CA->P)
-            "kJ2kcal   = 4.184;"
+            "kcal2kJ   = 4.184;"
             "kT        = 0.593;"
             "pi        = 3.1415926535897932385;",
             fmt::arg("id", ffgen_id_));
