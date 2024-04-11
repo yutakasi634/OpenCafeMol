@@ -176,7 +176,7 @@ class ThreeSPN2ExcludedVolumeForceFieldGenerator final : public ForceFieldGenera
 
         // set cutoff
         const double cutoff_distance   = (max_radius + second_max_radius)*cutoff_;
-        std::cerr << "   ThreeSPN2ExcludedVolume : cutoff disntace is "
+        std::cerr << "    ThreeSPN2ExcludedVolume       : cutoff disntace is "
                   << cutoff_distance << " nm" << std::endl;
         exv_ff->setCutoffDistance(cutoff_distance);
 
