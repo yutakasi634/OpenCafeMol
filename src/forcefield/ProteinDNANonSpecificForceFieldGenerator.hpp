@@ -21,13 +21,13 @@ class ProteinDNANonSpecificForceFieldGenerator final : public ForceFieldGenerato
     ProteinDNANonSpecificForceFieldGenerator(
         const std::vector<indices_dna_type>& indices_dna,
         const std::vector<indices_protein_type>& indices_protein,
-        const double sigma, const double delta,
+        const double sigma, const double delta, const double cutoff_ratio,
         const std::vector<double> ks, const std::vector<double> r0s,
         const std::vector<double> theta0s, const std::vector<double> phi0s,
         const bool use_periodic)
         : indices_dna_(indices_dna), indices_protein_(indices_protein),
-          sigma_(sigma), delta_(delta), ks_(ks), r0s_(r0s),
-          theta0s_(theta0s), phi0s_(phi0s),
+          sigma_(sigma), delta_(delta), cutoff_ratio_(cutoff_ratio),
+          ks_(ks), r0s_(r0s), theta0s_(theta0s), phi0s_(phi0s),
           use_periodic_(use_periodic),
           ffgen_id_(fmt::format("PDNS{}", ffid.gen()))
     {
@@ -69,7 +69,7 @@ class ProteinDNANonSpecificForceFieldGenerator final : public ForceFieldGenerato
         */
         
         std::string potential_formula = fmt::format(
-            "- {id}_k * kT * kcal2kJ * f_r * g_theta * g_phi;"
+            "- {id}_k * f_r * g_theta * g_phi;"
             "f_r       = exp(-dr^2/ (2 * {id}_sigma * {id}_sigma));"
             "g_theta   = max(g1*rect0t, rect1t);"
             "g_phi     = max(g2*rect0p, rect1p);"
@@ -79,59 +79,76 @@ class ProteinDNANonSpecificForceFieldGenerator final : public ForceFieldGenerato
             "rect1p    = step(pi/2 + dphi)   * step(pi/2 - dphi);"    // 1 when -pi/2 < dt < pi/2, else 0
             "g1        = 1 - cos(dtheta)^2;"
             "g2        = 1 - cos(dphi)^2;"
-            "dr        = distance(p2, p4) - {id}_r0;"
+            "dr        = distance(d2, a1) - {id}_r0;"
             "dtheta    = K * (theta - {id}_theta0);"
             "dphi      = K * (phi   - {id}_phi0);"
             "K         = pi/(2 * {id}_delta);"
-            "phi       = angle(p2, p4, p5);"
-            "theta     = acos(cost1lim);"           // angle between vecots CA_N->CA_C and CA->P
-            "cost1lim  = min(max(cost1, -0.99999), 0.99999);"
+            "phi       = angle(d2, a1, a2);"
+            "theta     = acos(cost1lim);"// angle between vecots CA_N->CA_C and CA->P
+            "cost1lim  = min(max(cost1, -0.99999), 0.99999);" // clliping to avoid the acos singularity due to cost1 taking values of -1 or 1.
             "cost1     = sin(t1)*sin(t2)*cos(phi1) - cos(t1)*cos(t2);"
-            "t1        = angle(p3, p1, p4);"
-            "t2        = angle(p1, p4, p2);"
-            "phi1      = dihedral(p3, p1, p4, p2);" // p3->p1 (vector CA_N -> CA_C), p2->p4 (vector CA->P)
-            "kcal2kJ   = 4.184;"
-            "kT        = 0.593;"
+            "t1        = angle(d1, d3, a1);"
+            "t2        = angle(d3, a1, d2);"
+            "phi1      = dihedral(d1, d3, a1, d2);" // d1->d3 (vector CA_N -> CA_C), d2->a1 (vector CA->P)
             "pi        = 3.1415926535897932385;",
             fmt::arg("id", ffgen_id_));
 
-        auto ccbond_ff = std::make_unique<OpenMM::CustomCompoundBondForce>(5, potential_formula);
+        auto chbond_ff = std::make_unique<OpenMM::CustomHbondForce>(potential_formula);
 
-        ccbond_ff->setUsesPeriodicBoundaryConditions(use_periodic_);
-        ccbond_ff->addPerBondParameter(fmt::format("{}_sigma",  ffgen_id_));
-        ccbond_ff->addPerBondParameter(fmt::format("{}_delta",  ffgen_id_));
-        ccbond_ff->addPerBondParameter(fmt::format("{}_k",      ffgen_id_));
-        ccbond_ff->addPerBondParameter(fmt::format("{}_r0",     ffgen_id_));
-        ccbond_ff->addPerBondParameter(fmt::format("{}_theta0", ffgen_id_));
-        ccbond_ff->addPerBondParameter(fmt::format("{}_phi0",   ffgen_id_));
+        chbond_ff->addPerDonorParameter(fmt::format("{}_sigma",  ffgen_id_));
+        chbond_ff->addPerDonorParameter(fmt::format("{}_delta",  ffgen_id_));
+        chbond_ff->addPerDonorParameter(fmt::format("{}_k",      ffgen_id_));
+        chbond_ff->addPerDonorParameter(fmt::format("{}_r0",     ffgen_id_));
+        chbond_ff->addPerDonorParameter(fmt::format("{}_theta0", ffgen_id_));
+        chbond_ff->addPerDonorParameter(fmt::format("{}_phi0",   ffgen_id_));
 
-        for (const auto& idxs_pro: indices_protein_)
+        for (const auto& donor_particles: indices_protein_)
         {
-            const size_t ipro = &idxs_pro - &indices_protein_[0];
-            
-            for(const auto& idxs_dna: indices_dna_)
-            {
-                const std::vector<int> particles = {
-                    static_cast<int>(idxs_pro[2]), // CA_C   (Protein)
-                    static_cast<int>(idxs_pro[0]), // CA     (Protein)
-                    static_cast<int>(idxs_pro[1]), // CA_N   (Protein)
-                    static_cast<int>(idxs_dna[0]), // Phos   (DNA)
-                    static_cast<int>(idxs_dna[1]), // Sugar3 (DNA)
-                };
+            const size_t idx = &donor_particles - &indices_protein_[0];
 
-                const std::vector<double> parameters = {
-                    sigma_,
-                    delta_,
-                    ks_[ipro],
-                    r0s_[ipro],
-                    theta0s_[ipro],
-                    phi0s_[ipro],
-                };
-                ccbond_ff->addBond(particles, parameters);
-            }
+            const size_t d1_calpha_n = donor_particles.at(1);
+            const size_t d2_calpha   = donor_particles.at(0);
+            const size_t d3_calpha_c = donor_particles.at(2);
+
+            const std::vector<double> parameters = {
+                sigma_,
+                delta_,
+                ks_[idx],
+                r0s_[idx],
+                theta0s_[idx],
+                phi0s_[idx],
+            };
+            chbond_ff->addDonor(d1_calpha_n, d2_calpha, d3_calpha_c, parameters);
         }
 
-        return ccbond_ff;
+        for (const auto& acceptor_particles: indices_dna_)
+        {
+            const size_t a1_phos   = acceptor_particles.at(0);
+            const size_t a2_sugar3 = acceptor_particles.at(1);
+            chbond_ff->addAcceptor(a1_phos, a2_sugar3, -1);
+        }
+
+        // set cutoff
+        if(use_periodic_)
+        {
+            chbond_ff->setNonbondedMethod(OpenMM::CustomHbondForce::CutoffPeriodic);
+        }
+        else
+        {
+            chbond_ff->setNonbondedMethod(OpenMM::CustomHbondForce::CutoffNonPeriodic);
+        }
+
+        double max_cutoff_length = 0.0;
+        for (const auto& r0: r0s_)
+        {
+            max_cutoff_length = std::max(max_cutoff_length, r0 + cutoff_ratio_ * sigma_);
+        }
+        chbond_ff->setCutoffDistance(max_cutoff_length);
+
+        std::cerr << "    PDNS                          : cutoff distance is "
+                  << max_cutoff_length << " nm" << std::endl;
+
+        return chbond_ff;
     }
 
     std::string name() const noexcept { return "PDNS"; }
@@ -141,6 +158,7 @@ class ProteinDNANonSpecificForceFieldGenerator final : public ForceFieldGenerato
     std::vector<indices_protein_type> indices_protein_;
     double sigma_;
     double delta_;
+    double cutoff_ratio_;
     std::vector<double> ks_;
     std::vector<double> r0s_;
     std::vector<double> theta0s_;

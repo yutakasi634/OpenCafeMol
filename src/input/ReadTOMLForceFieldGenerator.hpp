@@ -2191,19 +2191,27 @@ read_toml_combinatorial_go_contact_ff_generators(
 // ]
 ProteinDNANonSpecificForceFieldGenerator
 read_toml_protein_dna_non_specific_ff_generator(
-    const  toml::value& global_ff_data, const bool use_periodic //, const Topology& topology, 
+    const  toml::value& global_ff_data, const bool use_periodic
 )
 {
     check_keys_available(global_ff_data,
-            { "interaction", "potential", "env", "sigma", "delta", "parameters"});
-
-    const double sigma = 
-        toml::find<double>(global_ff_data, "sigma") * OpenMM::NmPerAngstrom; // nm
-
-    const double delta = toml::find<double>(global_ff_data, "delta"); // radian
+    { "interaction", "potential", "env", "sigma", "delta", "cutoff", "energy_unit", "parameters"});
 
     const auto& params = toml::find<toml::array>(global_ff_data, "parameters");
     const auto& env = global_ff_data.contains("env") ? global_ff_data.at("env") : toml::value{};
+
+    const double sigma =
+        Utility::find_parameter_or<double>(global_ff_data, env, "sigma", 1.0) * OpenMM::NmPerAngstrom; // nm;
+
+    const double delta =
+        Utility::find_parameter_or<double>(global_ff_data, env, "delta", 0.17453); // radian
+
+    const double cutoff_ratio =
+        Utility::find_parameter_or<double>(global_ff_data, env, "cutoff", 10.0);
+
+    const double energy_unit  =
+        Utility::find_parameter_or<double>(global_ff_data, env, "energy_unit", 0.593) * OpenMM::KJPerKcal; // kJ
+
 
     // Vector for indices
     std::vector<std::array<std::size_t, 2>> indices_dna;     // 0: phos, 1: sugar3
@@ -2224,7 +2232,7 @@ read_toml_protein_dna_non_specific_ff_generator(
                     param, env, "offset", toml::value(0));
         add_offset(index, offset);
 
-        const auto kind   = toml::find<std::string>(param, "kind");
+        const auto kind = toml::find<std::string>(param, "kind");
 
         if (kind == "DNA")
         {
@@ -2239,17 +2247,17 @@ read_toml_protein_dna_non_specific_ff_generator(
 
             indices_protein.push_back({index, idx_calpha_n, idx_calpha_c});
 
-            const double k  =
-                Utility::find_parameter<double>(param, env, "k");
+            const double k =
+                Utility::find_parameter<double>(param, env, "k") * energy_unit; // kJ
 
             const double r0 =
                 Utility::find_parameter<double>(param, env, "r0") * OpenMM::NmPerAngstrom; // nm
 
             const double theta0 =
-                Utility::find_parameter<double>(param, env, "theta0") * OpenMM::RadiansPerDegree; // degree
-            
+                Utility::find_parameter<double>(param, env, "theta0") * OpenMM::RadiansPerDegree; // radian
+
             const double phi0 =
-                Utility::find_parameter<double>(param, env, "phi0") * OpenMM::RadiansPerDegree; // degree
+                Utility::find_parameter<double>(param, env, "phi0") * OpenMM::RadiansPerDegree; // radian
 
             ks.push_back(k);
             r0s.push_back(r0);
@@ -2257,9 +2265,10 @@ read_toml_protein_dna_non_specific_ff_generator(
             phi0s.push_back(phi0);
         }
     }
+
     return ProteinDNANonSpecificForceFieldGenerator(
-        indices_dna, indices_protein, sigma, delta, ks, r0s, theta0s, phi0s,
-        use_periodic);
+        indices_dna, indices_protein, sigma, delta, cutoff_ratio,
+        ks, r0s, theta0s, phi0s, use_periodic);
 }
 
 // -----------------------------------------------------------------------------
