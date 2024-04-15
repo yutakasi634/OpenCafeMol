@@ -416,7 +416,7 @@ SystemGenerator read_toml_system(const toml::value& data)
                 system_gen.add_ff_generator(
                         std::make_unique<ExcludedVolumeForceFieldGenerator>(ff_gen));
             }
-            if (potential == "3SPN2ExcludedVolume")
+            else if (potential == "3SPN2ExcludedVolume")
             {
                 ThreeSPN2ExcludedVolumeForceFieldGenerator ff_gen =
                     read_toml_3spn2_excluded_volume_ff_generator(
@@ -609,6 +609,15 @@ SystemGenerator read_toml_system(const toml::value& data)
                             LennardJonesAttractiveForceFieldGenerator>(ff_gen));
                 }
             }
+            else if(potential == "LennardJonesRepulsive")
+            {
+                LennardJonesRepulsiveForceFieldGenerator ff_gen =
+                    read_toml_lennard_jones_repulsive_ff_generator(
+                         global_ff, system_size, topology, group_vec, use_periodic);
+                system_gen.add_ff_generator(
+                     std::make_unique<
+                         LennardJonesRepulsiveForceFieldGenerator>(ff_gen));
+            }
             else if(potential == "CombinatorialGoContact")
             {
                 using potential_type =
@@ -623,7 +632,7 @@ SystemGenerator read_toml_system(const toml::value& data)
                 }
             }
 
-            // non-Pair interaction case
+            // Non-pair interaction case
             if(interaction == "3SPN2CrossStacking")
             {
                 const std::vector<std::pair<std::string, std::string>> base_pairs = {
@@ -727,15 +736,6 @@ SystemGenerator read_toml_system(const toml::value& data)
                         "- \"3SPN2C\": The parameter set optimized to reproduce sequence-dependent curveture of dsDNA."
                     );
                 }
-            }
-            else if(potential == "LennardJonesRepulsive")
-            {
-                LennardJonesRepulsiveForceFieldGenerator ff_gen =
-                    read_toml_lennard_jones_repulsive_ff_generator(
-                         global_ff, system_size, topology, group_vec, use_periodic);
-                system_gen.add_ff_generator(
-                     std::make_unique<
-                         LennardJonesRepulsiveForceFieldGenerator>(ff_gen));
             }
         }
     }
