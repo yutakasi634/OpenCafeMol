@@ -981,7 +981,8 @@ read_toml_excluded_volume_ff_generator(
 
 const ThreeSPN2ExcludedVolumeForceFieldGenerator
 read_toml_3spn2_excluded_volume_ff_generator(
-    const toml::value& global_ff_data, const std::size_t system_size, const Topology& topology,
+    const toml::value& global_ff_data, const std::size_t system_size,
+    const Topology& topology, const std::vector<std::optional<std::string>>& group_vec,
     const bool use_periodic)
 {
     check_keys_available(global_ff_data,
@@ -1064,7 +1065,8 @@ read_toml_3spn2_excluded_volume_ff_generator(
     ignore_list.erase(std::unique(ignore_list.begin(), ignore_list.end()), ignore_list.end());
 
     return ThreeSPN2ExcludedVolumeForceFieldGenerator(
-            eps, cutoff, radius_vec, ignore_list, use_periodic);
+            eps, cutoff, radius_vec, ignore_list, use_periodic,
+            ignore_group_pairs, group_vec);
 }
 
 // WCA input is like below
