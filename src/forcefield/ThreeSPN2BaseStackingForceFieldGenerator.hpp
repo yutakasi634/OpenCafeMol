@@ -1,15 +1,18 @@
 #ifndef OPEN_AICG2_PLUS_3SPN2_BASE_STACKING_FORCE_FIELD_GENERATOR_HPP
 #define OPEN_AICG2_PLUS_3SPN2_BASE_STACKING_FORCE_FIELD_GENERATOR_HPP
 
-#include <map>
-#include <memory>
-#include <regex>
-#include <sstream>
-#include <string>
-#include <OpenMM.h>
 #include "ForceFieldGeneratorBase.hpp"
 #include "ForceFieldIDGenerator.hpp"
-#include "src/util/Constants.hpp"
+
+#include <OpenMM.h>
+#include <fmt/core.h>
+
+#include <array>
+#include <map>
+#include <memory>
+#include <sstream>
+#include <string>
+#include <vector>
 
 class ThreeSPN2BaseStackingForceFieldGenerator final : public ForceFieldGeneratorBase
 {

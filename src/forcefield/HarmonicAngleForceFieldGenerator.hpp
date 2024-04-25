@@ -1,11 +1,16 @@
 #ifndef OPEN_AICG2_PLUS_HARMONIC_ANGLE_FORCE_FIELD_GENERATOR_HPP
 #define OPEN_AICG2_PLUS_HARMONIC_ANGLE_FORCE_FIELD_GENERATOR_HPP
 
+#include "ForceFieldGeneratorBase.hpp"
+
+#include <OpenMM.h>
+#include <fmt/core.h>
+
+#include <array>
 #include <memory>
 #include <sstream>
 #include <string>
-#include <OpenMM.h>
-#include "ForceFieldGeneratorBase.hpp"
+#include <vector>
 
 // [Caution!] This potential formulaw is "1/2*k*(theta - theta0)^2",
 // so interaction coefficient is devided by 2. So if you use the coefficient

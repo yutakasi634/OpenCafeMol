@@ -1,10 +1,11 @@
 #ifndef OPEN_AICG2_PLUS_READ_TOML_FORCE_FIELD_GENERATOR_HPP
 #define OPEN_AICG2_PLUS_READ_TOML_FORCE_FIELD_GENERATOR_HPP
 
-#include <OpenMM.h>
 #include "Utility.hpp"
+
 #include "src/util/Utility.hpp"
 #include "src/util/Constants.hpp"
+
 #include "src/forcefield/HarmonicBondForceFieldGenerator.hpp"
 #include "src/forcefield/GaussianBondForceFieldGenerator.hpp"
 #include "src/forcefield/GoContactForceFieldGenerator.hpp"
@@ -32,6 +33,10 @@
 #include "src/forcefield/PullingForceFieldGenerator.hpp"
 #include "src/forcefield/PositionRestraintForceFieldGenerator.hpp"
 #include "src/forcefield/HarmonicCoMPullingForceFieldGenerator.hpp"
+
+#include "src/Topology.hpp"
+
+#include <OpenMM.h>
 
 // -----------------------------------------------------------------------------
 // read local force field

@@ -2,6 +2,7 @@
 #define OPEN_AICG2_PLUS_READ_GENESIS_FORCE_FIELD_GENERATOR_HPP
 
 #include <OpenMM.h>
+
 #include "src/forcefield/HarmonicBondForceFieldGenerator.hpp"
 #include "src/forcefield/GaussianBondForceFieldGenerator.hpp"
 #include "src/forcefield/GoContactForceFieldGenerator.hpp"
@@ -9,6 +10,8 @@
 #include "src/forcefield/GaussianDihedralForceFieldGenerator.hpp"
 #include "src/forcefield/FlexibleLocalDihedralForceFieldGenerator.hpp"
 #include "src/forcefield/ExcludedVolumeForceFieldGenerator.hpp"
+
+#include "src/Topology.hpp"
 
 HarmonicBondForceFieldGenerator
 read_genesis_harmonic_bond_ff_generator(

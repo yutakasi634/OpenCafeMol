@@ -1,12 +1,13 @@
 #ifndef OPEN_AICG2_PLUS_OBSERVER_HPP
 #define OPEN_AICG2_PLUS_OBSERVER_HPP
 
+#include "util/Utility.hpp"
+#include "util/Constants.hpp"
+#include "SystemGenerator.hpp"
+
 #include <string>
 #include <iostream>
 #include <OpenMM.h>
-#include "src/SystemGenerator.hpp"
-#include "util/Utility.hpp"
-#include "util/ProgressBar.hpp"
 
 class ObserverBase
 {

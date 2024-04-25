@@ -1,14 +1,20 @@
 #ifndef OPEN_AICG2_PLUS_EXCLUDED_VOLUME_FORCE_FIELD_GENERATOR_HPP
 #define OPEN_AICG2_PLUS_EXCLUDED_VOLUME_FORCE_FIELD_GENERATOR_HPP
 
+#include "src/util/Utility.hpp"
+
+#include "ForceFieldGeneratorBase.hpp"
+#include "ForceFieldIDGenerator.hpp"
+
+#include <OpenMM.h>
+#include <fmt/core.h>
+
+#include <algorithm>
+#include <iostream>
 #include <memory>
 #include <limits>
 #include <set>
 #include <optional>
-#include <OpenMM.h>
-#include <fmt/core.h>
-#include "ForceFieldGeneratorBase.hpp"
-#include "ForceFieldIDGenerator.hpp"
 
 class ExcludedVolumeForceFieldGenerator final: public ForceFieldGeneratorBase
 {

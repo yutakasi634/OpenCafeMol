@@ -1,10 +1,20 @@
 #ifndef OPEN_AICG2_PLUS_UNIFORM_WEEKS_CHANDLER_ANDERSEN_FORCE_FIELD_GENERATOR_HPP
 #define OPEN_AICG2_PLUS_UNIFORM_WEEKS_CHANDLER_ANDERSEN_FORCE_FIELD_GENERATOR_HPP
 
-#include <OpenMM.h>
-#include <fmt/core.h>
+#include "src/util/Utility.hpp"
 #include "ForceFieldGeneratorBase.hpp"
 #include "ForceFieldIDGenerator.hpp"
+
+#include <OpenMM.h>
+#include <fmt/core.h>
+
+#include <iostream>
+#include <map>
+#include <memory>
+#include <optional>
+#include <set>
+#include <string>
+#include <vector>
 
 class UniformWeeksChandlerAndersenForceFieldGenerator final : public ForceFieldGeneratorBase
 {

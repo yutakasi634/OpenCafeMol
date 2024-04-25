@@ -1,13 +1,19 @@
 #ifndef OPEN_AICG2_PLUS_COSINE_DIHEDRAL_FORCE_FIELD_GENERATOR_HPP
 #define OPEN_AICG2_PLUS_COSINE_DIHEDRAL_FORCE_FIELD_GENERATOR_HPP
 
-#include <memory>
-#include <sstream>
-#include <string>
-#include <regex>
-#include <OpenMM.h>
 #include "ForceFieldGeneratorBase.hpp"
 #include "ForceFieldIDGenerator.hpp"
+
+#include <OpenMM.h>
+#include <fmt/core.h>
+
+#include <array>
+#include <memory>
+#include <regex>
+#include <sstream>
+#include <string>
+#include <utility>
+#include <vector>
 
 class CosineDihedralForceFieldGenerator final : public ForceFieldGeneratorBase
 {

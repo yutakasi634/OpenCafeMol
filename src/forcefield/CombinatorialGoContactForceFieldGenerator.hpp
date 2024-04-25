@@ -1,10 +1,17 @@
 #ifndef OPEN_AICG2_PLUS_COMBINATORIAL_GO_CONTACT_FORCE_FIELD_GENERATOR_HPP
 #define OPEN_AICG2_PLUS_COMBINATORIAL_GO_CONTACT_FORCE_FIELD_GENERATOR_HPP
 
-#include <OpenMM.h>
-#include <fmt/core.h>
 #include "ForceFieldGeneratorBase.hpp"
 #include "ForceFieldIDGenerator.hpp"
+
+#include <OpenMM.h>
+#include <fmt/core.h>
+
+#include <memory>
+#include <optional>
+#include <string>
+#include <utility>
+#include <vector>
 
 class CombinatorialGoContactForceFieldGenerator final : public ForceFieldGeneratorBase
 {

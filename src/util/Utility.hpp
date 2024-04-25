@@ -1,9 +1,13 @@
 #ifndef OPEN_AICG2_PLUS_UTILITY_HPP
 #define OPEN_AICG2_PLUS_UTILITY_HPP
 
-#include <string>
+#include <toml11/toml.hpp>
+
 #include <algorithm>
+#include <iostream>
 #include <filesystem>
+#include <fstream>
+#include <string>
 
 namespace Utility
 {

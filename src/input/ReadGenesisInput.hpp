@@ -1,13 +1,16 @@
 #ifndef OPEN_AICG2_PLUS_READ_GENESIS_INPUT_HPP
 #define OPEN_AICG2_PLUS_READ_GENESIS_INPUT_HPP
 
-#include <regex>
-#include <OpenMM.h>
+#include "ReadGenesisForceFieldGenerator.hpp"
+
 #include "src/Simulator.hpp"
 #include "src/SystemGenerator.hpp"
 #include "src/IntegratorGenerator.hpp"
 #include "src/Topology.hpp"
-#include "ReadGenesisForceFieldGenerator.hpp"
+
+#include <OpenMM.h>
+
+#include <regex>
 
 std::map<std::string, std::map<std::string, std::string>> read_inp_file(const std::string& inp_file_name)
 {

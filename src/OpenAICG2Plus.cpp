@@ -1,18 +1,17 @@
 #include <OpenMM.h>
-#include <iostream>
-#include <fstream>
-#include <string>
-#include <cmath>
-#include <optional>
-#include <utility>
-#include <memory>
-#include "toml11/toml.hpp"
+
+#include <toml11/toml.hpp>
+
 #include "src/util/Utility.hpp"
 #include "src/util/Macro.hpp"
 #include "src/input/ReadTOMLInput.hpp"
 #include "src/input/ReadGenesisInput.hpp"
 #include "Simulator.hpp"
-#include "Observer.hpp"
+
+#include <iostream>
+#include <string>
+
+#include <cmath>
 
 Simulator read_input(int argc, char** argv)
 {

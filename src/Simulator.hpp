@@ -1,10 +1,18 @@
 #ifndef OPEN_AICG2_PLUS_SIMULATOR_HPP
 #define OPEN_AICG2_PLUS_SIMULATOR_HPP
 
-#include <OpenMM.h>
-#include "util/Constants.hpp"
+#include "util/ProgressBar.hpp"
 #include "Observer.hpp"
 #include "IntegratorGenerator.hpp"
+
+#include <OpenMM.h>
+
+#include <iostream>
+#include <map>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 
 class Simulator
 {

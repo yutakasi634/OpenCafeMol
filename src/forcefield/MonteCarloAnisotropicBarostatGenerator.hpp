@@ -1,8 +1,14 @@
 #ifndef OPEN_AICG2_PLUS_MONTE_CARLO_ANISOTROPIC_BAROSTAT_GENERATOR_HPP
 #define OPEN_AICG2_PLUS_MONTE_CARLO_ANISOTROPIC_BAROSTAT_GENERATOR_HPP
 
-#include <OpenMM.h>
 #include "BarostatGeneratorBase.hpp"
+
+#include <OpenMM.h>
+
+#include <array>
+#include <iostream>
+#include <iomanip>
+#include <sstream>
 
 class MonteCarloAnisotropicBarostatGenerator final : public BarostatGeneratorBase
 {

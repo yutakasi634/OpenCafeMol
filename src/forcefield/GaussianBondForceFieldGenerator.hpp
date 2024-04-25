@@ -1,13 +1,17 @@
 #ifndef OPEN_AICG2_PLUS_GAUSSIAN_BOND_FORCE_FIELD_GENERATOR_HPP
 #define OPEN_AICG2_PLUS_GAUSSIAN_BOND_FORCE_FIELD_GENERATOR_HPP
 
-#include <memory>
-#include <sstream>
-#include <string>
-#include <OpenMM.h>
-#include <fmt/core.h>
 #include "ForceFieldGeneratorBase.hpp"
 #include "ForceFieldIDGenerator.hpp"
+
+#include <OpenMM.h>
+#include <fmt/core.h>
+
+#include <memory>
+#include <sstream>
+#include <stdexcept>
+#include <string>
+#include <utility>
 
 class GaussianBondForceFieldGenerator final : public ForceFieldGeneratorBase
 {

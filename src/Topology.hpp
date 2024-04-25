@@ -2,7 +2,11 @@
 #define OPEN_AICG2_PLUS_TOPOLOGY_HPP
 
 #include <algorithm>
-#include <limits>
+#include <vector>
+#include <string>
+#include <array>
+#include <stdexcept>
+#include <iostream>
 
 class Topology
 {

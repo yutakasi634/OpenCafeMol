@@ -1,15 +1,16 @@
 #ifndef OPEN_AICG2_PLUS_3SPN2_BASE_PAIR_LOCAL_FORCE_FIELD_GENERATOR_HPP
 #define OPEN_AICG2_PLUS_3SPN2_BASE_PAIR_LOCAL_FORCE_FIELD_GENERATOR_HPP
 
-#include <map>
-#include <memory>
-#include <regex>
-#include <sstream>
-#include <string>
-#include <OpenMM.h>
 #include "ForceFieldGeneratorBase.hpp"
 #include "ForceFieldIDGenerator.hpp"
-#include "src/util/Constants.hpp"
+
+#include <OpenMM.h>
+#include <fmt/core.h>
+
+#include <array>
+#include <memory>
+#include <string>
+#include <vector>
 
 template<typename PotentialParameterType>
 class ThreeSPN2BasePairLocalForceFieldGenerator final : public ForceFieldGeneratorBase

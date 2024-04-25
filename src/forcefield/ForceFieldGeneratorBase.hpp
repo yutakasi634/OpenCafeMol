@@ -1,9 +1,10 @@
 #ifndef OPEN_AICG2_PLUS_FORCE_FIELD_GENERATOR_BASE_HPP
 #define OPEN_AICG2_PLUS_FORCE_FIELD_GENERATOR_BASE_HPP
 
-#include <memory>
 #include <OpenMM.h>
-#include "ForceFieldGeneratorBase.hpp"
+
+#include <memory>
+#include <string>
 
 class ForceFieldGeneratorBase
 {
