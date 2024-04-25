@@ -43,7 +43,7 @@ class PullingForceFieldGenerator : public ForceFieldGeneratorBase
         return pull_ff;
     }
 
-    std::string name() const noexcept { return "Pulling"; }
+    std::string name() const noexcept override { return "Pulling"; }
 
   private:
     std::vector<parameter_type> params_;

@@ -112,7 +112,7 @@ class ThreeSPN2CrossStackingLocalForceFieldGenerator final : public ForceFieldGe
         return ccbond_ff;
     }
 
-    std::string name() const noexcept
+    std::string name() const noexcept override
     {
         return PotentialParameterType::name + "CrossStackingLocal "
                "(" + base_pair_.first + "-" + base_pair_.second + ")";

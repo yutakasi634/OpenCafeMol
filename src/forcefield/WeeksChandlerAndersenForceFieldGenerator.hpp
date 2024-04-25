@@ -212,7 +212,7 @@ class WeeksChandlerAndersenForceFieldGenerator final : public ForceFieldGenerato
         return wca_ff;
     }
 
-    std::string name() const noexcept { return "WeeksChandlerAndersen"; }
+    std::string name() const noexcept override { return "WeeksChandlerAndersen"; }
 
   private:
     std::vector<std::optional<double>>  sigmas_;

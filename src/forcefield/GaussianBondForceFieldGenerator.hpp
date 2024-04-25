@@ -63,7 +63,7 @@ class GaussianBondForceFieldGenerator final : public ForceFieldGeneratorBase
     }
 
     const std::vector<indices_type>& indices() const noexcept { return indices_vec_; }
-    std::string name() const noexcept { return "GaussianBond"; }
+    std::string name() const noexcept override { return "GaussianBond"; }
 
   private:
     std::vector<indices_type> indices_vec_;

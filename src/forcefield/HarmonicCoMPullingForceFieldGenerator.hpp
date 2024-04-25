@@ -40,7 +40,7 @@ class HarmonicCoMPullingForceFieldGenerator : public ForceFieldGeneratorBase
         return com_ff;
     }
 
-    std::string name() const noexcept { return "HamonicCoMPulling"; }
+    std::string name() const noexcept override { return "HamonicCoMPulling"; }
 
   private:
     double           k_;

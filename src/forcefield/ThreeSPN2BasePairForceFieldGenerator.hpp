@@ -131,7 +131,7 @@ class ThreeSPN2BasePairForceFieldGenerator final : public ForceFieldGeneratorBas
         return chbond_ff;
     }
 
-    std::string name() const noexcept
+    std::string name() const noexcept override
     {
         return PotentialParameterType::name+"BasePair "
                "(" + base_pair_.first + "-" + base_pair_.second + ")";

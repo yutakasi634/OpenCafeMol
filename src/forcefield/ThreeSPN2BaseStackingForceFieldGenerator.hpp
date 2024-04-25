@@ -94,7 +94,7 @@ class ThreeSPN2BaseStackingForceFieldGenerator final : public ForceFieldGenerato
         return ccbond_ff;
     }
 
-    std::string name() const noexcept {return "3SPN2BaseStacking";};
+    std::string name() const noexcept override {return "3SPN2BaseStacking";};
 
   private:
     std::vector<indices_type> indices_vec_;

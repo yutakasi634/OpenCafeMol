@@ -77,7 +77,7 @@ class CombinatorialGoContactForceFieldGenerator final : public ForceFieldGenerat
         return contact_ff;
     }
 
-    std::string name() const noexcept { return "CombinatorialGoContact"; }
+    std::string name() const noexcept override { return "CombinatorialGoContact"; }
 
   private:
     double                   k_;

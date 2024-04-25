@@ -218,7 +218,7 @@ class LennardJonesAttractiveForceFieldGenerator final : public ForceFieldGenerat
         return ljattr_ff;
     }
 
-    std::string name() const noexcept { return "LennardJonesAttractive"; }
+    std::string name() const noexcept override { return "LennardJonesAttractive"; }
 
   private:
     double                              cutoff_ratio_;

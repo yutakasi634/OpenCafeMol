@@ -89,7 +89,7 @@ class ThreeSPN2BasePairLocalForceFieldGenerator final : public ForceFieldGenerat
         return ccbond_ff;
     }
 
-    std::string name() const noexcept
+    std::string name() const noexcept override
     {
         return PotentialParameterType::name+"BasePairLocal "
                "(" + base_pair_.first + "-" + base_pair_.second + ")";

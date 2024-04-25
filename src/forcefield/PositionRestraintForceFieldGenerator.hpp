@@ -51,7 +51,7 @@ class PositionRestraintForceFieldGenerator : public ForceFieldGeneratorBase
         return pr_ff;
     }
 
-    std::string name() const noexcept { return "PositionRestraint"; }
+    std::string name() const noexcept override { return "PositionRestraint"; }
 
   private:
     std::vector<std::size_t>           indices_;

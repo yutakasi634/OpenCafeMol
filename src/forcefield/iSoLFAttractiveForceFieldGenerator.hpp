@@ -239,7 +239,7 @@ class iSoLFAttractiveForceFieldGenerator final : public ForceFieldGeneratorBase
         return isa_ff;
     }
 
-    std::string name() const noexcept { return "iSoLFAttractive"; }
+    std::string name() const noexcept override { return "iSoLFAttractive"; }
 
   private:
     std::vector<std::optional<double>>  sigmas_;

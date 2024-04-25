@@ -69,7 +69,7 @@ class GaussianDihedralForceFieldGenerator final : public ForceFieldGeneratorBase
     }
 
     const std::vector<indices_type>& indices() const noexcept { return indices_vec_; }
-    std::string name() const noexcept { return "GaussianDihedral"; }
+    std::string name() const noexcept override { return "GaussianDihedral"; }
 
   private:
     std::vector<indices_type> indices_vec_;

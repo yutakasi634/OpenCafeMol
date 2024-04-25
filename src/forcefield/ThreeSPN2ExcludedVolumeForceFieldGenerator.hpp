@@ -194,7 +194,7 @@ class ThreeSPN2ExcludedVolumeForceFieldGenerator final : public ForceFieldGenera
         return exv_ff;
     }
 
-    std::string name() const noexcept { return "3SPN2ExcludedVolume"; }
+    std::string name() const noexcept override { return "3SPN2ExcludedVolume"; }
 
   private:
     double                              eps_;

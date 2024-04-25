@@ -213,7 +213,7 @@ class LennardJonesRepulsiveForceFieldGenerator final : public ForceFieldGenerato
         return ljrepu_ff;
     }
 
-    std::string name() const noexcept { return "LennardJonesRepulsive"; }
+    std::string name() const noexcept override { return "LennardJonesRepulsive"; }
 
   private:
     double                              cutoff_ratio_;
