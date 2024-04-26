@@ -19,6 +19,7 @@ message(STATUS "CXX compiler flags are ${CMAKE_CXX_FLAGS}")
 add_executable(open_aicg2plus OpenAICG2Plus.cpp
     IntegratorGenerator.cpp
     Observer.cpp
+    Simulator.cpp
     SystemGenerator.cpp
     Topology.cpp
     )
