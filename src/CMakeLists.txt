@@ -17,6 +17,7 @@ set(CMAKE_CXX_FLAGS "${OPEN_AICG2PLUS_WARNING_FLAGS} ${OPEN_AICG2PLUS_OPTIMIZATI
 message(STATUS "CXX compiler flags are ${CMAKE_CXX_FLAGS}")
 
 add_executable(open_aicg2plus OpenAICG2Plus.cpp
+    Observer.cpp
     Topology.cpp
     )
 set_target_properties(open_aicg2plus PROPERTIES
