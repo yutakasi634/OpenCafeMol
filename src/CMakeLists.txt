@@ -30,3 +30,4 @@ target_include_directories(open_aicg2plus PRIVATE OpenMM::OpenMM)
 target_link_libraries     (open_aicg2plus PRIVATE OpenMM::OpenMM fmt)
 
 add_subdirectory(util)
+add_subdirectory(input)

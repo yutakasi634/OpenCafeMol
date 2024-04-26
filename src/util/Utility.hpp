@@ -163,6 +163,43 @@ bool contains(std::vector<std::pair<T, T>> pair_list, std::pair<T, T> query)
     return false;
 }
 
+template<std::size_t I, typename Tuple, typename F>
+void for_each_impl(Tuple& t, F func)
+{
+    if constexpr(I == std::tuple_size_v<Tuple>)
+    {
+        return;
+    }
+    else
+    {
+        func(I, std::get<I>(t));
+        return for_each_impl<I+1>(t, std::move(func));
+    }
+}
+template<std::size_t I, typename Tuple, typename F>
+void for_each_impl(const Tuple& t, F func)
+{
+    if constexpr(I == std::tuple_size_v<Tuple>)
+    {
+        return;
+    }
+    else
+    {
+        func(I, std::get<I>(t));
+        return for_each_impl<I+1>(t, std::move(func));
+    }
+}
+template<typename Tuple, typename F>
+void for_each(Tuple& t, F func)
+{
+    return for_each_impl<0>(t, std::move(func));
+}
+template<typename Tuple, typename F>
+void for_each(const Tuple& t, F func)
+{
+    return for_each_impl<0>(t, std::move(func));
+}
+
 } // namespace Utility
 
 #endif // OPEN_AICG2_PLUS_UTILITY_HPP
