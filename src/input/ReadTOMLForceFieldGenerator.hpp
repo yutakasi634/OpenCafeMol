@@ -1213,7 +1213,7 @@ read_toml_uniform_weeks_chandler_andersen_ff_generator(
 // interaction = "Pair"
 // potential   = "DebyeHuckel"
 // ignore.particles_within.bond = 3
-// parameters = [ # {{{
+// parameters = [
 //     {index =   2, charge = -0.6},
 //     # ...
 // ]
