@@ -10,4 +10,5 @@ target_sources(open_aicg2plus PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/GoContactForceFieldGenerator.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/HarmonicAngleForceFieldGenerator.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/HarmonicBondForceFieldGenerator.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/HarmonicCoMPullingForceFieldGenerator.cpp
     )
