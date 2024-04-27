@@ -24,7 +24,7 @@ class ThreeSPN2CrossStackingForceFieldGenerator final : public ForceFieldGenerat
 
   public:
     ThreeSPN2CrossStackingForceFieldGenerator(
-        const ThreeSPN2CrossStackingPotentialDefaultParameter& para,
+        const ThreeSPN2CrossStackingPotentialParameterBase& para,
         const std::vector<indices_type>& donor_indices_vec,
         const std::vector<indices_type>& acceptor_indices_vec,
         const std::vector<std::string>&  base_kind_acceptors_vec,

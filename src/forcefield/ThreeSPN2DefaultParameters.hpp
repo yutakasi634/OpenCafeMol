@@ -10,9 +10,9 @@
 // base pair
 
 // default parameter table
-struct ThreeSPN2BasePairPotentialDefaultParameter
+struct ThreeSPN2BasePairPotentialParameterBase
 {
-    virtual ~ThreeSPN2BasePairPotentialDefaultParameter() = default;
+    virtual ~ThreeSPN2BasePairPotentialParameterBase() = default;
 
     virtual std::string name() const = 0;
 
@@ -41,7 +41,7 @@ struct ThreeSPN2BasePairPotentialDefaultParameter
 //   J. Chem. Phys. (2013)
 
 struct ThreeSPN2BasePairPotentialParameter final
-    : public ThreeSPN2BasePairPotentialDefaultParameter
+    : public ThreeSPN2BasePairPotentialParameterBase
 {
     ~ThreeSPN2BasePairPotentialParameter() override = default;
 
@@ -114,7 +114,7 @@ struct ThreeSPN2BasePairPotentialParameter final
 //   J. Chem. Phys. (2014)
 
 struct ThreeSPN2CBasePairPotentialParameter final
-    : public ThreeSPN2BasePairPotentialDefaultParameter
+    : public ThreeSPN2BasePairPotentialParameterBase
 {
     ~ThreeSPN2CBasePairPotentialParameter() override = default;
 
@@ -174,9 +174,9 @@ struct ThreeSPN2CBasePairPotentialParameter final
 // cross stacking
 
 
-struct ThreeSPN2CrossStackingPotentialDefaultParameter
+struct ThreeSPN2CrossStackingPotentialParameterBase
 {
-    virtual ~ThreeSPN2CrossStackingPotentialDefaultParameter() = default;
+    virtual ~ThreeSPN2CrossStackingPotentialParameterBase() = default;
 
     virtual std::string name    () const = 0;
     virtual double      cutoff  () const = 0;
@@ -208,7 +208,7 @@ struct ThreeSPN2CrossStackingPotentialDefaultParameter
 
 // Parameter for 3SPN2
 struct ThreeSPN2CrossStackingPotentialParameter final
-    : public ThreeSPN2CrossStackingPotentialDefaultParameter
+    : public ThreeSPN2CrossStackingPotentialParameterBase
 {
     ~ThreeSPN2CrossStackingPotentialParameter() override = default;
 
@@ -327,7 +327,7 @@ struct ThreeSPN2CrossStackingPotentialParameter final
 
 // parameter for 3SPN2C
 struct ThreeSPN2CCrossStackingPotentialParameter final
-    : public ThreeSPN2CrossStackingPotentialDefaultParameter
+    : public ThreeSPN2CrossStackingPotentialParameterBase
 {
     ~ThreeSPN2CCrossStackingPotentialParameter() override = default;
 

@@ -1382,7 +1382,7 @@ read_toml_uniform_lennard_jones_attractive_ff_generator(
 // TODO: enable to use offset
 const ThreeSPN2BasePairLocalForceFieldGenerator
 read_toml_3spn2_base_pair_local_ff_generator(
-    const ThreeSPN2BasePairPotentialDefaultParameter& para,
+    const ThreeSPN2BasePairPotentialParameterBase& para,
     const toml::value& local_ff_data, Topology& topology,
     const std::pair<std::string, std::string> base_pair,
     const bool use_periodic
@@ -1462,7 +1462,7 @@ read_toml_3spn2_base_pair_local_ff_generator(
 
 const ThreeSPN2BasePairForceFieldGenerator
 read_toml_3spn2_base_pair_ff_generator(
-        const ThreeSPN2BasePairPotentialDefaultParameter& para,
+        const ThreeSPN2BasePairPotentialParameterBase& para,
         const toml::value& global_ff_data, Topology& topology,
         const std::pair<std::string, std::string> base_pair,
         const bool use_periodic)
@@ -1591,7 +1591,7 @@ read_toml_3spn2_base_pair_ff_generator(
 // TODO: enable to use offset
 const ThreeSPN2CrossStackingLocalForceFieldGenerator
 read_toml_3spn2_cross_stacking_local_ff_generator(
-    const ThreeSPN2CrossStackingPotentialDefaultParameter& para,
+    const ThreeSPN2CrossStackingPotentialParameterBase& para,
     const toml::value& local_ff_data, Topology& topology,
     const std::pair<std::string, std::string> bp_kind, const std::string& strand_kind,
     const bool use_periodic
@@ -1721,7 +1721,7 @@ read_toml_3spn2_cross_stacking_local_ff_generator(
 
 const ThreeSPN2CrossStackingForceFieldGenerator
 read_toml_3spn2_cross_stacking_ff_generator(
-        const ThreeSPN2CrossStackingPotentialDefaultParameter& para,
+        const ThreeSPN2CrossStackingPotentialParameterBase& para,
         const toml::value& global_ff_data, Topology& topology,
         const std::pair<std::string, std::string> bp_kind, const std::string& strand_kind,
         const bool use_periodic)

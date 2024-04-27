@@ -21,7 +21,7 @@ class ThreeSPN2BasePairLocalForceFieldGenerator final : public ForceFieldGenerat
 
   public:
     ThreeSPN2BasePairLocalForceFieldGenerator(
-        const ThreeSPN2BasePairPotentialDefaultParameter& para,
+        const ThreeSPN2BasePairPotentialParameterBase& para,
         const std::vector<indices_type>& indices_vec,
         const std::pair<std::string, std::string>& base_pair,
         const bool use_periodic)
