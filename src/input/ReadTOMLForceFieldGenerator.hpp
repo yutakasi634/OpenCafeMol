@@ -1003,7 +1003,7 @@ read_toml_3spn2_excluded_volume_ff_generator(
     const auto   cutoff = toml::find_or(global_ff_data, "cutoff", 2.0);
 
     // Parse parameters
-    //  parameters = [ # {{{
+    //  parameters = [
     //   {index =   0, kind = "S"},
     //   {index =   1, kind = "A"},
 
@@ -1436,7 +1436,7 @@ read_toml_3spn2_base_pair_local_ff_generator(
     // interaction = "3SPN2BasePairLocal"
     // potential   = "3SPN2"
     // ignore.particles_within.nucleotide = 3
-    // parameters  = [ # {{{
+    // parameters  = [
     // {nucleotide_pair=[{       S = 0, B = 1, Base = "A"},{P = 187, S = 188, B = 189, Base = "T"}]},
     // {nucleotide_pair=[{P = 2, S = 3, B = 4, Base = "T"},{P = 184, S = 185, B = 186, Base = "A"}]},
 
@@ -1652,7 +1652,7 @@ read_toml_3spn2_cross_stacking_local_ff_generator(
     // interaction = "3SPN2CrossStackingLocal"
     // potential   = "3SPN2"
     // ignore.particles_within.nucleotide = 3
-    // parameters  = [ # {{{
+    // parameters  = [
     // {nucleotide_group=[{P =   2, S =   3, B =   4, Base = "T"}, {P = 184, S = 185, B = 186, Base = "A"},
     //                    {P =   5, S =   6, B =   7, Base = "A"}, {P = 187, S = 188, B = 189, Base = "T"}]},
     // here, the order of nucleotide_group must be
