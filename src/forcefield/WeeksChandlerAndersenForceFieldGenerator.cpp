@@ -1,9 +1,10 @@
 #include "WeeksChandlerAndersenForceFieldGenerator.hpp"
 #include "ForceFieldIDGenerator.hpp"
+#include "InteractionGroup.hpp"
 
-#include "src/util/Utility.hpp"
+#include "src/util/Logger.hpp"
+
 #include <iostream>
-#include <map>
 
 WeeksChandlerAndersenForceFieldGenerator::WeeksChandlerAndersenForceFieldGenerator(
     const std::vector<std::optional<double>> sigmas,
@@ -15,99 +16,17 @@ WeeksChandlerAndersenForceFieldGenerator::WeeksChandlerAndersenForceFieldGenerat
     : sigmas_(sigmas), epsilons_(epsilons), ignore_list_(ignore_list),
       use_periodic_(use_periodic), ffgen_id_(fmt::format("WCA{}", ffid.gen()))
 {
-    assert(this->sigmas_.size() == this->epsilons_.size());
+    log_assert(this->sigmas_.size() == this->epsilons_.size(),
+        "WCA: sigma.size(={}) must be the same as epsilon.size(={})",
+        sigmas_.size(), epsilons_.size());
 
-    // make interaction group
-    if(ignore_group_pairs.size() == 0)
+    for(std::size_t i=0; i<sigmas_.size(); ++i)
     {
-        // without interaction group force calculation is faster than
-        // with that. So if all particle have the parameter for this
-        // calculation, force don't use interaction group
-        if(std::any_of(sigmas_.begin(), sigmas_.end(),
-                      [](const std::optional<double>& val) { return !val; }))
-        {
-            std::set<int> participants;
-            for(std::size_t idx=0; idx<sigmas_.size(); ++idx)
-            {
-                if(sigmas_[idx])
-                {
-                    assert(epsilons_[idx]);
-                    participants.insert(idx);
-                }
-            }
-            interaction_groups_.push_back({ participants, participants });
-        }
-        else
-        {
-            std::cerr << "        all particles are participants in this interaction" << std::endl;
-        }
+        log_assert(sigmas_.at(i).has_value() == epsilons_.at(i).has_value(),
+            "WCA: if particle i(={}) has sigma, it should have epsilon too, and vice versa.", i);
     }
-    else // group based ignoration specified case
-    {
-        std::set<std::string> related_group_names;
-        for(const auto& name_group_pair : ignore_group_pairs)
-        {
-            related_group_names.insert(name_group_pair.first);
-            related_group_names.insert(name_group_pair.second);
-        }
-
-        std::map<std::string, std::set<int>> related_group_map;
-        for(const auto& name : related_group_names)
-        {
-            related_group_map.insert(std::make_pair(name, std::set<int>()));
-        }
-
-        std::set<int> others;
-        for(std::size_t idx=0; idx<sigmas_.size(); ++idx)
-        {
-            if(sigmas_[idx])
-            {
-                assert(epsilons_[idx]);
-
-                if(group_vec[idx])
-                {
-                    const std::string group_name = group_vec[idx].value();
-                    if(related_group_names.count(group_name) != 0)
-                    {
-                        related_group_map.at(group_name).insert(idx);
-                    }
-                    else
-                    {
-                        others.insert(idx);
-                    }
-                }
-                else
-                {
-                    others.insert(idx);
-                }
-            }
-        }
-
-        std::vector<std::pair<std::string, std::set<int>>> related_group_vec;
-        for(const auto& name_group_pair : related_group_map)
-        {
-            related_group_vec.push_back(name_group_pair);
-        }
-
-        interaction_groups_.push_back({ others, others });
-        for(std::size_t idx_i=0; idx_i<related_group_vec.size(); ++idx_i)
-        {
-            const auto& name_group_pair_i = related_group_vec[idx_i];
-            const std::string&   first_name  = name_group_pair_i.first;
-            const std::set<int>& first_group = name_group_pair_i.second;
-            interaction_groups_.push_back({ first_group, others });
-            for(std::size_t idx_j=idx_i; idx_j<related_group_vec.size(); ++idx_j)
-            {
-                const auto& name_group_pair_j = related_group_vec[idx_j];
-                const std::string&   second_name  = name_group_pair_j.first;
-                if(!Utility::contains(ignore_group_pairs, { first_name, second_name }))
-                {
-                    const std::set<int>& second_group = name_group_pair_j.second;
-                    interaction_groups_.push_back({ first_group, second_group });
-                }
-            }
-        }
-    }
+    interaction_groups_ = extract_interaction_group(
+            sigmas_, ignore_group_pairs, group_vec);
 }
 
 std::unique_ptr<OpenMM::Force> WeeksChandlerAndersenForceFieldGenerator::generate() const
