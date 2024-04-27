@@ -45,7 +45,7 @@ class FlexibleLocalDihedralForceFieldGenerator final : public ForceFieldGenerato
 
     std::string name() const override
     {
-        return "FlexibleLocalDihedral (" + aa_pair_name_ + ")";
+        return fmt::format("FlexibleLocalDihedral ({})", aa_pair_name_);
     }
 
   private:

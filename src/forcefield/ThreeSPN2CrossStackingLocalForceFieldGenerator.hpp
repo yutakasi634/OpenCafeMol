@@ -58,8 +58,7 @@ class ThreeSPN2CrossStackingLocalForceFieldGenerator final : public ForceFieldGe
 
     std::string name() const override
     {
-        return this->name_ + "CrossStackingLocal "
-               "(" + base_pair_.first + "-" + base_pair_.second + ")";
+        return fmt::format("{}CrossStackingLocal ({}-{})", name_, base_pair_.first, base_pair_.second);
     }
 
   private:

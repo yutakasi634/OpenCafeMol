@@ -52,7 +52,7 @@ class FlexibleLocalAngleForceFieldGenerator final : public ForceFieldGeneratorBa
 
     std::string name() const override
     {
-        return "FlexibleLocalAngle (" + aa_name_ + ")";
+        return fmt::format("FlexibleLocalAngle ({})", aa_name_);
     }
 
   private:

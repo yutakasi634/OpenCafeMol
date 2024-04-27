@@ -64,8 +64,7 @@ class ThreeSPN2CrossStackingForceFieldGenerator final : public ForceFieldGenerat
 
     std::string name() const override
     {
-        return this->name_ + "CrossStacking "
-               "(" + base_pair_.first + "-" + base_pair_.second + ")";
+        return fmt::format("{}CrossStacking ({}-{})", name_, base_pair_.first, base_pair_.second);
     }
 
   private:

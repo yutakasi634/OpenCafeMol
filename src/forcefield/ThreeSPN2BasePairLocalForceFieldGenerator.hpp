@@ -43,8 +43,7 @@ class ThreeSPN2BasePairLocalForceFieldGenerator final : public ForceFieldGenerat
 
     std::string name() const override
     {
-        return name_+"BasePairLocal "
-               "(" + base_pair_.first + "-" + base_pair_.second + ")";
+        return fmt::format("{}BasePairLocal ({}-{})", name_, base_pair_.first, base_pair_.second);
     }
 
   private:
