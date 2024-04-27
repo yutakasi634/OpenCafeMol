@@ -2,6 +2,7 @@
 #define OPEN_AICG2_PLUS_READ_TOML_FORCE_FIELD_GENERATOR_HPP
 
 #include "Utility.hpp"
+#include "src/util/Utility.hpp"
 
 #include "src/forcefield/HarmonicBondForceFieldGenerator.hpp"
 #include "src/forcefield/GaussianBondForceFieldGenerator.hpp"

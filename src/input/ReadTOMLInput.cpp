@@ -1,7 +1,5 @@
 #include "ReadTOMLInput.hpp"
 
-#include <memory>
-#include <OpenMM.h>
 #include "Utility.hpp"
 #include "src/Simulator.hpp"
 #include "src/SystemGenerator.hpp"
@@ -10,6 +8,11 @@
 #include "ReadTOMLForceFieldGenerator.hpp"
 #include "src/forcefield/MonteCarloAnisotropicBarostatGenerator.hpp"
 #include "src/forcefield/MonteCarloMembraneBarostatGenerator.hpp"
+
+#include <OpenMM.h>
+
+#include <memory>
+#include <iostream>
 
 SystemGenerator read_toml_system(const toml::value& data)
 {
