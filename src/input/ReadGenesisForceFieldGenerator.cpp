@@ -1,5 +1,11 @@
 #include "ReadGenesisForceFieldGenerator.hpp"
 
+#include "src/util/Utility.hpp"
+
+#include <algorithm>
+#include <iostream>
+#include <iomanip>
+
 HarmonicBondForceFieldGenerator
 read_genesis_harmonic_bond_ff_generator(
         const std::vector<std::string>& bonds_data, Topology& topology, const bool use_periodic)

@@ -1,6 +1,7 @@
 #include "ReadGenesisInput.hpp"
 
 #include "ReadGenesisForceFieldGenerator.hpp"
+#include "src/util/Utility.hpp"
 
 #include "src/Simulator.hpp"
 #include "src/SystemGenerator.hpp"
@@ -10,6 +11,9 @@
 #include <OpenMM.h>
 
 #include <regex>
+#include <iomanip>
+#include <iostream>
+#include <fstream>
 
 std::map<std::string, std::map<std::string, std::string>> read_inp_file(const std::string& inp_file_name)
 {
