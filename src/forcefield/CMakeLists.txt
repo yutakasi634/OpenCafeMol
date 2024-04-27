@@ -7,4 +7,5 @@ target_sources(open_aicg2plus PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/FlexibleLocalDihedralForceFieldGenerator.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/GaussianBondForceFieldGenerator.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/GaussianDihedralForceFieldGenerator.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/GoContactForceFieldGenerator.cpp
     )
