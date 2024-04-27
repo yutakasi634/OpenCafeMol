@@ -13,4 +13,5 @@ target_sources(open_aicg2plus PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/HarmonicCoMPullingForceFieldGenerator.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/iSoLFAttractiveForceFieldGenerator.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/LennardJonesAttractiveForceFieldGenerator.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/LennardJonesRepulsiveForceFieldGenerator.cpp
     )
