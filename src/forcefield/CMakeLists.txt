@@ -23,4 +23,5 @@ target_sources(open_aicg2plus PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/ThreeSPN2BondForceFieldGenerator.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/UniformLennardJonesAttractiveForceFieldGenerator.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/UniformWeeksChandlerAndersenForceFieldGenerator.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/WeeksChandlerAndersenForceFieldGenerator.cpp
     )
