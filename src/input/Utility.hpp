@@ -1,7 +1,9 @@
 #ifndef OPEN_AICG2_PLUS_INPUT_UTILITY_HPP
 #define OPEN_AICG2_PLUS_INPUT_UTILITY_HPP
 
-#include <toml11/toml.hpp>
+#include "src/toml11_fwd.hpp"
+
+#include <string>
 
 void merge_toml_tables(toml::value& table, const toml::value& other);
 void expand_include(toml::value& v);

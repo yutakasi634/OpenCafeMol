@@ -12,6 +12,7 @@
 #include "src/forcefield/MonteCarloMembraneBarostatGenerator.hpp"
 
 #include <OpenMM.h>
+#include <toml11/toml.hpp>
 
 #include <memory>
 #include <iostream>

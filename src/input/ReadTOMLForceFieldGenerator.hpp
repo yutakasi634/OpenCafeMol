@@ -30,9 +30,9 @@
 #include "src/forcefield/HarmonicCoMPullingForceFieldGenerator.hpp"
 
 #include "src/Topology.hpp"
+#include "src/toml11_fwd.hpp"
 
 #include <OpenMM.h>
-#include <toml11/toml.hpp>
 
 // -----------------------------------------------------------------------------
 // read local force field
