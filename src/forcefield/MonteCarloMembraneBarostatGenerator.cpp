@@ -3,7 +3,7 @@
 #include <iostream>
 #include <iomanip>
 
-std::unique_ptr<OpenMM::Force> MonteCarloMembraneBarostatGenerator::generate() const noexcept
+std::unique_ptr<OpenMM::Force> MonteCarloMembraneBarostatGenerator::generate() const
 {
     auto barostat =
         std::make_unique<OpenMM::MonteCarloMembraneBarostat>(
@@ -11,7 +11,7 @@ std::unique_ptr<OpenMM::Force> MonteCarloMembraneBarostatGenerator::generate() c
             xymode_, zmode_);
     return barostat;
 }
-void MonteCarloMembraneBarostatGenerator::dump_info() const noexcept
+void MonteCarloMembraneBarostatGenerator::dump_info() const
 {
     std::cerr << "        XYMode                    : " << std::setw(14);
     if(xymode_ == xymode_type::XYIsotropic)

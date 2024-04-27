@@ -24,13 +24,13 @@ class MonteCarloMembraneBarostatGenerator final : public BarostatGeneratorBase
           xymode_(xymode), zmode_(zmode), frequency_(frequency)
     {}
 
-    std::unique_ptr<OpenMM::Force> generate() const noexcept override;
+    std::unique_ptr<OpenMM::Force> generate() const override;
 
-    double      temperature() const noexcept override { return temperature_; }
-    std::size_t frequency()   const noexcept override { return frequency_; }
-    std::string name()        const noexcept override { return "MonteCarloMembraneBarostat"; }
+    double      temperature() const override { return temperature_; }
+    std::size_t frequency()   const override { return frequency_; }
+    std::string name()        const override { return "MonteCarloMembraneBarostat"; }
 
-    void dump_info() const noexcept override;
+    void dump_info() const override;
 
   private:
     double      default_pressure_;        // bar
