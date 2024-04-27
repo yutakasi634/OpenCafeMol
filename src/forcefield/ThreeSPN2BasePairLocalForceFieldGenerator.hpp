@@ -1,9 +1,10 @@
 #ifndef OPEN_AICG2_PLUS_3SPN2_BASE_PAIR_LOCAL_FORCE_FIELD_GENERATOR_HPP
 #define OPEN_AICG2_PLUS_3SPN2_BASE_PAIR_LOCAL_FORCE_FIELD_GENERATOR_HPP
 
-#include "ThreeSPN2BasePairForceFieldGenerator.hpp"
 #include "ForceFieldGeneratorBase.hpp"
 #include "ForceFieldIDGenerator.hpp"
+
+#include "ThreeSPN2DefaultParameters.hpp"
 
 #include <OpenMM.h>
 #include <fmt/core.h>
