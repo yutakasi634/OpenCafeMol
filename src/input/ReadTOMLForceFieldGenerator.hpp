@@ -207,9 +207,9 @@ read_toml_uniform_lennard_jones_attractive_ff_generator(
         const bool use_periodic);
 
 // TODO: enable to use offset
-template<typename PotentialParameterType>
-const ThreeSPN2BasePairLocalForceFieldGenerator<PotentialParameterType>
+inline const ThreeSPN2BasePairLocalForceFieldGenerator
 read_toml_3spn2_base_pair_local_ff_generator(
+    const ThreeSPN2BasePairPotentialDefaultParameter& para,
     const toml::value& local_ff_data, Topology& topology,
     const std::pair<std::string, std::string> base_pair,
     const bool use_periodic
@@ -278,18 +278,18 @@ read_toml_3spn2_base_pair_local_ff_generator(
         topology.add_edges(indices_vec, toml::find<std::string>(local_ff_data, "topology"));
     }
 
-    std::cerr << "    3SPN2BasePairLocal   : " + PotentialParameterType::name + " BasePair "
+    std::cerr << "    3SPN2BasePairLocal   : " + para.name() + " BasePair "
           << base0 + "-" + base1
           << " (" << indices_vec.size() << " pairs found)"
           << std::endl;
 
-    return ThreeSPN2BasePairLocalForceFieldGenerator<PotentialParameterType>(
+    return ThreeSPN2BasePairLocalForceFieldGenerator(para,
         indices_vec, base_pair, use_periodic);
 }
 
-template<typename PotentialParameterType>
-const ThreeSPN2BasePairForceFieldGenerator<PotentialParameterType>
+inline const ThreeSPN2BasePairForceFieldGenerator
 read_toml_3spn2_base_pair_ff_generator(
+        const ThreeSPN2BasePairPotentialDefaultParameter& para,
         const toml::value& global_ff_data, Topology& topology,
         const std::pair<std::string, std::string> base_pair,
         const bool use_periodic)
@@ -404,13 +404,13 @@ read_toml_3spn2_base_pair_ff_generator(
         ignore_list = read_ignore_molecule_and_particles_within(ignore, topology);
     }
 
-    std::cerr << "    Global        : " + PotentialParameterType::name + " BasePair "
+    std::cerr << "    Global        : " + para.name() + " BasePair "
           << donor << "-" << acceptor << " ("
           << indices_donor.size()    << donor << " and "
           << indices_acceptor.size() << acceptor
           << " found)" << std::endl;
 
-    return ThreeSPN2BasePairForceFieldGenerator<PotentialParameterType>(
+    return ThreeSPN2BasePairForceFieldGenerator(para,
         indices_donor, indices_acceptor, base_pair, ignore_list,
         use_periodic);
 }

@@ -303,16 +303,15 @@ SystemGenerator read_toml_system(const toml::value& data)
                 const std::vector<std::pair<std::string, std::string>> base_pairs =
                         {{"A", "T"}, {"G", "C"}};
 
+                using potential_type = ThreeSPN2BasePairLocalForceFieldGenerator;
                 if(potential == "3SPN2")
                 {
                     using parameter_type = ThreeSPN2BasePairPotentialParameter;
-                    using potential_type =
-                        ThreeSPN2BasePairLocalForceFieldGenerator<parameter_type>;
 
                     for (const auto& pair : base_pairs)
                     {
                         potential_type ff_gen =
-                            read_toml_3spn2_base_pair_local_ff_generator<parameter_type>(
+                            read_toml_3spn2_base_pair_local_ff_generator(parameter_type{},
                                 local_ff, topology, pair, use_periodic);
                         system_gen.add_ff_generator(
                             std::make_unique<potential_type>(ff_gen));
@@ -321,13 +320,11 @@ SystemGenerator read_toml_system(const toml::value& data)
                 else if(potential == "3SPN2C")
                 {
                     using parameter_type = ThreeSPN2CBasePairPotentialParameter;
-                    using potential_type =
-                        ThreeSPN2BasePairLocalForceFieldGenerator<parameter_type>;
 
                     for (const auto& pair : base_pairs)
                     {
                         potential_type ff_gen =
-                            read_toml_3spn2_base_pair_local_ff_generator<parameter_type>(
+                            read_toml_3spn2_base_pair_local_ff_generator(parameter_type{},
                                 local_ff, topology, pair, use_periodic);
                         system_gen.add_ff_generator(
                             std::make_unique<potential_type>(ff_gen));
@@ -699,16 +696,15 @@ SystemGenerator read_toml_system(const toml::value& data)
                 const std::vector<std::pair<std::string, std::string>> base_pairs =
                         {{"A", "T"}, {"G", "C"}};
 
+                using potential_type = ThreeSPN2BasePairForceFieldGenerator;
                 if(potential == "3SPN2")
                 {
                     using parameter_type = ThreeSPN2BasePairPotentialParameter;
-                    using potential_type =
-                        ThreeSPN2BasePairForceFieldGenerator<parameter_type>;
 
                     for (const auto& pair : base_pairs)
                     {
                         potential_type ff_gen =
-                            read_toml_3spn2_base_pair_ff_generator<parameter_type>(
+                            read_toml_3spn2_base_pair_ff_generator(parameter_type{},
                                 global_ff, topology, pair, use_periodic);
                         system_gen.add_ff_generator(
                             std::make_unique<potential_type>(ff_gen));
@@ -717,13 +713,11 @@ SystemGenerator read_toml_system(const toml::value& data)
                 else if(potential == "3SPN2C")
                 {
                     using parameter_type = ThreeSPN2CBasePairPotentialParameter;
-                    using potential_type =
-                        ThreeSPN2BasePairForceFieldGenerator<parameter_type>;
 
                     for (const auto& pair : base_pairs)
                     {
                         potential_type ff_gen =
-                            read_toml_3spn2_base_pair_ff_generator<parameter_type>(
+                            read_toml_3spn2_base_pair_ff_generator(parameter_type{},
                                 global_ff, topology, pair, use_periodic);
                         system_gen.add_ff_generator(
                             std::make_unique<potential_type>(ff_gen));

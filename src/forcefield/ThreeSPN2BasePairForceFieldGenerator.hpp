@@ -14,7 +14,24 @@
 #include <string>
 #include <vector>
 
-template<typename PotentialParameterType>
+// default parameter table
+struct ThreeSPN2BasePairPotentialDefaultParameter
+{
+    virtual ~ThreeSPN2BasePairPotentialDefaultParameter() = default;
+
+    virtual std::string name() const = 0;
+
+    virtual double cutoff  () const = 0;
+    virtual double alpha_BP() const = 0;
+    virtual double K_BP    () const = 0;
+
+    virtual std::map<std::string, double> epsilon_BP() const = 0;
+    virtual std::map<std::string, double> r0()         const = 0;
+    virtual std::map<std::string, double> theta0_1()   const = 0;
+    virtual std::map<std::string, double> theta0_2()   const = 0;
+    virtual std::map<std::string, double> phi0()       const = 0;
+};
+
 class ThreeSPN2BasePairForceFieldGenerator final : public ForceFieldGeneratorBase
 {
   public:
@@ -23,6 +40,7 @@ class ThreeSPN2BasePairForceFieldGenerator final : public ForceFieldGeneratorBas
 
   public:
     ThreeSPN2BasePairForceFieldGenerator(
+        const ThreeSPN2BasePairPotentialDefaultParameter& para,
         const std::vector<indices_type>& donor_indices_vec,
         const std::vector<indices_type>& acceptor_indices_vec,
         const std::pair<std::string, std::string>& base_pair,
@@ -32,7 +50,16 @@ class ThreeSPN2BasePairForceFieldGenerator final : public ForceFieldGeneratorBas
           acceptor_indices_vec_(acceptor_indices_vec),
           base_pair_(base_pair), ignore_list_(ignore_list),
           use_periodic_(use_periodic),
-          ffgen_id_(fmt::format("TSPN2BP{}", ffid.gen()))
+          ffgen_id_(fmt::format("TSPN2BP{}", ffid.gen())),
+          cutoff_    (para.cutoff    ()),
+          alpha_BP_  (para.alpha_BP  ()),
+          K_BP_      (para.K_BP      ()),
+          epsilon_BP_(para.epsilon_BP()),
+          r0_        (para.r0        ()),
+          theta0_1_  (para.theta0_1  ()),
+          theta0_2_  (para.theta0_2  ()),
+          phi0_      (para.phi0      ()),
+          name_      (para.name      ())
     {}
 
     std::unique_ptr<OpenMM::Force> generate() const override
@@ -71,7 +98,7 @@ class ThreeSPN2BasePairForceFieldGenerator final : public ForceFieldGeneratorBas
         }
 
         // set cutoff
-        chbond_ff->setCutoffDistance   (PotentialParameterType::cutoff);
+        chbond_ff->setCutoffDistance   (this->cutoff_);
 
         chbond_ff->addPerDonorParameter(fmt::format("{}_epsilon",  ffgen_id_));
         chbond_ff->addPerDonorParameter(fmt::format("{}_r0",       ffgen_id_));
@@ -83,13 +110,13 @@ class ThreeSPN2BasePairForceFieldGenerator final : public ForceFieldGeneratorBas
 
         const std::string bp_kind = base_pair_.first + base_pair_.second;
         const std::vector<double> parameters = {
-            PotentialParameterType::epsilon_BP.at(bp_kind),
-            PotentialParameterType::r0        .at(bp_kind),
-            PotentialParameterType::theta0_1  .at(bp_kind),
-            PotentialParameterType::theta0_2  .at(bp_kind),
-            PotentialParameterType::phi0      .at(bp_kind),
-            PotentialParameterType::alpha_BP,
-            PotentialParameterType::K_BP,
+            this->epsilon_BP_.at(bp_kind),
+            this->r0_        .at(bp_kind),
+            this->theta0_1_  .at(bp_kind),
+            this->theta0_2_  .at(bp_kind),
+            this->phi0_      .at(bp_kind),
+            this->alpha_BP_,
+            this->K_BP_
         };
 
         for (const auto& donor_particles: donor_indices_vec_)
@@ -133,7 +160,7 @@ class ThreeSPN2BasePairForceFieldGenerator final : public ForceFieldGeneratorBas
 
     std::string name() const noexcept override
     {
-        return PotentialParameterType::name+"BasePair "
+        return this->name_ + "BasePair "
                "(" + base_pair_.first + "-" + base_pair_.second + ")";
     }
 
@@ -144,7 +171,19 @@ class ThreeSPN2BasePairForceFieldGenerator final : public ForceFieldGeneratorBas
     index_pairs_type          ignore_list_;
     bool                      use_periodic_;
     std::string               ffgen_id_;
+
+    double                        cutoff_;
+    double                        alpha_BP_;
+    double                        K_BP_;
+    std::map<std::string, double> epsilon_BP_;
+    std::map<std::string, double> r0_;
+    std::map<std::string, double> theta0_1_;
+    std::map<std::string, double> theta0_2_;
+    std::map<std::string, double> phi0_;
+    std::string                   name_;
 };
+
+// parameter base class
 
 
 // ----------------------------------------------------------------------------
@@ -160,49 +199,61 @@ class ThreeSPN2BasePairForceFieldGenerator final : public ForceFieldGeneratorBas
 // - D. M. Hinckley, G. S. Freeman, J. K. Whitmer, and J. J. de Pablo
 //   J. Chem. Phys. (2013)
 
-struct ThreeSPN2BasePairPotentialParameter
+struct ThreeSPN2BasePairPotentialParameter final
+    : public ThreeSPN2BasePairPotentialDefaultParameter
 {
-    inline static double cutoff   = 18.0 * OpenMM::NmPerAngstrom;  // [nm]
+    ~ThreeSPN2BasePairPotentialParameter() override = default;
 
-    inline static double alpha_BP =  2.0 / OpenMM::NmPerAngstrom;  // [1/nm]
-    inline static double K_BP     = 12.0;
+    std::string name    () const override { return "3SPN2";}
+    double      cutoff  () const override { return 18.0 * OpenMM::NmPerAngstrom;} // [nm]
+    double      alpha_BP() const override { return  2.0 / OpenMM::NmPerAngstrom;} // [1/nm]
+    double      K_BP    () const override { return 12.0;}
 
-    inline static const std::map<std::string, double> epsilon_BP = { // [kJ/mol]
-        {"AT", 16.73},
-        {"TA", 16.73},
-        {"GC", 21.18},
-        {"CG", 21.18}
-    };
-
-    inline static const std::map<std::string, double> r0 = { // [nm]
-        {"AT", 5.941 * OpenMM::NmPerAngstrom},
-        {"TA", 5.941 * OpenMM::NmPerAngstrom},
-        {"GC", 5.530 * OpenMM::NmPerAngstrom},
-        {"GC", 5.530 * OpenMM::NmPerAngstrom}
-    };
-
-    inline static const std::map<std::string, double> theta0_1 = { // [radian]
-        {"AT", 156.54 * OpenMM::RadiansPerDegree},
-        {"TA", 135.78 * OpenMM::RadiansPerDegree},
-        {"GC", 159.81 * OpenMM::RadiansPerDegree},
-        {"GC", 141.16 * OpenMM::RadiansPerDegree}
-    };
-
-    inline static const std::map<std::string, double> theta0_2 = { // [radian]
-        {"AT", 135.78 * OpenMM::RadiansPerDegree},
-        {"TA", 156.54 * OpenMM::RadiansPerDegree},
-        {"GC", 141.16 * OpenMM::RadiansPerDegree},
-        {"GC", 159.81 * OpenMM::RadiansPerDegree}
-    };
-
-    inline static const std::map<std::string, double> phi0 = { // [radian]
-        {"AT", -38.35 * OpenMM::RadiansPerDegree},
-        {"TA", -38.35 * OpenMM::RadiansPerDegree},
-        {"GC", -42.98 * OpenMM::RadiansPerDegree},
-        {"GC", -42.98 * OpenMM::RadiansPerDegree}
-    };
-
-    inline static const std::string name = "3SPN2";
+    std::map<std::string, double> epsilon_BP() const override
+    {
+        return std::map<std::string, double>{ // [kJ/mol]
+            {"AT", 16.73},
+            {"TA", 16.73},
+            {"GC", 21.18},
+            {"CG", 21.18}
+        };
+    }
+    std::map<std::string, double> r0() const override
+    {
+        return std::map<std::string, double>{ // [nm]
+            {"AT", 5.941 * OpenMM::NmPerAngstrom},
+            {"TA", 5.941 * OpenMM::NmPerAngstrom},
+            {"GC", 5.530 * OpenMM::NmPerAngstrom},
+            {"GC", 5.530 * OpenMM::NmPerAngstrom}
+        };
+    }
+    std::map<std::string, double> theta0_1() const override
+    {
+        return std::map<std::string, double>{ // [radian]
+            {"AT", 156.54 * OpenMM::RadiansPerDegree},
+            {"TA", 135.78 * OpenMM::RadiansPerDegree},
+            {"GC", 159.81 * OpenMM::RadiansPerDegree},
+            {"GC", 141.16 * OpenMM::RadiansPerDegree}
+        };
+    }
+    std::map<std::string, double> theta0_2() const override
+    {
+        return std::map<std::string, double>{ // [radian]
+            {"AT", 135.78 * OpenMM::RadiansPerDegree},
+            {"TA", 156.54 * OpenMM::RadiansPerDegree},
+            {"GC", 141.16 * OpenMM::RadiansPerDegree},
+            {"GC", 159.81 * OpenMM::RadiansPerDegree}
+        };
+    }
+    std::map<std::string, double> phi0() const override
+    {
+        return std::map<std::string, double>{ // [radian]
+            {"AT", -38.35 * OpenMM::RadiansPerDegree},
+            {"TA", -38.35 * OpenMM::RadiansPerDegree},
+            {"GC", -42.98 * OpenMM::RadiansPerDegree},
+            {"GC", -42.98 * OpenMM::RadiansPerDegree}
+        };
+    }
 };
 
 // ----------------------------------------------------------------------------
@@ -221,48 +272,61 @@ struct ThreeSPN2BasePairPotentialParameter
 // - G. S. Freeman, D. M. Hinckley, J. P. Lequieu, J. K. Whitmer, and J. J. de Pablo
 //   J. Chem. Phys. (2014)
 
-struct ThreeSPN2CBasePairPotentialParameter
+struct ThreeSPN2CBasePairPotentialParameter final
+    : public ThreeSPN2BasePairPotentialDefaultParameter
 {
-    inline static const double cutoff       = 18.0 * OpenMM::NmPerAngstrom;  // [nm]
+    ~ThreeSPN2CBasePairPotentialParameter() override = default;
 
-    inline static const double alpha_BP     =  2.0 / OpenMM::NmPerAngstrom;  // [1/nm]
-    inline static const double K_BP         = 12.0;
+    std::string name    () const override {return "3SPN2C";}
+    double      cutoff  () const override {return 18.0 * OpenMM::NmPerAngstrom;}  // [nm]
+    double      alpha_BP() const override {return  2.0 / OpenMM::NmPerAngstrom;}  // [1/nm]
+    double      K_BP    () const override {return 12.0;}
 
-    inline static const std::map<std::string, double> epsilon_BP = { // [kJ/mol]
-        {"AT", 14.41},
-        {"TA", 14.41},
-        {"GC", 18.24},
-        {"CG", 18.24}
-    };
-
-    inline static const std::map<std::string, double> r0 = { // [nm]
-        {"AT", 5.82 * OpenMM::NmPerAngstrom},
-        {"TA", 5.82 * OpenMM::NmPerAngstrom},
-        {"GC", 5.52 * OpenMM::NmPerAngstrom},
-        {"GC", 5.52 * OpenMM::NmPerAngstrom}
-    };
-
-    inline static const std::map<std::string, double> theta0_1 = { // [radian]
-        {"AT", 153.17 * OpenMM::RadiansPerDegree},
-        {"TA", 133.51 * OpenMM::RadiansPerDegree},
-        {"GC", 159.50 * OpenMM::RadiansPerDegree},
-        {"GC", 138.08 * OpenMM::RadiansPerDegree}
-    };
-
-    inline static const std::map<std::string, double> theta0_2 = { // [radian]
-        {"AT", 133.51 * OpenMM::RadiansPerDegree},
-        {"TA", 153.17 * OpenMM::RadiansPerDegree},
-        {"GC", 138.08 * OpenMM::RadiansPerDegree},
-        {"GC", 159.50 * OpenMM::RadiansPerDegree}
-    };
-
-    inline static const std::map<std::string, double> phi0 = { // [radian]
-        {"AT", -38.18 * OpenMM::RadiansPerDegree},
-        {"TA", -38.18 * OpenMM::RadiansPerDegree},
-        {"GC", -35.75 * OpenMM::RadiansPerDegree},
-        {"GC", -35.75 * OpenMM::RadiansPerDegree}
-    };
-    inline static const std::string name = "3SPN2C";
+    std::map<std::string, double> epsilon_BP() const override
+    {
+        return std::map<std::string, double>{ // [kJ/mol]
+            {"AT", 14.41},
+            {"TA", 14.41},
+            {"GC", 18.24},
+            {"CG", 18.24}
+        };
+    }
+    std::map<std::string, double> r0() const override
+    {
+        return std::map<std::string, double>{ // [nm]
+            {"AT", 5.82 * OpenMM::NmPerAngstrom},
+            {"TA", 5.82 * OpenMM::NmPerAngstrom},
+            {"GC", 5.52 * OpenMM::NmPerAngstrom},
+            {"GC", 5.52 * OpenMM::NmPerAngstrom}
+        };
+    }
+    std::map<std::string, double> theta0_1() const override
+    {
+        return std::map<std::string, double>{ // [radian]
+            {"AT", 153.17 * OpenMM::RadiansPerDegree},
+            {"TA", 133.51 * OpenMM::RadiansPerDegree},
+            {"GC", 159.50 * OpenMM::RadiansPerDegree},
+            {"GC", 138.08 * OpenMM::RadiansPerDegree}
+        };
+    }
+    std::map<std::string, double> theta0_2() const override
+    {
+        return std::map<std::string, double>{ // [radian]
+            {"AT", 133.51 * OpenMM::RadiansPerDegree},
+            {"TA", 153.17 * OpenMM::RadiansPerDegree},
+            {"GC", 138.08 * OpenMM::RadiansPerDegree},
+            {"GC", 159.50 * OpenMM::RadiansPerDegree}
+        };
+    }
+    std::map<std::string, double> phi0() const override
+    {
+        return std::map<std::string, double>{ // [radian]
+            {"AT", -38.18 * OpenMM::RadiansPerDegree},
+            {"TA", -38.18 * OpenMM::RadiansPerDegree},
+            {"GC", -35.75 * OpenMM::RadiansPerDegree},
+            {"GC", -35.75 * OpenMM::RadiansPerDegree}
+        };
+    }
 };
 
 #endif // OPEN_AICG2_PLUS_3SPN2_BASE_PAIR_FORCE_FIELD_GENERATOR_HPP
