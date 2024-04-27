@@ -346,23 +346,22 @@ SystemGenerator read_toml_system(const toml::value& data)
                     {"A", "T"}, {"T", "A"}, {"G", "C"}, {"C", "G"}
                 };
 
+                using potential_type = ThreeSPN2CrossStackingLocalForceFieldGenerator;
                 if (potential == "3SPN2")
                 {
                     using parameter_type = ThreeSPN2CrossStackingPotentialParameter;
-                    using potential_type =
-                        ThreeSPN2CrossStackingLocalForceFieldGenerator<parameter_type>;
                     for (const auto& bp_kind: base_pairs)
                     {
                         // Cross stacking of sense-strand
                         potential_type ff_gen_sense =
-                            read_toml_3spn2_cross_stacking_local_ff_generator<parameter_type>(
+                            read_toml_3spn2_cross_stacking_local_ff_generator(parameter_type{},
                                 local_ff, topology, bp_kind, "sense", use_periodic);
                         system_gen.add_ff_generator(
                             std::make_unique<potential_type>(ff_gen_sense));
 
                         // Cross stacking of antisense-strand
                         potential_type ff_gen_antisense =
-                            read_toml_3spn2_cross_stacking_local_ff_generator<parameter_type>(
+                            read_toml_3spn2_cross_stacking_local_ff_generator(parameter_type{},
                                 local_ff, topology, bp_kind, "antisense", use_periodic);
                         system_gen.add_ff_generator(
                             std::make_unique<potential_type>(ff_gen_antisense));
@@ -371,20 +370,18 @@ SystemGenerator read_toml_system(const toml::value& data)
                 if (potential == "3SPN2C")
                 {
                     using parameter_type = ThreeSPN2CCrossStackingPotentialParameter;
-                    using potential_type =
-                        ThreeSPN2CrossStackingLocalForceFieldGenerator<parameter_type>;
                     for (const auto& bp_kind: base_pairs)
                     {
                         // Cross stacking of sense-strand
                         potential_type ff_gen_sense =
-                            read_toml_3spn2_cross_stacking_local_ff_generator<parameter_type>(
+                            read_toml_3spn2_cross_stacking_local_ff_generator(parameter_type{},
                                 local_ff, topology, bp_kind, "sense", use_periodic);
                         system_gen.add_ff_generator(
                             std::make_unique<potential_type>(ff_gen_sense));
 
                         // Cross stacking of antisense-strand
                         potential_type ff_gen_antisense =
-                            read_toml_3spn2_cross_stacking_local_ff_generator<parameter_type>(
+                            read_toml_3spn2_cross_stacking_local_ff_generator(parameter_type{},
                                 local_ff, topology, bp_kind, "antisense", use_periodic);
                         system_gen.add_ff_generator(
                             std::make_unique<potential_type>(ff_gen_antisense));
@@ -638,23 +635,22 @@ SystemGenerator read_toml_system(const toml::value& data)
                     {"A", "T"}, {"T", "A"}, {"G", "C"}, {"C", "G"}
                 };
 
+                using potential_type = ThreeSPN2CrossStackingForceFieldGenerator;
                 if(potential == "3SPN2")
                 {
                     using parameter_type = ThreeSPN2CrossStackingPotentialParameter;
-                    using potential_type =
-                        ThreeSPN2CrossStackingForceFieldGenerator<parameter_type>;
                     for (const auto& bp_kind: base_pairs) {
 
                         // Cross stacking of sense-strand
                         potential_type ff_gen_sense =
-                            read_toml_3spn2_cross_stacking_ff_generator<parameter_type>(
+                            read_toml_3spn2_cross_stacking_ff_generator(parameter_type{},
                                 global_ff, topology, bp_kind, "sense", use_periodic);
                         system_gen.add_ff_generator(
                             std::make_unique<potential_type>(ff_gen_sense));
 
                         // Cross stacking of antisense-strand
                         potential_type ff_gen_antisense =
-                            read_toml_3spn2_cross_stacking_ff_generator<parameter_type>(
+                            read_toml_3spn2_cross_stacking_ff_generator(parameter_type{},
                                 global_ff, topology, bp_kind, "antisense", use_periodic);
                         system_gen.add_ff_generator(
                             std::make_unique<potential_type>(ff_gen_antisense));
@@ -663,20 +659,18 @@ SystemGenerator read_toml_system(const toml::value& data)
                 else if(potential == "3SPN2C")
                 {
                     using parameter_type = ThreeSPN2CCrossStackingPotentialParameter;
-                    using potential_type =
-                        ThreeSPN2CrossStackingForceFieldGenerator<parameter_type>;
                     for (const auto& bp_kind: base_pairs) {
 
                         // Cross stacking of sense-strand
                         potential_type ff_gen_sense =
-                            read_toml_3spn2_cross_stacking_ff_generator<parameter_type>(
+                            read_toml_3spn2_cross_stacking_ff_generator(parameter_type{},
                                 global_ff, topology, bp_kind, "sense", use_periodic);
                         system_gen.add_ff_generator(
                             std::make_unique<potential_type>(ff_gen_sense));
 
                         // Cross stacking of antisense-strand
                         potential_type ff_gen_antisense =
-                            read_toml_3spn2_cross_stacking_ff_generator<parameter_type>(
+                            read_toml_3spn2_cross_stacking_ff_generator(parameter_type{},
                                 global_ff, topology, bp_kind, "antisense", use_periodic);
                         system_gen.add_ff_generator(
                             std::make_unique<potential_type>(ff_gen_antisense));

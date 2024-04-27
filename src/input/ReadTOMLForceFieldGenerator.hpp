@@ -222,9 +222,9 @@ read_toml_3spn2_base_pair_ff_generator(
         const bool use_periodic);
 
 // TODO: enable to use offset
-template<typename PotentialParameterType>
-const ThreeSPN2CrossStackingLocalForceFieldGenerator<PotentialParameterType>
+inline const ThreeSPN2CrossStackingLocalForceFieldGenerator
 read_toml_3spn2_cross_stacking_local_ff_generator(
+    const ThreeSPN2CrossStackingPotentialDefaultParameter& para,
     const toml::value& local_ff_data, Topology& topology,
     const std::pair<std::string, std::string> bp_kind, const std::string& strand_kind,
     const bool use_periodic
@@ -342,19 +342,19 @@ read_toml_3spn2_cross_stacking_local_ff_generator(
         topology.add_edges(indices_vec, toml::find<std::string>(local_ff_data, "topology"));
     }
 
-    std::cerr << "    3SPN2CrossStackingLocal   : " + PotentialParameterType::name + " CrossStacking "
+    std::cerr << "    3SPN2CrossStackingLocal   : " + para.name() + " CrossStacking "
               << bp_kind.first + "-" + bp_kind.second <<" in "
               << strand_kind << " strand "
               << " (" << indices_vec.size() << " pairs found)"
               << std::endl;
 
-    return ThreeSPN2CrossStackingLocalForceFieldGenerator<PotentialParameterType>(
+    return ThreeSPN2CrossStackingLocalForceFieldGenerator(para,
         indices_vec, base_kind_vec, bp_kind, use_periodic);
 }
 
-template<typename PotentialParameterType>
-const ThreeSPN2CrossStackingForceFieldGenerator<PotentialParameterType>
+inline const ThreeSPN2CrossStackingForceFieldGenerator
 read_toml_3spn2_cross_stacking_ff_generator(
+        const ThreeSPN2CrossStackingPotentialDefaultParameter& para,
         const toml::value& global_ff_data, Topology& topology,
         const std::pair<std::string, std::string> bp_kind, const std::string& strand_kind,
         const bool use_periodic)
@@ -540,13 +540,13 @@ read_toml_3spn2_cross_stacking_ff_generator(
         ignore_list = read_ignore_molecule_and_particles_within(ignore, topology);
     }
 
-    std::cerr << "    Global        : " + PotentialParameterType::name + " CrossStacking "
+    std::cerr << "    Global        : " + para.name() + " CrossStacking "
               << bp_kind.first << "-" << bp_kind.second << " in "
               << strand_kind << " strand ("
               << indices_donor.size()    << " x "
               << indices_acceptor.size() << " pairs found)" << std::endl;
 
-    return ThreeSPN2CrossStackingForceFieldGenerator<PotentialParameterType>(
+    return ThreeSPN2CrossStackingForceFieldGenerator(para,
         indices_donor, indices_acceptor, base_kind_acceptor, bp_kind, ignore_list,
         use_periodic);
 }

@@ -4,6 +4,8 @@
 #include "ForceFieldGeneratorBase.hpp"
 #include "ForceFieldIDGenerator.hpp"
 
+#include "ThreeSPN2DefaultParameters.hpp"
+
 #include <OpenMM.h>
 #include <fmt/core.h>
 
@@ -13,7 +15,6 @@
 #include <string>
 #include <vector>
 
-template<typename PotentialParameterType>
 class ThreeSPN2CrossStackingLocalForceFieldGenerator final : public ForceFieldGeneratorBase
 {
   public:
@@ -21,6 +22,7 @@ class ThreeSPN2CrossStackingLocalForceFieldGenerator final : public ForceFieldGe
 
   public:
     ThreeSPN2CrossStackingLocalForceFieldGenerator(
+        const ThreeSPN2CrossStackingPotentialDefaultParameter& para,
         const std::vector<indices_type>& indices_vec,
         const std::vector<std::string>&  base_kind_vec,
         const std::pair<std::string, std::string>& base_pair,
@@ -28,7 +30,16 @@ class ThreeSPN2CrossStackingLocalForceFieldGenerator final : public ForceFieldGe
         : indices_vec_(indices_vec),
           base_kind_vec_(base_kind_vec), base_pair_(base_pair),
           use_periodic_(use_periodic),
-          ffgen_id_(fmt::format("TSPN2_CSL{}", ffid.gen()))
+          ffgen_id_(fmt::format("TSPN2_CSL{}", ffid.gen())),
+          name_      (para.name()      ),
+          alpha_CS_  (para.alpha_CS()  ),
+          K_CS_      (para.K_CS()      ),
+          K_BP_      (para.K_BP()      ),
+          theta3_0_  (para.theta3_0()  ),
+          epsilon_CS_(para.epsilon_CS()),
+          r0_CS_     (para.r0_CS()     ),
+          theta_CS_0_(para.theta_CS_0())
+
     {
         if(!(indices_vec.size() == base_kind_vec.size()))
         {
@@ -97,13 +108,13 @@ class ThreeSPN2CrossStackingLocalForceFieldGenerator final : public ForceFieldGe
             const auto&       bpbc = base_kind_vec_[idx];
             const std::string b0bp = base_pair_.first + base_pair_.second;
             const std::vector<double> parameters = {
-                PotentialParameterType::epsilon_CS.at(bpbc),
-                PotentialParameterType::r0_CS     .at(bpbc),
-                PotentialParameterType::theta3_0  .at(b0bp),
-                PotentialParameterType::theta_CS_0.at(bpbc),
-                PotentialParameterType::K_BP,
-                PotentialParameterType::K_CS,
-                PotentialParameterType::alpha_CS
+                this->epsilon_CS_.at(bpbc),
+                this->r0_CS_     .at(bpbc),
+                this->theta3_0_  .at(b0bp),
+                this->theta_CS_0_.at(bpbc),
+                this->K_BP_,
+                this->K_CS_,
+                this->alpha_CS_
             };
 
             ccbond_ff->addBond(particles, parameters);
@@ -114,7 +125,7 @@ class ThreeSPN2CrossStackingLocalForceFieldGenerator final : public ForceFieldGe
 
     std::string name() const noexcept override
     {
-        return PotentialParameterType::name + "CrossStackingLocal "
+        return this->name_ + "CrossStackingLocal "
                "(" + base_pair_.first + "-" + base_pair_.second + ")";
     }
 
@@ -124,6 +135,15 @@ class ThreeSPN2CrossStackingLocalForceFieldGenerator final : public ForceFieldGe
     std::pair<std::string, std::string> base_pair_;
     bool                                use_periodic_;
     std::string                         ffgen_id_;
+
+    std::string                   name_      ;
+    double                        alpha_CS_  ;
+    double                        K_CS_      ;
+    double                        K_BP_      ;
+    std::map<std::string, double> theta3_0_  ;
+    std::map<std::string, double> epsilon_CS_;
+    std::map<std::string, double> r0_CS_     ;
+    std::map<std::string, double> theta_CS_0_;
 };
 
 #endif // OPEN_AICG2_PLUS_3SPN2_CROSS_STACKING_LOCAL_FORCE_FIELD_GENERATOR_HPP
