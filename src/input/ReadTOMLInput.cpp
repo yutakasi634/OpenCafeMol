@@ -1,6 +1,8 @@
 #include "ReadTOMLInput.hpp"
 
 #include "Utility.hpp"
+#include "src/util/Utility.hpp"
+
 #include "src/Simulator.hpp"
 #include "src/SystemGenerator.hpp"
 #include "src/IntegratorGenerator.hpp"
