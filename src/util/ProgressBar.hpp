@@ -1,12 +1,8 @@
 #ifndef OPEN_AICG2_PLUS_PROGRESS_BAR_HPP
 #define OPEN_AICG2_PLUS_PROGRESS_BAR_HPP
 
-#include <array>
 #include <chrono>
-#include <ostream>
 
-#include <cmath>
-#include <cstdio>
 
 class ProgressBar
 {
@@ -16,13 +12,9 @@ class ProgressBar
         : bar_width_(bar_width), start_(std::chrono::system_clock::now())
     {}
 
-    void format(std::size_t count, std::size_t total_step, std::ostream& os) const;
+    void format(std::size_t count, std::size_t total_step) const;
 
-    void finalize(std::ostream& os) const
-    {
-        this->format(1, 1, os); // show 100%
-        os << std::endl;
-    }
+    void finalize() const;
 
   private:
     std::size_t                           bar_width_;

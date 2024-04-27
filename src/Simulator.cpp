@@ -61,7 +61,7 @@ void Simulator::run()
 
         if(output_progress_)
         {
-            progress_bar_.format(step, total_step_, std::cerr);
+            progress_bar_.format(step, total_step_);
         }
     }
 
@@ -71,7 +71,7 @@ void Simulator::run()
     }
     if(output_progress_)
     {
-        progress_bar_.finalize(std::cerr);
+        progress_bar_.finalize();
     }
 }
 
