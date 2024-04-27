@@ -4,6 +4,7 @@
 #include "SystemGenerator.hpp"
 
 #include <string>
+#include <fstream>
 #include <OpenMM.h>
 
 class ObserverBase

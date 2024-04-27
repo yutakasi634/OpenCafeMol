@@ -1,7 +1,6 @@
 #include "IntegratorGenerator.hpp"
 
-#include <iomanip>
-#include <sstream>
+#include <fmt/core.h>
 
 std::unique_ptr<OpenMM::Integrator> LangevinIntegratorGenerator::generate() const
 {
@@ -16,29 +15,23 @@ std::unique_ptr<OpenMM::Integrator> LangevinIntegratorGenerator::generate() cons
 
 std::string LangevinIntegratorGenerator::dump_info() const
 {
-    std::ostringstream oss;
+    std::string info;
+    info += fmt::format("    temperature : {:7.2f} K\n",     this->temperature_);
+    info += fmt::format("    delta_t     : {:7.3f} ps\n",    this->delta_t_);
+    info += fmt::format("    gamma       : {:7.3f} ps^-1\n", this->friction_coeff_);
 
-    oss << "    temperature : "
-        << std::setw(7) << std::fixed << std::setprecision(2)
-        << this->temperature_ << " K\n";
-    oss << "    delta t     : "
-        << std::setw(7) << std::fixed << std::setprecision(3)
-        << this->delta_t_ << " ps\n";
-    oss << "    gamma       : "
-        << std::setw(7) << std::fixed << std::setprecision(3)
-        << this->friction_coeff_ << " ps^-1\n";
 
+    std::string seed;
     if(this->seed_ == 0)
     {
-        oss << "    seed        : "
-            << "not specified or 0. random seed will be chosen.\n";
+        seed = "not specified or 0. random seed will be chosen.";
     }
     else
     {
-        oss << "    seed        : "
-            << std::setw(7) << this->seed_ << '\n';
+        seed = fmt::format("{:7}", this->seed_);
     }
-    return oss.str();
+    info += fmt::format("    seed        : {}\n", seed);
+    return info;
 }
 
 
