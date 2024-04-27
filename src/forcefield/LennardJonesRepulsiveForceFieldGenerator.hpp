@@ -29,7 +29,7 @@ class LennardJonesRepulsiveForceFieldGenerator final : public ForceFieldGenerato
 
     std::unique_ptr<OpenMM::Force> generate() const override;
 
-    std::string name() const noexcept override { return "LennardJonesRepulsive"; }
+    std::string name() const override { return "LennardJonesRepulsive"; }
 
   private:
     double                              cutoff_ratio_;

@@ -130,7 +130,7 @@ DebyeHuckelForceFieldGenerator::DebyeHuckelForceFieldGenerator(
 }
 
 
-std::unique_ptr<OpenMM::Force> DebyeHuckelForceFieldGenerator::generate() const noexcept
+std::unique_ptr<OpenMM::Force> DebyeHuckelForceFieldGenerator::generate() const
 {
     const std::string potential_formula = fmt::format(
         "{id}_q1 * {id}_q2 * {id}_inv_4_pi_eps0_epsk * ("

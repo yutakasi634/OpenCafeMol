@@ -41,7 +41,7 @@ class ThreeSPN2BasePairLocalForceFieldGenerator final : public ForceFieldGenerat
 
     std::unique_ptr<OpenMM::Force> generate() const override;
 
-    std::string name() const noexcept override
+    std::string name() const override
     {
         return name_+"BasePairLocal "
                "(" + base_pair_.first + "-" + base_pair_.second + ")";

@@ -28,12 +28,12 @@ class UniformWeeksChandlerAndersenForceFieldGenerator final : public ForceFieldG
         const std::vector<std::pair<std::string, std::string>> ignore_group_pairs = {},
         const std::vector<std::optional<std::string>> group_vec = {});
 
-    std::unique_ptr<OpenMM::Force> generate() const noexcept override;
+    std::unique_ptr<OpenMM::Force> generate() const override;
 
     std::size_t former_group_size() const noexcept { return former_group_size_; }
     std::size_t latter_group_size() const noexcept { return latter_group_size_; }
 
-    std::string name() const noexcept override { return "UniformWeeksChadlerAndersen"; }
+    std::string name() const override { return "UniformWeeksChadlerAndersen"; }
 
   private:
     std::size_t      system_size_;

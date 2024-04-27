@@ -104,7 +104,7 @@ ThreeSPN2ExcludedVolumeForceFieldGenerator::ThreeSPN2ExcludedVolumeForceFieldGen
     }
 }
 
-std::unique_ptr<OpenMM::Force> ThreeSPN2ExcludedVolumeForceFieldGenerator::generate() const noexcept
+std::unique_ptr<OpenMM::Force> ThreeSPN2ExcludedVolumeForceFieldGenerator::generate() const
 {
     std::string potential_formula = fmt::format(
         "step(sigma - r)*"

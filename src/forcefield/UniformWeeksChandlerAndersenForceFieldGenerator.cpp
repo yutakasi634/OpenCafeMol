@@ -133,7 +133,7 @@ UniformWeeksChandlerAndersenForceFieldGenerator::UniformWeeksChandlerAndersenFor
     }
 }
 
-std::unique_ptr<OpenMM::Force> UniformWeeksChandlerAndersenForceFieldGenerator::generate() const noexcept
+std::unique_ptr<OpenMM::Force> UniformWeeksChandlerAndersenForceFieldGenerator::generate() const
 {
     const std::string potential_formula = fmt::format(
         "4 * {id}_eps * (sigma_r_12 - sigma_r_6 + 0.25);"

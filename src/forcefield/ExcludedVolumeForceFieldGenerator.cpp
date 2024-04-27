@@ -107,7 +107,7 @@ ExcludedVolumeForceFieldGenerator::ExcludedVolumeForceFieldGenerator(const doubl
     }
 }
 
-std::unique_ptr<OpenMM::Force> ExcludedVolumeForceFieldGenerator::generate() const noexcept
+std::unique_ptr<OpenMM::Force> ExcludedVolumeForceFieldGenerator::generate() const
 {
     const std::string potential_formula = fmt::format(
         "{id}_epsilon * (sigma_sum)^12 * ((1/r)^12 - {id}_cutoff_correction);"

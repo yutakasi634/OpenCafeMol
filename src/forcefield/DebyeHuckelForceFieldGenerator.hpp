@@ -27,9 +27,9 @@ class DebyeHuckelForceFieldGenerator final : public ForceFieldGeneratorBase
         const std::vector<std::pair<std::string, std::string>> ignore_group_pairs = {},
         const std::vector<std::optional<std::string>> group_vec = {});
 
-    std::unique_ptr<OpenMM::Force> generate() const noexcept override;
+    std::unique_ptr<OpenMM::Force> generate() const override;
 
-    std::string name() const noexcept override { return "DebyeHuckel"; }
+    std::string name() const override { return "DebyeHuckel"; }
 
   private:
 

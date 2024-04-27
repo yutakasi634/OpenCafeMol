@@ -21,9 +21,9 @@ class HarmonicCoMPullingForceFieldGenerator : public ForceFieldGeneratorBase
           use_periodic_(use_periodic), ffgen_id_(fmt::format("HCP{}", ffid.gen()))
     {}
 
-    std::unique_ptr<OpenMM::Force> generate() const noexcept override;
+    std::unique_ptr<OpenMM::Force> generate() const override;
 
-    std::string name() const noexcept override { return "HamonicCoMPulling"; }
+    std::string name() const override { return "HamonicCoMPulling"; }
 
   private:
     double           k_;

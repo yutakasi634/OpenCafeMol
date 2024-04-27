@@ -140,7 +140,7 @@ UniformLennardJonesAttractiveForceFieldGenerator::UniformLennardJonesAttractiveF
     }
 }
 
-std::unique_ptr<OpenMM::Force> UniformLennardJonesAttractiveForceFieldGenerator::generate() const noexcept
+std::unique_ptr<OpenMM::Force> UniformLennardJonesAttractiveForceFieldGenerator::generate() const
 {
     const std::string potential_formula = fmt::format(
         "{id}_epsilon *"

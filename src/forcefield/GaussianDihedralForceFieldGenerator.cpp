@@ -1,6 +1,6 @@
 #include "GaussianDihedralForceFieldGenerator.hpp"
 
-std::unique_ptr<OpenMM::Force> GaussianDihedralForceFieldGenerator::generate() const noexcept
+std::unique_ptr<OpenMM::Force> GaussianDihedralForceFieldGenerator::generate() const
 {
     const std::string potential_formula = fmt::format(
         "{id}_k * exp(-(dt_periodic)^2 /(2*{id}_sigma^2));"

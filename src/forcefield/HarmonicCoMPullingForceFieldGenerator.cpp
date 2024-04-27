@@ -1,6 +1,6 @@
 #include "HarmonicCoMPullingForceFieldGenerator.hpp"
 
-std::unique_ptr<OpenMM::Force> HarmonicCoMPullingForceFieldGenerator::generate() const noexcept
+std::unique_ptr<OpenMM::Force> HarmonicCoMPullingForceFieldGenerator::generate() const
 {
     const std::string potential_formula = fmt::format(
         "0.5 * {id}_k * (distance(g1, g2) - {id}_v0)^2",

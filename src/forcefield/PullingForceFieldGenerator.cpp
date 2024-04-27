@@ -1,6 +1,6 @@
 #include "PullingForceFieldGenerator.hpp"
 
-std::unique_ptr<OpenMM::Force> PullingForceFieldGenerator::generate() const noexcept
+std::unique_ptr<OpenMM::Force> PullingForceFieldGenerator::generate() const
 {
     const std::string potential_formula = fmt::format(
         "-{id}_kx * x - {id}_ky * y - {id}_kz * z",

@@ -2,7 +2,7 @@
 
 #include <regex>
 
-std::unique_ptr<OpenMM::Force> CosineDihedralForceFieldGenerator::generate() const noexcept
+std::unique_ptr<OpenMM::Force> CosineDihedralForceFieldGenerator::generate() const
 {
     std::string potential_formula =  "k_periodic * (1 - cos(n0 * (theta - t0)))";
     // The 3SPN2C DNA model paper (Freeman et al., JCP, 2014) shows k*(1 + cos x) formula.
