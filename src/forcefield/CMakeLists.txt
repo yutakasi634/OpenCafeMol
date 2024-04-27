@@ -20,4 +20,5 @@ target_sources(open_aicg2plus PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/PullingForceFieldGenerator.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ThreeSPN2ExcludedVolumeForceFieldGenerator.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ThreeSPN2BaseStackingForceFieldGenerator.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ThreeSPN2BondForceFieldGenerator.cpp
     )
