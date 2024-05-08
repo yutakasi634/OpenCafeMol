@@ -1,11 +1,17 @@
 #ifndef OPEN_AICG2_PLUS_PROGRESS_BAR_HPP
 #define OPEN_AICG2_PLUS_PROGRESS_BAR_HPP
 
+#include <array>
 #include <chrono>
+#include <ostream>
+
+#include <cmath>
+#include <cstdio>
 
 class ProgressBar
 {
   public:
+
     ProgressBar(std::size_t bar_width) noexcept
         : bar_width_(bar_width), start_(std::chrono::system_clock::now())
     {}

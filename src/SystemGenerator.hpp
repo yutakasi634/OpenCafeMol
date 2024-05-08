@@ -1,8 +1,17 @@
 #ifndef OPEN_AICG2_PLUS_SYSTEM_HPP
 #define OPEN_AICG2_PLUS_SYSTEM_HPP
 
-#include "src/forcefield/ForceFieldGeneratorBase.hpp"
-#include "src/forcefield/MonteCarloAnisotropicBarostatGenerator.hpp"
+#include "forcefield/ForceFieldGeneratorBase.hpp"
+#include "forcefield/BarostatGeneratorBase.hpp"
+
+#include <OpenMM.h>
+
+#include <array>
+#include <iomanip>
+#include <iostream>
+#include <optional>
+#include <string>
+#include <vector>
 
 class SystemGenerator
 {

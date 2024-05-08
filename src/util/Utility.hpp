@@ -1,9 +1,13 @@
 #ifndef OPEN_AICG2_PLUS_UTILITY_HPP
 #define OPEN_AICG2_PLUS_UTILITY_HPP
 
-#include <string>
+#include <toml11/toml.hpp>
+
 #include <algorithm>
+#include <iostream>
 #include <filesystem>
+#include <fstream>
+#include <string>
 
 namespace Utility
 {
@@ -19,7 +23,7 @@ void write_as_bytes(std::ostream& os, const T& v) noexcept
     return;
 }
 
-std::string get_file_suffix(const std::string& filename)
+inline std::string get_file_suffix(const std::string& filename)
 {
     const std::size_t file_suffix_from = filename.rfind(".");
     if(file_suffix_from == std::string::npos)
@@ -32,7 +36,7 @@ std::string get_file_suffix(const std::string& filename)
     return filename.substr(file_suffix_from, file_suffix_len);
 }
 
-std::string erase_space(std::string&& str)
+inline std::string erase_space(std::string&& str)
 {
     const auto new_end = std::remove_if(str.begin(), str.end(),
                              [](const char x){ return std::isspace(x); });
@@ -40,7 +44,7 @@ std::string erase_space(std::string&& str)
     return str;
 }
 
-void clear_file(const std::string& filename)
+inline void clear_file(const std::string& filename)
 {
     std::filesystem::path fpath(filename);
     fpath.remove_filename(); // extract direcotry
@@ -73,7 +77,7 @@ void clear_file(const std::string& filename)
 // ----------------------------------------------------------------------------
 // parse toml file
 
-const toml::value& find_either(
+inline const toml::value& find_either(
         const toml::value& v, const std::string& key1, const std::string& key2)
 {
     // A functor to find a value that corresponds to either of the key.

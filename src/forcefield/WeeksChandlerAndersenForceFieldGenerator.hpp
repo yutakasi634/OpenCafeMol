@@ -1,10 +1,20 @@
 #ifndef OPEN_AICG2_PLUS_WEEKS_CHANDLER_ANDERSEN_FORCE_FIELD_GENERATOR_HPP
 #define OPEN_AICG2_PLUS_WEEKS_CHANDLER_ANDERSEN_FORCE_FIELD_GENERATOR_HPP
 
-#include <OpenMM.h>
-#include <fmt/core.h>
+#include "src/util/Utility.hpp"
 #include "ForceFieldGeneratorBase.hpp"
 #include "ForceFieldIDGenerator.hpp"
+
+#include <OpenMM.h>
+#include <fmt/core.h>
+
+#include <iostream>
+#include <map>
+#include <memory>
+#include <optional>
+#include <set>
+#include <string>
+#include <vector>
 
 class WeeksChandlerAndersenForceFieldGenerator final : public ForceFieldGeneratorBase
 {
@@ -202,7 +212,7 @@ class WeeksChandlerAndersenForceFieldGenerator final : public ForceFieldGenerato
         return wca_ff;
     }
 
-    std::string name() const noexcept { return "WeeksChandlerAndersen"; }
+    std::string name() const noexcept override { return "WeeksChandlerAndersen"; }
 
   private:
     std::vector<std::optional<double>>  sigmas_;

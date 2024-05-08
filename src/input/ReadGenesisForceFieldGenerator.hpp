@@ -2,6 +2,7 @@
 #define OPEN_AICG2_PLUS_READ_GENESIS_FORCE_FIELD_GENERATOR_HPP
 
 #include <OpenMM.h>
+
 #include "src/forcefield/HarmonicBondForceFieldGenerator.hpp"
 #include "src/forcefield/GaussianBondForceFieldGenerator.hpp"
 #include "src/forcefield/GoContactForceFieldGenerator.hpp"
@@ -10,7 +11,9 @@
 #include "src/forcefield/FlexibleLocalDihedralForceFieldGenerator.hpp"
 #include "src/forcefield/ExcludedVolumeForceFieldGenerator.hpp"
 
-HarmonicBondForceFieldGenerator
+#include "src/Topology.hpp"
+
+inline HarmonicBondForceFieldGenerator
 read_genesis_harmonic_bond_ff_generator(
         const std::vector<std::string>& bonds_data, Topology& topology, const bool use_periodic)
 {
@@ -35,7 +38,7 @@ read_genesis_harmonic_bond_ff_generator(
         return HarmonicBondForceFieldGenerator(indices_vec, v0s, ks, use_periodic);
 }
 
-GaussianBondForceFieldGenerator
+inline GaussianBondForceFieldGenerator
 read_genesis_gaussian_bond_ff_generator(
         const std::vector<std::string>& angles_data, const bool use_periodic)
 {
@@ -66,7 +69,7 @@ read_genesis_gaussian_bond_ff_generator(
             indices_vec, ks, v0s, sigmas, use_periodic);
 }
 
-GoContactForceFieldGenerator
+inline GoContactForceFieldGenerator
 read_genesis_go_contact_ff_generator(
         const std::vector<std::string>& pairs_data, Topology& topology,
         const bool use_periodic)
@@ -92,7 +95,7 @@ read_genesis_go_contact_ff_generator(
     return GoContactForceFieldGenerator(indices_vec, ks, r0s, use_periodic);
 }
 
-FlexibleLocalAngleForceFieldGenerator
+inline FlexibleLocalAngleForceFieldGenerator
 read_genesis_flexible_local_angle_ff_generator(
         const std::vector<std::string>& angles_data, const std::vector<std::string>& atoms_data,
         const std::string& aa_type, const bool use_periodic)
@@ -128,7 +131,7 @@ read_genesis_flexible_local_angle_ff_generator(
                Constant::fla_spline_table.at(aa_type), aa_type, use_periodic);
 }
 
-GaussianDihedralForceFieldGenerator
+inline GaussianDihedralForceFieldGenerator
 read_genesis_gaussian_dihedral_ff_generator(
         const std::vector<std::string>& dihedrals_data,
         const bool use_periodic)
@@ -162,7 +165,7 @@ read_genesis_gaussian_dihedral_ff_generator(
             indices_vec, ks, theta0s, sigmas, use_periodic);
 }
 
-FlexibleLocalDihedralForceFieldGenerator
+inline FlexibleLocalDihedralForceFieldGenerator
 read_genesis_flexible_local_dihedral_ff_generator(
         const std::vector<std::string>& dihedrals_data,
         const std::vector<std::string>& atoms_data,
@@ -237,7 +240,7 @@ read_genesis_flexible_local_dihedral_ff_generator(
             aa_type_pair.first + "-" + aa_type_pair.second, use_periodic);
 }
 
-ExcludedVolumeForceFieldGenerator
+inline ExcludedVolumeForceFieldGenerator
 read_genesis_exv_ff_generator(const std::vector<std::string>& atomtypes_data,
         const std::vector<std::string>& atoms_data, Topology& topology,
         const bool use_periodic,

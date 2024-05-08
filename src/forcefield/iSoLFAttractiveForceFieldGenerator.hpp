@@ -1,10 +1,18 @@
 #ifndef OPEN_AICG2_PLUS_ISOLF_ATTRACTIVE_FORCE_FIELD_GENERATOR_HPP
 #define OPEN_AICG2_PLUS_ISOLF_ATTRACTIVE_FORCE_FIELD_GENERATOR_HPP
 
-#include <OpenMM.h>
-#include <fmt/core.h>
+#include "src/util/Utility.hpp"
 #include "ForceFieldGeneratorBase.hpp"
 #include "ForceFieldIDGenerator.hpp"
+
+#include <OpenMM.h>
+#include <fmt/core.h>
+
+#include <algorithm>
+#include <vector>
+#include <utility>
+#include <optional>
+#include <iostream>
 
 // The formulation of this potential is
 //        /                 -ε                , r <= 2^(1/6)*σ
@@ -231,7 +239,7 @@ class iSoLFAttractiveForceFieldGenerator final : public ForceFieldGeneratorBase
         return isa_ff;
     }
 
-    std::string name() const noexcept { return "iSoLFAttractive"; }
+    std::string name() const noexcept override { return "iSoLFAttractive"; }
 
   private:
     std::vector<std::optional<double>>  sigmas_;

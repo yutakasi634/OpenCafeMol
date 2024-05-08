@@ -1,6 +1,17 @@
 #ifndef OPEN_AICG2_PLUS_POSITION_RESTRAINT_FORCE_FIELD_GENERATOR_HPP
 #define OPEN_AICG2_PLUS_POSITION_RESTRAINT_FORCE_FIELD_GENERATOR_HPP
 
+#include "ForceFieldGeneratorBase.hpp"
+#include "ForceFieldIDGenerator.hpp"
+
+#include <OpenMM.h>
+#include <fmt/core.h>
+
+#include <array>
+#include <memory>
+#include <string>
+#include <vector>
+
 class PositionRestraintForceFieldGenerator : public ForceFieldGeneratorBase
 {
   public:
@@ -40,7 +51,7 @@ class PositionRestraintForceFieldGenerator : public ForceFieldGeneratorBase
         return pr_ff;
     }
 
-    std::string name() const noexcept { return "PositionRestraint"; }
+    std::string name() const noexcept override { return "PositionRestraint"; }
 
   private:
     std::vector<std::size_t>           indices_;

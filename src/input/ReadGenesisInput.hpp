@@ -1,15 +1,18 @@
 #ifndef OPEN_AICG2_PLUS_READ_GENESIS_INPUT_HPP
 #define OPEN_AICG2_PLUS_READ_GENESIS_INPUT_HPP
 
-#include <regex>
-#include <OpenMM.h>
+#include "ReadGenesisForceFieldGenerator.hpp"
+
 #include "src/Simulator.hpp"
 #include "src/SystemGenerator.hpp"
 #include "src/IntegratorGenerator.hpp"
 #include "src/Topology.hpp"
-#include "ReadGenesisForceFieldGenerator.hpp"
 
-std::map<std::string, std::map<std::string, std::string>> read_inp_file(const std::string& inp_file_name)
+#include <OpenMM.h>
+
+#include <regex>
+
+inline std::map<std::string, std::map<std::string, std::string>> read_inp_file(const std::string& inp_file_name)
 {
     std::cerr << "reading " << inp_file_name << "..." << std::endl;
     std::ifstream ifs(inp_file_name);
@@ -63,7 +66,7 @@ std::map<std::string, std::map<std::string, std::string>> read_inp_file(const st
     return inp_data;
 }
 
-std::vector<std::string> preprocess_top_file(
+inline std::vector<std::string> preprocess_top_file(
         const std::string& top_file_name, const std::string& file_path)
 {
     std::ifstream ifs(file_path + top_file_name);
@@ -108,7 +111,7 @@ std::vector<std::string> preprocess_top_file(
     return file_contents;
 }
 
-std::map<std::string, std::vector<std::string>>
+inline std::map<std::string, std::vector<std::string>>
 read_top_file(const std::string& topfile_name, const std::string& file_path)
 {
     std::cerr << "reading " << file_path << topfile_name << "..." << std::endl;
@@ -162,7 +165,7 @@ read_top_file(const std::string& topfile_name, const std::string& file_path)
     return top_data;
 }
 
-std::unique_ptr<IntegratorGeneratorBase>
+inline std::unique_ptr<IntegratorGeneratorBase>
 read_genesis_integrator_gen(
         const std::map<std::string, std::string>& dynamics,
         const std::map<std::string, std::string>& ensemble
@@ -183,7 +186,7 @@ read_genesis_integrator_gen(
             temperature, friction_coeff, delta_t, seed);
 }
 
-std::vector<OpenMM::Vec3> read_genesis_initial_conf(
+inline std::vector<OpenMM::Vec3> read_genesis_initial_conf(
         const std::string& input_gro, const std::string& file_path)
 {
     std::ifstream ifs(file_path + input_gro);
@@ -208,7 +211,7 @@ std::vector<OpenMM::Vec3> read_genesis_initial_conf(
     return initPosInNm;
 }
 
-Simulator make_simulator_from_genesis_inputs(
+inline Simulator make_simulator_from_genesis_inputs(
         const std::map<std::string, std::map<std::string, std::string>>& inpfile_data,
         const std::string& topfile_name, const std::string& grofile_name,
         const std::string& file_path)
@@ -493,7 +496,7 @@ Simulator make_simulator_from_genesis_inputs(
                      initial_position_in_nm, nsteps, crdout_period, observers);
 }
 
-Simulator read_genesis_input(const std::string& inp_file_name)
+inline Simulator read_genesis_input(const std::string& inp_file_name)
 {
     std::size_t file_path_len = inp_file_name.rfind("/")+1;
     if(file_path_len == std::string::npos)

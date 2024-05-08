@@ -1,9 +1,19 @@
 #ifndef OPEN_AICG2_PLUS_LENNARD_JONES_ATTRACTIVE_FORCE_FIELD_GENERATOR_HPP
 #define OPEN_AICG2_PLUS_LENNARD_JONES_ATTRACTIVE_FORCE_FIELD_GENERATOR_HPP
 
+#include "src/util/Utility.hpp"
+#include "ForceFieldGeneratorBase.hpp"
+#include "ForceFieldIDGenerator.hpp"
+
 #include <OpenMM.h>
 #include <fmt/core.h>
-#include "ForceFieldGeneratorBase.hpp"
+
+#include <algorithm>
+#include <iostream>
+#include <optional>
+#include <set>
+#include <utility>
+#include <vector>
 
 class LennardJonesAttractiveForceFieldGenerator final : public ForceFieldGeneratorBase
 {
@@ -208,7 +218,7 @@ class LennardJonesAttractiveForceFieldGenerator final : public ForceFieldGenerat
         return ljattr_ff;
     }
 
-    std::string name() const noexcept { return "LennardJonesAttractive"; }
+    std::string name() const noexcept override { return "LennardJonesAttractive"; }
 
   private:
     double                              cutoff_ratio_;

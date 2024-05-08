@@ -1,6 +1,9 @@
 #ifndef OPEN_AICG2_PLUS_INTEGRATOR_GENERATOR_HPP
 #define OPEN_AICG2_PLUS_INTEGRATOR_GENERATOR_HPP
 
+#include <OpenMM.h>
+
+#include <iomanip>
 #include <memory>
 #include <sstream>
 #include <string>

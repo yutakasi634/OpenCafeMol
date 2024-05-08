@@ -1,16 +1,16 @@
 #ifndef OPEN_AICG2_PLUS_FLEXIBLE_LOCAL_ANGLE_FORCE_FIELD_GENERATOR_HPP
 #define OPEN_AICG2_PLUS_FLEXIBLE_LOCAL_ANGLE_FORCE_FIELD_GENERATOR_HPP
 
-#include <memory>
-#include <sstream>
-#include <string>
+#include "src/util/Constants.hpp"
+#include "ForceFieldGeneratorBase.hpp"
+#include "ForceFieldIDGenerator.hpp"
 
 #include <OpenMM.h>
 #include <fmt/core.h>
 
-#include "src/util/Constants.hpp"
-#include "ForceFieldGeneratorBase.hpp"
-#include "ForceFieldIDGenerator.hpp"
+#include <memory>
+#include <sstream>
+#include <string>
 
 class FlexibleLocalAngleForceFieldGenerator final : public ForceFieldGeneratorBase
 {
@@ -116,7 +116,7 @@ class FlexibleLocalAngleForceFieldGenerator final : public ForceFieldGeneratorBa
         return e1 + e2;
    }
 
-    std::string name() const noexcept
+    std::string name() const noexcept override
     {
         return "FlexibleLocalAngle (" + aa_name_ + ")";
     }

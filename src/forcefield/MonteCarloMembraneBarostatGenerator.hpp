@@ -1,7 +1,14 @@
 #ifndef OPEN_AICG2_PLUS_MONTE_CARLO_MEMBRANE_BAROSTAT_GENERATOR_HPP
 #define OPEN_AICG2_PLUS_MONTE_CARLO_MEMBRANE_BAROSTAT_GENERATOR_HPP
 
+#include "BarostatGeneratorBase.hpp"
+
 #include <OpenMM.h>
+
+#include <iostream>
+#include <iomanip>
+#include <memory>
+#include <string>
 
 class MonteCarloMembraneBarostatGenerator final : public BarostatGeneratorBase
 {

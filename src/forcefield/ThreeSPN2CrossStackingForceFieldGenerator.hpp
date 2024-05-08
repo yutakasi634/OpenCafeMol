@@ -1,16 +1,19 @@
 #ifndef OPEN_AICG2_PLUS_3SPN2_CROSS_STACKING_FORCE_FIELD_GENERATOR_HPP
 #define OPEN_AICG2_PLUS_3SPN2_CROSS_STACKING_FORCE_FIELD_GENERATOR_HPP
 
-#include <cmath>
-#include <map>
-#include <memory>
-#include <regex>
-#include <sstream>
-#include <string>
-#include <OpenMM.h>
 #include "ForceFieldGeneratorBase.hpp"
 #include "ForceFieldIDGenerator.hpp"
-#include "src/util/Constants.hpp"
+
+#include <OpenMM.h>
+#include <fmt/core.h>
+
+#include <algorithm>
+#include <array>
+#include <map>
+#include <memory>
+#include <sstream>
+#include <string>
+#include <vector>
 
 template<typename PotentialParameterType>
 class ThreeSPN2CrossStackingForceFieldGenerator final : public ForceFieldGeneratorBase
@@ -113,7 +116,7 @@ class ThreeSPN2CrossStackingForceFieldGenerator final : public ForceFieldGenerat
             const size_t a3_base_c = acceptor_indices_vec_.at(i).at(2);
 
             const auto& bpbc = base_kind_acceptors_vec_[i];
-                
+
             const std::vector<double> parameters = {
                 PotentialParameterType::epsilon_CS.at(bpbc),
                 PotentialParameterType::r0_CS     .at(bpbc),
@@ -147,7 +150,7 @@ class ThreeSPN2CrossStackingForceFieldGenerator final : public ForceFieldGenerat
         return chbond_ff;
     }
 
-    std::string name() const noexcept
+    std::string name() const noexcept override
     {
         return PotentialParameterType::name + "CrossStacking "
                "(" + base_pair_.first + "-" + base_pair_.second + ")";

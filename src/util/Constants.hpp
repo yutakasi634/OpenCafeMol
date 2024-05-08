@@ -1,7 +1,14 @@
 #ifndef OPEN_AICG2_PLUS_CONSTANTS_HPP
 #define OPEN_AICG2_PLUS_CONSTANTS_HPP
 
+#include <OpenMM.h>
+
+#include <array>
+#include <map>
 #include <string>
+#include <utility>
+
+#include <cmath>
 
 namespace Constant
 {

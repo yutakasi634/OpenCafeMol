@@ -1,14 +1,16 @@
 #ifndef OPEN_AICG2_PLUS_3SPN2_BOND_FORCE_FIELD_GENERATOR_HPP
 #define OPEN_AICG2_PLUS_3SPN2_BOND_FORCE_FIELD_GENERATOR_HPP
 
-#include <map>
-#include <memory>
-#include <regex>
-#include <sstream>
-#include <string>
-#include <OpenMM.h>
 #include "ForceFieldGeneratorBase.hpp"
 #include "ForceFieldIDGenerator.hpp"
+
+#include <OpenMM.h>
+#include <fmt/core.h>
+
+#include <memory>
+#include <sstream>
+#include <string>
+#include <vector>
 
 class ThreeSPN2BondForceFieldGenerator final : public ForceFieldGeneratorBase
 {
@@ -61,7 +63,7 @@ class ThreeSPN2BondForceFieldGenerator final : public ForceFieldGeneratorBase
     }
 
     const std::vector<indices_type>& indices() const noexcept { return indices_vec_; }
-    std::string                      name()    const noexcept { return "3SPN2Bond"; }
+    std::string                      name()    const noexcept final { return "3SPN2Bond"; }
 
   private:
     std::vector<indices_type> indices_vec_;

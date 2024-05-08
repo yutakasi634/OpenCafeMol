@@ -1,6 +1,10 @@
 #ifndef OPEN_AICG2_PLUS_INPUT_UTILITY_HPP
 #define OPEN_AICG2_PLUS_INPUT_UTILITY_HPP
 
+#include <toml11/toml.hpp>
+
+#include <iostream>
+
 inline void merge_toml_tables(toml::value& table, const toml::value& other)
 {
     assert(table.is_table());

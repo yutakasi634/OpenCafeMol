@@ -1,10 +1,11 @@
 #ifndef OPEN_AICG2_PLUS_READ_TOML_FORCE_FIELD_GENERATOR_HPP
 #define OPEN_AICG2_PLUS_READ_TOML_FORCE_FIELD_GENERATOR_HPP
 
-#include <OpenMM.h>
 #include "Utility.hpp"
+
 #include "src/util/Utility.hpp"
 #include "src/util/Constants.hpp"
+
 #include "src/forcefield/HarmonicBondForceFieldGenerator.hpp"
 #include "src/forcefield/GaussianBondForceFieldGenerator.hpp"
 #include "src/forcefield/GoContactForceFieldGenerator.hpp"
@@ -33,10 +34,14 @@
 #include "src/forcefield/PositionRestraintForceFieldGenerator.hpp"
 #include "src/forcefield/HarmonicCoMPullingForceFieldGenerator.hpp"
 
+#include "src/Topology.hpp"
+
+#include <OpenMM.h>
+
 // -----------------------------------------------------------------------------
 // read local force field
 
-HarmonicBondForceFieldGenerator
+inline HarmonicBondForceFieldGenerator
 read_toml_harmonic_bond_ff_generator(
         const toml::value& local_ff_data, Topology& topology, const bool use_periodic)
 {
@@ -92,7 +97,7 @@ read_toml_harmonic_bond_ff_generator(
     return HarmonicBondForceFieldGenerator(indices_vec, v0s, ks, use_periodic);
 }
 
-GaussianBondForceFieldGenerator
+inline GaussianBondForceFieldGenerator
 read_toml_gaussian_bond_ff_generator(
         const toml::value& local_ff_data, Topology& topology,
         const bool use_periodic)
@@ -150,7 +155,7 @@ read_toml_gaussian_bond_ff_generator(
     return GaussianBondForceFieldGenerator(indices_vec, ks, v0s, sigmas, use_periodic);
 }
 
-GoContactForceFieldGenerator
+inline GoContactForceFieldGenerator
 read_toml_go_contact_ff_generator(
         const toml::value& local_ff_data, Topology& topology,
         const bool use_periodic)
@@ -205,7 +210,7 @@ read_toml_go_contact_ff_generator(
 }
 
 // TODO: enable to use offset
-const ThreeSPN2BondForceFieldGenerator
+inline const ThreeSPN2BondForceFieldGenerator
 read_toml_3spn2_bond_ff_generator(
         const toml::value& local_ff_data, Topology& topology,
         const bool use_periodic)
@@ -262,7 +267,7 @@ read_toml_3spn2_bond_ff_generator(
     return ThreeSPN2BondForceFieldGenerator(indices_vec, k2s, k4s, v0s, use_periodic);
 }
 
-const HarmonicAngleForceFieldGenerator
+inline const HarmonicAngleForceFieldGenerator
 read_toml_harmonic_angle_ff_generator(
         const toml::value& local_ff_data, Topology& topology, const bool use_periodic)
 {
@@ -328,7 +333,7 @@ read_toml_harmonic_angle_ff_generator(
     return HarmonicAngleForceFieldGenerator(indices_vec, v0s, ks, use_periodic);
 }
 
-FlexibleLocalAngleForceFieldGenerator
+inline FlexibleLocalAngleForceFieldGenerator
 read_toml_flexible_local_angle_ff_generator(
         const toml::value& local_ff_data, const std::string& aa_type,
         const std::array<double, 10> spline_table, Topology& topology,
@@ -384,7 +389,7 @@ read_toml_flexible_local_angle_ff_generator(
                indices_vec, ks, spline_table, aa_type, use_periodic);
 }
 
-GaussianDihedralForceFieldGenerator
+inline GaussianDihedralForceFieldGenerator
 read_toml_gaussian_dihedral_ff_generator(
         const toml::value& local_ff_data, Topology& topology,
         const bool use_periodic)
@@ -442,7 +447,7 @@ read_toml_gaussian_dihedral_ff_generator(
             indices_vec, ks, theta0s, sigmas, use_periodic);
 }
 
-const CosineDihedralForceFieldGenerator
+inline const CosineDihedralForceFieldGenerator
 read_toml_cosine_dihedral_ff_generator(
         const toml::value& local_ff_data, Topology& topology,
         const bool use_periodic)
@@ -505,7 +510,7 @@ read_toml_cosine_dihedral_ff_generator(
             indices_vec, ks, theta0s, ns, use_periodic);
 }
 
-const FlexibleLocalDihedralForceFieldGenerator
+inline const FlexibleLocalDihedralForceFieldGenerator
 read_toml_flexible_local_dihedral_ff_generator(
         const toml::value& local_ff_data, const std::pair<std::string, std::string> aa_pair_type,
         const std::array<double, 7> fourier_table, Topology& topology,
@@ -638,7 +643,7 @@ read_toml_flexible_local_dihedral_ff_generator(
 }
 
 // TODO: enable to use offset
-const ThreeSPN2BaseStackingForceFieldGenerator
+inline const ThreeSPN2BaseStackingForceFieldGenerator
 read_toml_3spn2_base_stacking_ff_generator(
         const toml::value& local_ff_data, Topology& topology,
         const bool use_periodic)
@@ -832,7 +837,7 @@ read_toml_3spn2_base_stacking_ff_generator(
 // ----------------------------------------------------------------------------
 // read global force field
 
-const std::vector<std::pair<std::size_t, std::size_t>>
+inline const std::vector<std::pair<std::size_t, std::size_t>>
 read_ignore_molecule_and_particles_within(const toml::value& ignore_table, const Topology& topology)
 {
     std::vector<std::pair<std::size_t, std::size_t>> ignore_list;
@@ -884,7 +889,7 @@ read_ignore_molecule_and_particles_within(const toml::value& ignore_table, const
     return ignore_list;
 }
 
-const std::vector<std::pair<std::string, std::string>>
+inline const std::vector<std::pair<std::string, std::string>>
 read_ignore_group(const toml::value& ignore_table)
 {
     std::vector<std::pair<std::string, std::string>> ignore_group_pairs;
@@ -922,7 +927,7 @@ read_ignore_group(const toml::value& ignore_table)
     return ignore_group_pairs;
 }
 
-const ExcludedVolumeForceFieldGenerator
+inline const ExcludedVolumeForceFieldGenerator
 read_toml_excluded_volume_ff_generator(
     const toml::value& global_ff_data, const std::size_t system_size,
     const Topology& topology, const std::vector<std::optional<std::string>>& group_vec,
@@ -979,7 +984,7 @@ read_toml_excluded_volume_ff_generator(
             ignore_group_pairs, group_vec);
 }
 
-const ThreeSPN2ExcludedVolumeForceFieldGenerator
+inline const ThreeSPN2ExcludedVolumeForceFieldGenerator
 read_toml_3spn2_excluded_volume_ff_generator(
     const toml::value& global_ff_data, const std::size_t system_size,
     const Topology& topology, const std::vector<std::optional<std::string>>& group_vec,
@@ -1080,7 +1085,7 @@ read_toml_3spn2_excluded_volume_ff_generator(
 //     {index =     0, sigma = "popc_sigma_H", epsilon = "popc_epsilon"},
 //     # ...
 // ]
-const WeeksChandlerAndersenForceFieldGenerator
+inline const WeeksChandlerAndersenForceFieldGenerator
 read_toml_weeks_chandler_andersen_ff_generator(
         const toml::value& global_ff_data, const std::size_t system_size, const Topology& topology,
         const std::vector<std::optional<std::string>>& group_vec,
@@ -1149,7 +1154,7 @@ read_toml_weeks_chandler_andersen_ff_generator(
 //    {index =     1, name =  "ASP"},
 //    # ...
 //]
-const UniformWeeksChandlerAndersenForceFieldGenerator
+inline const UniformWeeksChandlerAndersenForceFieldGenerator
 read_toml_uniform_weeks_chandler_andersen_ff_generator(
         const toml::value& global_ff_data, const std::size_t system_size,
         const double sigma, const double epsilon,
@@ -1212,7 +1217,7 @@ read_toml_uniform_weeks_chandler_andersen_ff_generator(
 //     {index =   2, charge = -0.6},
 //     # ...
 // ]
-const DebyeHuckelForceFieldGenerator
+inline const DebyeHuckelForceFieldGenerator
 read_toml_debye_huckel_ff_generator(
     const toml::value& global_ff_data, const std::size_t system_size,
     const double ionic_strength, const double temperature, const Topology& topology,
@@ -1277,7 +1282,7 @@ read_toml_debye_huckel_ff_generator(
 //     {index =     2, sigma = "popc_sigma_T", epsilon = "popc_epsilon", omega = "popc_omega"},
 //     # ...
 // ]
-const iSoLFAttractiveForceFieldGenerator
+inline const iSoLFAttractiveForceFieldGenerator
 read_toml_isolf_attractive_ff_generator(
     const toml::value& global_ff_data, const std::size_t system_size, const Topology& topology,
     const std::vector<std::optional<std::string>>& group_vec,
@@ -1351,7 +1356,7 @@ read_toml_isolf_attractive_ff_generator(
 //{index =     4, name = "B"},
 // ...
 // ]
-const UniformLennardJonesAttractiveForceFieldGenerator
+inline const UniformLennardJonesAttractiveForceFieldGenerator
 read_toml_uniform_lennard_jones_attractive_ff_generator(
         const toml::value& global_ff_data, const std::size_t system_size,
         const double sigma, const double epsilon,
@@ -1955,7 +1960,7 @@ read_toml_3spn2_cross_stacking_ff_generator(
 // {index = 1, offset = 10, epsilon = 1.0, sigma = 1.0},
 // ...
 // ]
-const LennardJonesAttractiveForceFieldGenerator
+inline const LennardJonesAttractiveForceFieldGenerator
 read_toml_lennard_jones_attractive_ff_generator(
         const toml::value& global_ff_data, const std::size_t system_size,
         const Topology& topology, const std::vector<std::optional<std::string>>& group_vec,
@@ -2023,7 +2028,7 @@ read_toml_lennard_jones_attractive_ff_generator(
 // {index = 1, offset = 10, epsilon = 1.0, sigma = 1.0},
 // ...
 // ]
-const LennardJonesRepulsiveForceFieldGenerator
+inline const LennardJonesRepulsiveForceFieldGenerator
 read_toml_lennard_jones_repulsive_ff_generator(
         const toml::value& global_ff_data, const std::size_t system_size,
         const Topology& topology, const std::vector<std::optional<std::string>>& group_vec,
@@ -2082,7 +2087,7 @@ read_toml_lennard_jones_repulsive_ff_generator(
             ignore_group_pairs, group_vec);
 }
 
-CombinatorialGoContactForceFieldGenerator
+inline CombinatorialGoContactForceFieldGenerator
 read_toml_combinatorial_go_contact_ff_generator(
         const double cutoff_ratio, const toml::value& contacts_info,
         const toml::value& env, const Topology& topology,
@@ -2129,7 +2134,7 @@ read_toml_combinatorial_go_contact_ff_generator(
 //     # ...
 // ]
 // TODO: enable to add topology information
-std::vector<CombinatorialGoContactForceFieldGenerator>
+inline std::vector<CombinatorialGoContactForceFieldGenerator>
 read_toml_combinatorial_go_contact_ff_generators(
         const toml::value& global_ff_data, const Topology& topology,
         const std::vector<std::optional<std::string>>& group_vec,
@@ -2185,7 +2190,7 @@ read_toml_combinatorial_go_contact_ff_generators(
 //     {index = 1, force = [0.0, 1.0, 0.0]},
 //     # ...
 // ]
-PullingForceFieldGenerator
+inline PullingForceFieldGenerator
 read_toml_pulling_ff_generator(
         const toml::value& external_ff_data, const Topology& topology,
         const bool use_periodic)
@@ -2238,7 +2243,7 @@ read_toml_pulling_ff_generator(
 //     {index = 0, position = [0.0, 0.0, 0.0], k = 0.1, v0 = 10.0},
 //     # ...
 // ]
-PositionRestraintForceFieldGenerator
+inline PositionRestraintForceFieldGenerator
 read_toml_position_restraint_ff_generator(
         const toml::value& external_ff_data, const Topology& topology)
 {
@@ -2300,7 +2305,7 @@ read_toml_position_restraint_ff_generator(
 //     {k = 10.0, v0 = 0.0, indices_pair = [[0, 1], [2, 3]]},
 //     # ...
 // ]
-HarmonicCoMPullingForceFieldGenerator
+inline HarmonicCoMPullingForceFieldGenerator
 read_toml_harmonic_com_pulling_ff_generator(
         const toml::value& external_ff_data, const bool use_periodic,
         const toml::value& env)

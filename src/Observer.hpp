@@ -1,12 +1,13 @@
 #ifndef OPEN_AICG2_PLUS_OBSERVER_HPP
 #define OPEN_AICG2_PLUS_OBSERVER_HPP
 
+#include "util/Utility.hpp"
+#include "util/Constants.hpp"
+#include "SystemGenerator.hpp"
+
 #include <string>
 #include <iostream>
 #include <OpenMM.h>
-#include "src/SystemGenerator.hpp"
-#include "util/Utility.hpp"
-#include "util/ProgressBar.hpp"
 
 class ObserverBase
 {
@@ -52,7 +53,7 @@ class PDBObserver final : public ObserverBase
     }
 
     void finalize() const override { return; }
-    std::string name() const { return "PDBObserver"; }
+    std::string name() const override { return "PDBObserver"; }
 
   private:
     std::string              pos_filename_;
@@ -147,7 +148,7 @@ class DCDObserver final : public ObserverBase
     }
 
     void finalize() const override { return; }
-    std::string name() const { return "DCDObserver"; }
+    std::string name() const override { return "DCDObserver"; }
 
   private:
     std::string        pos_filename_;
@@ -379,7 +380,7 @@ class EnergyObserver final : public ObserverBase
     }
 
     void finalize() const override { return; }
-    std::string name() const { return "EnergyObserver"; }
+    std::string name() const override { return "EnergyObserver"; }
 
   private:
     void write_energy(std::ofstream& fp, int frame_num,

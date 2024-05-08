@@ -1,14 +1,14 @@
 #ifndef OPEN_AICG2_PLUS_HARMONIC_COM_PULLING_FORCE_FIELD_GENERATOR_HPP
 #define OPEN_AICG2_PLUS_HARMONIC_COM_PULLING_FORCE_FIELD_GENERATOR_HPP
 
-#include <memory>
-#include <limits>
-#include <set>
-#include <optional>
-#include <OpenMM.h>
-#include <fmt/core.h>
 #include "ForceFieldGeneratorBase.hpp"
 #include "ForceFieldIDGenerator.hpp"
+
+#include <OpenMM.h>
+#include <fmt/core.h>
+
+#include <memory>
+#include <vector>
 
 class HarmonicCoMPullingForceFieldGenerator : public ForceFieldGeneratorBase
 {
@@ -40,7 +40,7 @@ class HarmonicCoMPullingForceFieldGenerator : public ForceFieldGeneratorBase
         return com_ff;
     }
 
-    std::string name() const noexcept { return "HamonicCoMPulling"; }
+    std::string name() const noexcept override { return "HamonicCoMPulling"; }
 
   private:
     double           k_;

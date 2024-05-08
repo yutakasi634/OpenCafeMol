@@ -1,9 +1,21 @@
 #ifndef OPEN_AICG2_PLUS_LENNARD_JONES_REPULSIVE_FORCE_FIELD_GENERATOR_HPP
 #define OPEN_AICG2_PLUS_LENNARD_JONES_REPULSIVE_FORCE_FIELD_GENERATOR_HPP
 
+#include "src/util/Utility.hpp"
+#include "ForceFieldGeneratorBase.hpp"
+#include "ForceFieldIDGenerator.hpp"
+
 #include <OpenMM.h>
 #include <fmt/core.h>
-#include "ForceFieldGeneratorBase.hpp"
+
+#include <algorithm>
+#include <iostream>
+#include <memory>
+#include <optional>
+#include <set>
+#include <string>
+#include <utility>
+#include <vector>
 
 class LennardJonesRepulsiveForceFieldGenerator final : public ForceFieldGeneratorBase
 {
@@ -201,7 +213,7 @@ class LennardJonesRepulsiveForceFieldGenerator final : public ForceFieldGenerato
         return ljrepu_ff;
     }
 
-    std::string name() const noexcept { return "LennardJonesRepulsive"; }
+    std::string name() const noexcept override { return "LennardJonesRepulsive"; }
 
   private:
     double                              cutoff_ratio_;

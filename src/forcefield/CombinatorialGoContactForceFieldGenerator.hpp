@@ -1,10 +1,17 @@
 #ifndef OPEN_AICG2_PLUS_COMBINATORIAL_GO_CONTACT_FORCE_FIELD_GENERATOR_HPP
 #define OPEN_AICG2_PLUS_COMBINATORIAL_GO_CONTACT_FORCE_FIELD_GENERATOR_HPP
 
-#include <OpenMM.h>
-#include <fmt/core.h>
 #include "ForceFieldGeneratorBase.hpp"
 #include "ForceFieldIDGenerator.hpp"
+
+#include <OpenMM.h>
+#include <fmt/core.h>
+
+#include <memory>
+#include <optional>
+#include <string>
+#include <utility>
+#include <vector>
 
 class CombinatorialGoContactForceFieldGenerator final : public ForceFieldGeneratorBase
 {
@@ -70,7 +77,7 @@ class CombinatorialGoContactForceFieldGenerator final : public ForceFieldGenerat
         return contact_ff;
     }
 
-    std::string name() const noexcept { return "CombinatorialGoContact"; }
+    std::string name() const noexcept override { return "CombinatorialGoContact"; }
 
   private:
     double                   k_;

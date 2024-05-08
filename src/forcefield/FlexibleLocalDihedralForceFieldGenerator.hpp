@@ -1,10 +1,17 @@
 #ifndef OPEN_AICG2_PLUS_FLEXIBLE_LOCAL_DIHEDRAL_FORCE_FIELD_GENERATOR_HPP
 #define OPEN_AICG2_PLUS_FLEXIBLE_LOCAL_DIHEDRAL_FORCE_FIELD_GENERATOR_HPP
 
-#include <memory>
-#include <OpenMM.h>
 #include "ForceFieldGeneratorBase.hpp"
 #include "ForceFieldIDGenerator.hpp"
+
+#include <OpenMM.h>
+#include <fmt/core.h>
+
+#include <array>
+#include <memory>
+#include <sstream>
+#include <stdexcept>
+#include <vector>
 
 class FlexibleLocalDihedralForceFieldGenerator final : public ForceFieldGeneratorBase
 {
@@ -70,7 +77,8 @@ class FlexibleLocalDihedralForceFieldGenerator final : public ForceFieldGenerato
     }
 
     const std::vector<indices_type>& indices() const noexcept { return indices_vec_; }
-    std::string name() const noexcept
+
+    std::string name() const noexcept override
     {
         return "FlexibleLocalDihedral (" + aa_pair_name_ + ")";
     }

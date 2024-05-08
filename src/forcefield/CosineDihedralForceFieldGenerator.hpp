@@ -1,13 +1,19 @@
 #ifndef OPEN_AICG2_PLUS_COSINE_DIHEDRAL_FORCE_FIELD_GENERATOR_HPP
 #define OPEN_AICG2_PLUS_COSINE_DIHEDRAL_FORCE_FIELD_GENERATOR_HPP
 
-#include <memory>
-#include <sstream>
-#include <string>
-#include <regex>
-#include <OpenMM.h>
 #include "ForceFieldGeneratorBase.hpp"
 #include "ForceFieldIDGenerator.hpp"
+
+#include <OpenMM.h>
+#include <fmt/core.h>
+
+#include <array>
+#include <memory>
+#include <regex>
+#include <sstream>
+#include <string>
+#include <utility>
+#include <vector>
 
 class CosineDihedralForceFieldGenerator final : public ForceFieldGeneratorBase
 {
@@ -80,7 +86,7 @@ class CosineDihedralForceFieldGenerator final : public ForceFieldGeneratorBase
     }
 
     const std::vector<indices_type>& indices() const noexcept { return indices_vec_; }
-    std::string                      name()    const noexcept { return "CosineDihedral"; }
+    std::string                      name()    const noexcept override { return "CosineDihedral"; }
 
   private:
     std::vector<indices_type> indices_vec_;

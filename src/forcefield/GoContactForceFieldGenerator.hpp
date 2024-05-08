@@ -1,13 +1,17 @@
 #ifndef OPEN_AICG2_PLUS_GOCONTACT_FORCE_FIELD_GENERATOR_HPP
 #define OPEN_AICG2_PLUS_GOCONTACT_FORCE_FIELD_GENERATOR_HPP
 
+#include "ForceFieldGeneratorBase.hpp"
+#include "ForceFieldIDGenerator.hpp"
+
+#include <OpenMM.h>
+#include <fmt/core.h>
+
 #include <memory>
 #include <sstream>
 #include <string>
-#include <OpenMM.h>
-#include <fmt/core.h>
-#include "ForceFieldGeneratorBase.hpp"
-#include "ForceFieldIDGenerator.hpp"
+#include <utility>
+#include <vector>
 
 class GoContactForceFieldGenerator final : public ForceFieldGeneratorBase
 {
@@ -55,7 +59,7 @@ class GoContactForceFieldGenerator final : public ForceFieldGeneratorBase
     }
 
     const std::vector<indices_type>& indices() const noexcept { return indices_vec_; }
-    std::string name() const noexcept { return "GoContact"; }
+    std::string name() const noexcept override { return "GoContact"; }
 
   private:
     std::vector<indices_type> indices_vec_;

@@ -1,10 +1,19 @@
 #ifndef OPEN_AICG2_PLUS_UNIFORM_LENNARD_JONES_ATTRACTIVE_FORCE_FIELD_GENERATOR_HPP
 #define OPEN_AICG2_PLUS_UNIFORM_LENNARD_JONES_ATTRACTIVE_FORCE_FIELD_GENERATOR_HPP
 
-#include <OpenMM.h>
-#include <fmt/core.h>
+#include "src/util/Utility.hpp"
 #include "ForceFieldGeneratorBase.hpp"
 #include "ForceFieldIDGenerator.hpp"
+
+#include <OpenMM.h>
+#include <fmt/core.h>
+
+#include <iostream>
+#include <map>
+#include <memory>
+#include <optional>
+#include <string>
+#include <vector>
 
 class UniformLennardJonesAttractiveForceFieldGenerator final : public ForceFieldGeneratorBase
 {
@@ -200,7 +209,7 @@ class UniformLennardJonesAttractiveForceFieldGenerator final : public ForceField
     std::size_t former_group_size() const noexcept { return former_group_size_; }
     std::size_t latter_group_size() const noexcept { return latter_group_size_; }
 
-    std::string name() const noexcept { return "UniformLennardJonesAttractive"; }
+    std::string name() const noexcept override { return "UniformLennardJonesAttractive"; }
 
   private:
     std::size_t      system_size_;

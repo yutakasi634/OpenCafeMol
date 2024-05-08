@@ -1,10 +1,16 @@
 #ifndef OPEN_AICG2_PLUS_GAUSSIAN_DIHEDRAL_FORCE_FIELD_GENERATOR_HPP
 #define OPEN_AICG2_PLUS_GAUSSIAN_DIHEDRAL_FORCE_FIELD_GENERATOR_HPP
 
-#include <OpenMM.h>
-#include <fmt/core.h>
 #include "ForceFieldGeneratorBase.hpp"
 #include "ForceFieldIDGenerator.hpp"
+
+#include <OpenMM.h>
+#include <fmt/core.h>
+
+#include <array>
+#include <sstream>
+#include <utility>
+#include <vector>
 
 class GaussianDihedralForceFieldGenerator final : public ForceFieldGeneratorBase
 {
@@ -63,7 +69,7 @@ class GaussianDihedralForceFieldGenerator final : public ForceFieldGeneratorBase
     }
 
     const std::vector<indices_type>& indices() const noexcept { return indices_vec_; }
-    std::string name() const noexcept { return "GaussianDihedral"; }
+    std::string name() const noexcept override { return "GaussianDihedral"; }
 
   private:
     std::vector<indices_type> indices_vec_;

@@ -1,15 +1,18 @@
 #ifndef OPEN_AICG2_PLUS_3SPN2_BASE_PAIR_FORCE_FIELD_GENERATOR_HPP
 #define OPEN_AICG2_PLUS_3SPN2_BASE_PAIR_FORCE_FIELD_GENERATOR_HPP
 
-#include <map>
-#include <memory>
-#include <regex>
-#include <sstream>
-#include <string>
-#include <OpenMM.h>
 #include "ForceFieldGeneratorBase.hpp"
 #include "ForceFieldIDGenerator.hpp"
-#include "src/util/Constants.hpp"
+
+#include <OpenMM.h>
+#include <fmt/core.h>
+
+#include <algorithm>
+#include <array>
+#include <map>
+#include <memory>
+#include <string>
+#include <vector>
 
 template<typename PotentialParameterType>
 class ThreeSPN2BasePairForceFieldGenerator final : public ForceFieldGeneratorBase
@@ -128,7 +131,7 @@ class ThreeSPN2BasePairForceFieldGenerator final : public ForceFieldGeneratorBas
         return chbond_ff;
     }
 
-    std::string name() const noexcept
+    std::string name() const noexcept override
     {
         return PotentialParameterType::name+"BasePair "
                "(" + base_pair_.first + "-" + base_pair_.second + ")";
