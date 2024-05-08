@@ -67,7 +67,7 @@ class ProteinDNANonSpecificForceFieldGenerator final : public ForceFieldGenerato
         //    o    phi  o--o B
         //  PN          S3'
         */
-        
+
         std::string potential_formula = fmt::format(
             "- {id}_k * f_r * g_theta * g_phi;"
             "f_r       = exp(-dr^2/ (2 * {id}_sigma * {id}_sigma));"
