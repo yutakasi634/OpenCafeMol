@@ -1,6 +1,6 @@
 #include "ThreeSPN2BaseStackingForceFieldGenerator.hpp"
 
-std::unique_ptr<OpenMM::Force> ThreeSPN2BaseStackingForceFieldGenerator::generate() const noexcept
+std::unique_ptr<OpenMM::Force> ThreeSPN2BaseStackingForceFieldGenerator::generate() const
 {
     // Hinckley et al., J. Chem. Phys. (2013)
     std::string potential_formula = fmt::format(

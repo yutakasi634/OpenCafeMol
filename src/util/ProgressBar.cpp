@@ -1,6 +1,12 @@
 #include "ProgressBar.hpp"
 
-void ProgressBar::format(std::size_t count, std::size_t total_step, std::ostream& os) const
+#include <array>
+#include <iostream>
+
+#include <cstdio>
+#include <cmath>
+
+void ProgressBar::format(std::size_t count, std::size_t total_step) const
 {
     const double ratio = (count == total_step) ? 1.0 :
         std::max(0.0, std::min(1.0, count / static_cast<double>(total_step)));
@@ -8,7 +14,7 @@ void ProgressBar::format(std::size_t count, std::size_t total_step, std::ostream
     std::array<char, 8> buf;
     buf.fill('\0');
     std::snprintf(buf.data(), 8, "%5.1f%%|", ratio * 100.0);
-    os << '\r' << buf.data();
+    std::cerr << '\r' << buf.data();
 
     constexpr auto full  = u8"█"; // U+2588 Full block
     constexpr auto l7    = u8"▉"; // U+2589 Left seven eighths block
@@ -22,27 +28,27 @@ void ProgressBar::format(std::size_t count, std::size_t total_step, std::ostream
     const std::size_t filled = std::floor(ratio * bar_width_);
     for(std::size_t i=0; i<filled; ++i)
     {
-        os << full;
+        std::cerr << full;
     }
     if(filled < bar_width_)
     {
         switch(static_cast<std::size_t>(ratio * bar_width_ * 8) % 8)
         {
-            case 0: {os << ' '; break;}
-            case 1: {os << l1;  break;}
-            case 2: {os << l2;  break;}
-            case 3: {os << l3;  break;}
-            case 4: {os << l4;  break;}
-            case 5: {os << l5;  break;}
-            case 6: {os << l6;  break;}
-            case 7: {os << l7;  break;}
+            case 0: {std::cerr << ' '; break;}
+            case 1: {std::cerr << l1;  break;}
+            case 2: {std::cerr << l2;  break;}
+            case 3: {std::cerr << l3;  break;}
+            case 4: {std::cerr << l4;  break;}
+            case 5: {std::cerr << l5;  break;}
+            case 6: {std::cerr << l6;  break;}
+            case 7: {std::cerr << l7;  break;}
         }
         for(std::size_t i=1; i<bar_width_-filled; ++i)
         {
-            os << ' ';
+            std::cerr << ' ';
         }
     }
-    os << '|';
+    std::cerr << '|';
 
     const auto current  = std::chrono::system_clock::now();
 
@@ -58,30 +64,36 @@ void ProgressBar::format(std::size_t count, std::size_t total_step, std::ostream
         if(residual < 60.0)
         {
             std::snprintf(buf.data(), 6, "%5.1f", residual);
-            os << buf.data() << " seconds remaining  ";
+            std::cerr << buf.data() << " seconds remaining  ";
         }
         else if(residual < 60.0 * 60.0)
         {
             std::snprintf(buf.data(), 6, "%5.1f", residual * 0.0167);
-            os << buf.data() << " minutes remaining ";
+            std::cerr << buf.data() << " minutes remaining ";
         }
         else if(residual < 60.0 * 60.0 * 24.0)
         {
             std::snprintf(buf.data(), 6, "%5.1f", residual * 0.0167 * 0.0167);
-            os << buf.data() << " hours remaining   ";
+            std::cerr << buf.data() << " hours remaining   ";
         }
         else if(residual < 60.0 * 60.0 * 24.0 * 99.0)
         {
             std::snprintf(buf.data(), 6, "%5.1f", residual * 0.0167 * 0.0167 * 0.0417);
-            os << buf.data() << " days remaining    ";
+            std::cerr << buf.data() << " days remaining    ";
         }
         else
         {
-            os << " over 100 days remaining";
+            std::cerr << " over 100 days remaining";
         }
     }
-    os << std::flush;
+    std::cerr << std::flush;
 
     return;
+}
+
+void ProgressBar::finalize() const
+{
+    this->format(1, 1); // show 100%
+    std::cerr << std::endl;
 }
 

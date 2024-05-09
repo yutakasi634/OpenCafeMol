@@ -4,7 +4,7 @@
 #include <iomanip>
 #include <sstream>
 
-std::unique_ptr<OpenMM::Force> MonteCarloAnisotropicBarostatGenerator::generate() const noexcept
+std::unique_ptr<OpenMM::Force> MonteCarloAnisotropicBarostatGenerator::generate() const
 {
     auto barostat =
         std::make_unique<OpenMM::MonteCarloAnisotropicBarostat>(
@@ -14,7 +14,7 @@ std::unique_ptr<OpenMM::Force> MonteCarloAnisotropicBarostatGenerator::generate(
     return barostat;
 }
 
-void MonteCarloAnisotropicBarostatGenerator::dump_info() const noexcept
+void MonteCarloAnisotropicBarostatGenerator::dump_info() const
 {
     std::cerr << "        scaling axis              : ";
     std::stringstream scaling_axis;

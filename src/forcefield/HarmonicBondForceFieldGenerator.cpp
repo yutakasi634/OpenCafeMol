@@ -1,6 +1,6 @@
 #include "HarmonicBondForceFieldGenerator.hpp"
 
-std::unique_ptr<OpenMM::Force> HarmonicBondForceFieldGenerator::generate() const noexcept
+std::unique_ptr<OpenMM::Force> HarmonicBondForceFieldGenerator::generate() const
 {
     auto bond_ff = std::make_unique<OpenMM::HarmonicBondForce>();
     bond_ff->setUsesPeriodicBoundaryConditions(use_periodic_);

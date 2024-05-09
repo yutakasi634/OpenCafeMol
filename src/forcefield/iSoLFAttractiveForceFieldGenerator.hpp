@@ -32,7 +32,7 @@ class iSoLFAttractiveForceFieldGenerator final : public ForceFieldGeneratorBase
 
     std::unique_ptr<OpenMM::Force> generate() const override;
 
-    std::string name() const noexcept override { return "iSoLFAttractive"; }
+    std::string name() const override { return "iSoLFAttractive"; }
 
   private:
     std::vector<std::optional<double>>  sigmas_;

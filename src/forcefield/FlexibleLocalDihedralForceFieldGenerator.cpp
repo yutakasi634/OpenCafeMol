@@ -1,6 +1,6 @@
 #include "FlexibleLocalDihedralForceFieldGenerator.hpp"
 
-std::unique_ptr<OpenMM::Force> FlexibleLocalDihedralForceFieldGenerator::generate() const noexcept
+std::unique_ptr<OpenMM::Force> FlexibleLocalDihedralForceFieldGenerator::generate() const
 {
     const std::string fld_expression = fmt::format("{id}_k * ("
             "{id}_c +"

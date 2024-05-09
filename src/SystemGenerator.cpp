@@ -1,7 +1,5 @@
 #include "SystemGenerator.hpp"
-
-#include <iomanip>
-#include <iostream>
+#include "util/Logger.hpp"
 
 void SystemGenerator::add_ff_generator(std::unique_ptr<ForceFieldGeneratorBase>&& ff_gen_ptr)
 {
@@ -37,8 +35,7 @@ std::unique_ptr<OpenMM::System> SystemGenerator::generate() const
 {
     std::unique_ptr system_ptr = std::make_unique<OpenMM::System>();
 
-    std::cerr << "generating system with size " << mass_vec_.size()
-              << "..." << std::endl;
+    log_info("generating system with size {}...", mass_vec_.size());
     for(auto& mass : mass_vec_)
     {
         system_ptr->addParticle(mass);
@@ -48,11 +45,10 @@ std::unique_ptr<OpenMM::System> SystemGenerator::generate() const
     if(edge_lengthes_opt_)
     {
         const std::array<double, 3>& edge_length = edge_lengthes_opt_.value();
-        std::cerr << "    boundary type is periodic cuboid" << std::endl;
-        std::cerr << "        the box size is " << std::fixed << std::setprecision(2)
-                  << std::setw(7) << edge_length[0] << " Nm x "
-                  << std::setw(7) << edge_length[1] << " Nm x "
-                  << std::setw(7) << edge_length[2] << " Nm" << std::endl;
+        log_info("    boundary type is periodic cuboid");
+        log_info("        the box size is {:7.2f} x {:7.2f} x {:7.2f} nm^3",
+                edge_length.at(0), edge_length.at(1), edge_length.at(2));
+
         system_ptr->setDefaultPeriodicBoxVectors(
                 OpenMM::Vec3(edge_length[0],            0.0,            0.0),
                 OpenMM::Vec3(           0.0, edge_length[1],            0.0),
@@ -60,11 +56,11 @@ std::unique_ptr<OpenMM::System> SystemGenerator::generate() const
     }
     else
     {
-        std::cerr << "    boundary type is unlimited" << std::endl;
+        log_info("    boundary type is unlimited");
     }
 
     // set forcefields
-    std::cerr << "generating forcefields..." << std::endl;
+    log_info("generating forcefields...");
     for(auto& ff_gen_ptr : ff_gen_ptrs_)
     {
         const std::string ff_name = ff_gen_ptr->name();
@@ -93,22 +89,18 @@ std::unique_ptr<OpenMM::System> SystemGenerator::generate() const
     // set barostat
     if(barostat_gen_opt_)
     {
-        std::cerr << "generating barostat..." << std::endl;
+        log_info("generating barostat...");
         const auto& barostat_gen_ptr = barostat_gen_opt_.value();
-        if(!edge_lengthes_opt_)
-        {
-            throw std::runtime_error(
-                    "[error] barostat should be used with periodic boundary condition.");
-        }
 
-        std::cerr << "    barostat is " << barostat_gen_ptr->name() << std::endl;
+        log_assert(edge_lengthes_opt_.has_value(),
+            "barostat should be used with periodic boundary condition.");
+
+        log_info("    barostat is {}", barostat_gen_ptr->name());
         const std::size_t frequency = barostat_gen_ptr->frequency();
-        std::cerr << "        pressure change frequency : "
-                  << std::setw(14) << frequency << std::endl;
+        log_info("        pressure change frequency : {:14}", frequency);
 
         const double temperature = barostat_gen_ptr->temperature();
-        std::cerr << "        barostat temperature      : "
-                  << std::setw(14) << std::fixed << temperature  << " K" << std::endl;
+        log_info("        barostat temperature      : {:14f} K", temperature);
 
         barostat_gen_ptr->dump_info();
 

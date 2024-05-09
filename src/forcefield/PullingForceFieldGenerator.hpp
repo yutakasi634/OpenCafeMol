@@ -22,9 +22,9 @@ class PullingForceFieldGenerator : public ForceFieldGeneratorBase
         : params_(params), use_periodic_(use_periodic)
     {}
 
-    std::unique_ptr<OpenMM::Force> generate() const noexcept override;
+    std::unique_ptr<OpenMM::Force> generate() const override;
 
-    std::string name() const noexcept override { return "Pulling"; }
+    std::string name() const override { return "Pulling"; }
 
   private:
     std::vector<parameter_type> params_;

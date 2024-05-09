@@ -1,6 +1,6 @@
 #include "HarmonicAngleForceFieldGenerator.hpp"
 
-std::unique_ptr<OpenMM::Force> HarmonicAngleForceFieldGenerator::generate() const noexcept
+std::unique_ptr<OpenMM::Force> HarmonicAngleForceFieldGenerator::generate() const
 {
     auto angle_ff = std::make_unique<OpenMM::HarmonicAngleForce>();
     angle_ff->setUsesPeriodicBoundaryConditions(use_periodic_);

@@ -2,8 +2,7 @@
 
 #include "util/Utility.hpp"
 #include "util/Constants.hpp"
-
-#include <iostream>
+#include "util/Logger.hpp"
 
 PDBObserver::PDBObserver(
     const std::string& file_prefix,
@@ -15,7 +14,8 @@ PDBObserver::PDBObserver(
       use_periodic_(use_periodic)
 {
     Utility::clear_file(pos_filename_);
-    std::cerr << "    output trajectory file    : " << pos_filename_ << std::endl;
+
+    log_info("    output trajectory file    : {}", pos_filename_);
 
     const std::size_t system_size = name_vec.size();
     name_vec_.resize(system_size, "UNK");
@@ -74,9 +74,9 @@ DCDObserver::DCDObserver(const std::string& file_prefix, const std::size_t total
       save_interval_(save_interval), use_periodic_(use_periodic)
 {
     Utility::clear_file(pos_filename_);
-    std::cerr << "    output trajectory file    : " << pos_filename_ << std::endl;
+    log_info("    output trajectory file    : {}", pos_filename_);
     Utility::clear_file(vel_filename_);
-    std::cerr << "    output velocity file      : " << vel_filename_ << std::endl;
+    log_info("    output velocity file      : {}", vel_filename_);
 }
 
 void DCDObserver::initialize(const std::unique_ptr<OpenMM::System>& system_ptr)
@@ -307,7 +307,7 @@ EnergyObserver::EnergyObserver(const std::string& file_prefix, const SystemGener
       ffname_groupid_map_(system_gen.ffname_groupid_map())
 {
     Utility::clear_file(ene_filename_);
-    std::cerr << "    output energy file        : " << ene_filename_ << std::endl;
+    log_info("    output energy file        : {}", ene_filename_);
 }
 
 void EnergyObserver::initialize(const std::unique_ptr<OpenMM::System>&)

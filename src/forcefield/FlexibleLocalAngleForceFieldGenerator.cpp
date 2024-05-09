@@ -1,6 +1,6 @@
 #include "FlexibleLocalAngleForceFieldGenerator.hpp"
 
-std::unique_ptr<OpenMM::Force> FlexibleLocalAngleForceFieldGenerator::generate() const noexcept
+std::unique_ptr<OpenMM::Force> FlexibleLocalAngleForceFieldGenerator::generate() const
 {
     auto spline_func = std::make_unique<OpenMM::Continuous1DFunction>(
             std::vector<double>(spline_table_.begin(), spline_table_.end()),

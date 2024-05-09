@@ -39,13 +39,13 @@ class FlexibleLocalDihedralForceFieldGenerator final : public ForceFieldGenerato
         }
     }
 
-    std::unique_ptr<OpenMM::Force> generate() const noexcept override;
+    std::unique_ptr<OpenMM::Force> generate() const override;
 
     const std::vector<indices_type>& indices() const noexcept { return indices_vec_; }
 
-    std::string name() const noexcept override
+    std::string name() const override
     {
-        return "FlexibleLocalDihedral (" + aa_pair_name_ + ")";
+        return fmt::format("FlexibleLocalDihedral ({})", aa_pair_name_);
     }
 
   private:

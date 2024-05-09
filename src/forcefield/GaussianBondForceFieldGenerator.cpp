@@ -1,6 +1,6 @@
 #include "GaussianBondForceFieldGenerator.hpp"
 
-std::unique_ptr<OpenMM::Force> GaussianBondForceFieldGenerator::generate() const noexcept
+std::unique_ptr<OpenMM::Force> GaussianBondForceFieldGenerator::generate() const
 {
     const std::string potential_formula = fmt::format(
         "{id}_k * exp(-(r - {id}_v0)^2 / (2 * {id}_sigma^2))",

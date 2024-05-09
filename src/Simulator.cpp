@@ -1,6 +1,5 @@
 #include "Simulator.hpp"
-
-#include <iostream>
+#include "util/Logger.hpp"
 
 Simulator::Simulator(
     const SystemGenerator& system_gen,
@@ -20,13 +19,13 @@ Simulator::Simulator(
       energy_minimization_(energy_minimization), output_progress_(output_progress),
       progress_bar_(/* width of bar = */ 50)
 {
-    std::cerr << "initializing simulator..." << std::endl;
-    std::cerr << "    total step : " << total_step_ << " step" << std::endl;
-    std::cerr << "    save step  : " << save_step_  << " step" << std::endl;
-    std::cerr << "integrator information" << std::endl;
-    std::cerr << integrator_gen_ptr_->dump_info();
+    log_info("initializing simulator...");
+    log_info("    total step : {} step", total_step_);
+    log_info("    save step  : {} step", save_step_ );
+    log_info("integrator information");
+    log_info(integrator_gen_ptr_->dump_info());
 
-    std::cerr << "initializing observers..." << std::endl;
+    log_info("initializing observers...");
     for(auto& observer : observers)
     {
         observers_.push_back(std::move(observer));
@@ -41,7 +40,7 @@ void Simulator::initialize(const std::vector<OpenMM::Vec3>& initial_position)
     context_.setPositions(initial_position);
     if(energy_minimization_)
     {
-        std::cerr << "energy minimization in progress..." << std::endl;
+        log_info("energy minimization in progress...");
         OpenMM::LocalEnergyMinimizer::minimize(context_);
     }
 }
@@ -61,7 +60,7 @@ void Simulator::run()
 
         if(output_progress_)
         {
-            progress_bar_.format(step, total_step_, std::cerr);
+            progress_bar_.format(step, total_step_);
         }
     }
 
@@ -71,7 +70,7 @@ void Simulator::run()
     }
     if(output_progress_)
     {
-        progress_bar_.finalize(std::cerr);
+        progress_bar_.finalize();
     }
 }
 

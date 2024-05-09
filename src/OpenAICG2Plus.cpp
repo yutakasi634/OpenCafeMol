@@ -4,11 +4,11 @@
 
 #include "src/util/Utility.hpp"
 #include "src/util/Macro.hpp"
+#include "src/util/Logger.hpp"
 #include "src/input/ReadTOMLInput.hpp"
 #include "src/input/ReadGenesisInput.hpp"
 #include "Simulator.hpp"
 
-#include <iostream>
 #include <string>
 
 #include <cmath>
@@ -28,57 +28,48 @@ Simulator read_input(int argc, char** argv)
             return read_genesis_input(std::string(argv[1]));
         }
     }
-
-    throw std::runtime_error(
-            "Usage: " + std::string(argv[0]) + " <input.toml> or " +
-             std::string(argv[0]) + " <input.inp>");
+    log_fatal("Usage: {} <input.toml> or <input.inp>", std::string(argv[0]));
 }
 
 void simulate(Simulator& simulator)
 {
     // excute simulation
     const auto start = std::chrono::system_clock::now();
-    std::cerr << "calculation start!" << std::endl;
+    log_info("calculation start!");
 
     simulator.run();
 
     const auto stop  = std::chrono::system_clock::now();
     const auto total = std::chrono::duration_cast<std::chrono::milliseconds>(stop - start).count();
-    std::cerr << "elapsed time : ";
-    std::cerr << std::fixed << std::setprecision(1);
-
     if(total < 1000.0)
     {
-        std::cerr << total << " [msec]";
+        log_info("elapsed time : {} [msec]", total);
     }
     else if(total < 1000.0 * 60.0)
     {
-        std::cerr << total * 0.001 << " [sec]";
+        log_info("elapsed time : {:.1f} [sec]", total * 0.001);
     }
     else if(total < 1000.0 * 60.0 * 60.0)
     {
-        std::cerr << total * 0.001 * 0.0167 << " [min]";
+        log_info("elapsed time : {:.1f} [min]", total * 0.001 * 0.0167);
     }
     else if(total < 1000.0 * 60.0 * 60.0 * 24.0)
     {
-        std::cerr << total * 0.001 * 0.0167 * 0.0167 << " [hr]";
+        log_info("elapsed time : {:.1f} [hr]", total * 0.001 * 0.0167 * 0.0167);
     }
     else
     {
-        std::cerr << total * 0.001 * 0.0167 * 0.0167 * 0.0417 << " [day]";
+        log_info("elapsed time : {:.1f} [day]", total * 0.001 * 0.0167 * 0.0167 * 0.0417);
     }
-    std::cerr << std::endl;
 }
 
 
 int main(int argc, char** argv)
 {
     // dump library information
-    std::cerr << "OpenMM Library Information" << std::endl;
-    std::cerr << "    version                   : "
-        + OpenMM::Platform::getOpenMMVersion() << std::endl;
-    std::cerr << "    CUDA platform plugin path : "
-        << OPENAICG2PLUS_EXPAND_OPTION_STR(OPENMM_PLUGIN_DIR) << std::endl;
+    log_info("OpenMM Library Information");
+    log_info("    version                   : {}", OpenMM::Platform::getOpenMMVersion());
+    log_info("    CUDA platform plugin path : {}", OPENAICG2PLUS_EXPAND_OPTION_STR(OPENMM_PLUGIN_DIR));
 
     // Load any shared libraries containing GPU implementations
     OpenMM::Platform::loadPluginsFromDirectory(

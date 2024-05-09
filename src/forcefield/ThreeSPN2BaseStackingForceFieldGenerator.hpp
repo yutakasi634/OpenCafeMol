@@ -46,9 +46,9 @@ class ThreeSPN2BaseStackingForceFieldGenerator final : public ForceFieldGenerato
         }
     };
 
-    std::unique_ptr<OpenMM::Force> generate() const noexcept override;
+    std::unique_ptr<OpenMM::Force> generate() const override;
 
-    std::string name() const noexcept override {return "3SPN2BaseStacking";};
+    std::string name() const override {return "3SPN2BaseStacking";};
 
   private:
     std::vector<indices_type> indices_vec_;

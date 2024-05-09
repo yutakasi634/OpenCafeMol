@@ -1,8 +1,8 @@
 #include "Topology.hpp"
 
+#include "util/Logger.hpp"
+
 #include <algorithm>
-#include <stdexcept>
-#include <iostream>
 
 void Topology::make_molecule(const std::string& edge_type)
 {
@@ -50,15 +50,11 @@ void Topology::make_molecule(const std::string& edge_type)
 
 Topology::index_pairs_type Topology::ignore_list_within_molecule() const
 {
-    if(!molecule_updated_)
-    {
-        throw std::runtime_error(
-            "[error] function ignore_list_within_molecule was called before "
-            "updating molecule based on latest bond information by make_molecule.");
-    }
+    log_assert(molecule_updated_,
+        "function ignore_list_within_molecule was called before "
+        "updating molecule based on latest bond information by make_molecule.");
 
-    std::cerr << "        generating exclusion list from molecule information"
-              << std::endl;
+    log_info("        generating exclusion list from molecule information");
 
     std::vector<std::pair<std::size_t, std::size_t>> ignore_list;
 
@@ -79,9 +75,7 @@ Topology::index_pairs_type Topology::ignore_list_within_molecule() const
 Topology::index_pairs_type Topology::ignore_list_within_edge(
         const std::size_t dist, const std::string& edge_type) const
 {
-
-    std::cerr << "        generating exclusion list from " << edge_type
-              << " information" << std::endl;
+    log_info("        generating exclusion list from {} information", edge_type);
 
     index_pairs_type ignore_list;
     for(std::size_t idx=0; idx<nodes_.size(); ++idx)

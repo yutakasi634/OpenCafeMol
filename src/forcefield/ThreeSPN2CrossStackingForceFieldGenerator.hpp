@@ -60,12 +60,11 @@ class ThreeSPN2CrossStackingForceFieldGenerator final : public ForceFieldGenerat
         }
     }
 
-    std::unique_ptr<OpenMM::Force> generate() const noexcept override;
+    std::unique_ptr<OpenMM::Force> generate() const override;
 
-    std::string name() const noexcept override
+    std::string name() const override
     {
-        return this->name_ + "CrossStacking "
-               "(" + base_pair_.first + "-" + base_pair_.second + ")";
+        return fmt::format("{}CrossStacking ({}-{})", name_, base_pair_.first, base_pair_.second);
     }
 
   private:

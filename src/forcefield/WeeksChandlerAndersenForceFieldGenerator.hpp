@@ -29,7 +29,7 @@ class WeeksChandlerAndersenForceFieldGenerator final : public ForceFieldGenerato
 
     std::unique_ptr<OpenMM::Force> generate() const override;
 
-    std::string name() const noexcept override { return "WeeksChandlerAndersen"; }
+    std::string name() const override { return "WeeksChandlerAndersen"; }
 
   private:
     std::vector<std::optional<double>>  sigmas_;

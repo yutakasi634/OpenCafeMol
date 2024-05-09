@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-std::unique_ptr<OpenMM::Force> ThreeSPN2CrossStackingForceFieldGenerator::generate() const noexcept
+std::unique_ptr<OpenMM::Force> ThreeSPN2CrossStackingForceFieldGenerator::generate() const
 {
     // Hinckley et al., J. Chem. Phys. (2013)
     std::string potential_formula = fmt::format(

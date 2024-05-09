@@ -17,16 +17,16 @@ class MonteCarloAnisotropicBarostatGenerator final : public BarostatGeneratorBas
           frequency_(frequency)
     {}
 
-    std::unique_ptr<OpenMM::Force> generate() const noexcept override;
+    std::unique_ptr<OpenMM::Force> generate() const override;
 
     const std::array<bool, 3>&   scale_axis()       const noexcept { return scale_axis_; }
     const std::array<double, 3>& default_pressure() const noexcept { return default_pressure_; }
 
-    double      temperature() const noexcept override { return temperature_; }
-    std::size_t frequency()   const noexcept override { return frequency_; }
-    std::string name()        const noexcept override { return "MonteCarloAnisotropicBarostat"; }
+    double      temperature() const override { return temperature_; }
+    std::size_t frequency()   const override { return frequency_; }
+    std::string name()        const override { return "MonteCarloAnisotropicBarostat"; }
 
-    void dump_info() const noexcept override;
+    void dump_info() const override;
 
   private:
     std::array<bool, 3>   scale_axis_;

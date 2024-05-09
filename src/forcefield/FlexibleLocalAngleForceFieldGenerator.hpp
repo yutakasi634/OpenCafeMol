@@ -46,13 +46,13 @@ class FlexibleLocalAngleForceFieldGenerator final : public ForceFieldGeneratorBa
         }
     }
 
-    std::unique_ptr<OpenMM::Force> generate() const noexcept override;
+    std::unique_ptr<OpenMM::Force> generate() const override;
 
     const std::vector<indices_type>& indices() const noexcept { return indices_vec_; }
 
-    std::string name() const noexcept override
+    std::string name() const override
     {
-        return "FlexibleLocalAngle (" + aa_name_ + ")";
+        return fmt::format("FlexibleLocalAngle ({})", aa_name_);
     }
 
   private:

@@ -1,6 +1,6 @@
 #include "ThreeSPN2BondForceFieldGenerator.hpp"
 
-std::unique_ptr<OpenMM::Force> ThreeSPN2BondForceFieldGenerator::generate() const noexcept
+std::unique_ptr<OpenMM::Force> ThreeSPN2BondForceFieldGenerator::generate() const
 {
     std::string potential_formula = fmt::format(
         "{id}_k2 * (r - {id}_v0)^2 + 100.0 * {id}_k4 * (r - {id}_v0)^4",

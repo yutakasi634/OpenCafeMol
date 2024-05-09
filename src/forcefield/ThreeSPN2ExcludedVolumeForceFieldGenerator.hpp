@@ -25,9 +25,9 @@ class ThreeSPN2ExcludedVolumeForceFieldGenerator final : public ForceFieldGenera
         const std::vector<std::pair<std::string, std::string>> ignore_group_pairs = {},
         const std::vector<std::optional<std::string>> group_vec = {});
 
-    std::unique_ptr<OpenMM::Force> generate() const noexcept override;
+    std::unique_ptr<OpenMM::Force> generate() const override;
 
-    std::string name() const noexcept override { return "3SPN2ExcludedVolume"; }
+    std::string name() const override { return "3SPN2ExcludedVolume"; }
 
   private:
     double                              eps_;

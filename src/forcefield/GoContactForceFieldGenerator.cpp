@@ -1,6 +1,6 @@
 #include "GoContactForceFieldGenerator.hpp"
 
-std::unique_ptr<OpenMM::Force> GoContactForceFieldGenerator::generate() const noexcept
+std::unique_ptr<OpenMM::Force> GoContactForceFieldGenerator::generate() const
 {
     const std::string potential_formula = fmt::format(
         "{id}_k * (5 * ({id}_r0 / r)^12 - 6 * ({id}_r0 / r)^10)",

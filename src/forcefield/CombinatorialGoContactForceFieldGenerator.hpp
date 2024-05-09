@@ -36,7 +36,7 @@ class CombinatorialGoContactForceFieldGenerator final : public ForceFieldGenerat
 
     std::unique_ptr<OpenMM::Force> generate() const override;
 
-    std::string name() const noexcept override { return "CombinatorialGoContact"; }
+    std::string name() const override { return "CombinatorialGoContact"; }
 
   private:
     double                   k_;

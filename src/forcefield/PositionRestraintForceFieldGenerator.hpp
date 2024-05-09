@@ -26,9 +26,9 @@ class PositionRestraintForceFieldGenerator : public ForceFieldGeneratorBase
         assert(this->indices_.size() == this->v0s_.size());
     }
 
-    std::unique_ptr<OpenMM::Force> generate() const noexcept override;
+    std::unique_ptr<OpenMM::Force> generate() const override;
 
-    std::string name() const noexcept override { return "PositionRestraint"; }
+    std::string name() const override { return "PositionRestraint"; }
 
   private:
     std::vector<std::size_t>           indices_;
