@@ -288,6 +288,25 @@ read_toml_combinatorial_go_contact_ff_generators(
         const toml::value& global_ff_data, const Topology& topology,
         const std::vector<std::optional<std::string>>& group_vec,
         const bool use_periodic);
+
+// PDNS table is like below
+// [[forcefields.global]]
+// interaction = "PDNS"
+// potential   = "PDNS"
+// sigma = 1.0  # angstrom
+// delta = 0.17453 # radian (= 10 degree)
+// parameters  = [
+// {index =    2, S3 = 1, kind = "DNA"},
+// {index =    5, S3 = 4, kind = "DNA"},
+// # ...
+// {index = 1000, kind = "Protein", PN =  999, PC = 1001, k = 1.2, r0 = 5.0, theta0 = 100.0, phi0 = 130.0},
+// {index = 1023, kind = "Protein", PN = 1022, PC = 1024, k = 1.2, r0 = 6.0, theta0 = 110.0, phi0 = 120.0},
+// # ...
+// ]
+ProteinDNANonSpecificForceFieldGenerator
+read_toml_protein_dna_non_specific_ff_generator(
+    const  toml::value& global_ff_data, const bool use_periodic);
+
 // -----------------------------------------------------------------------------
 // read external force field
 
