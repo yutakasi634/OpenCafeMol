@@ -36,7 +36,6 @@
 #include "src/util/Utility.hpp"
 
 #include <OpenMM.h>
-#include <toml11/toml.hpp>
 
 // -----------------------------------------------------------------------------
 // read local force field
