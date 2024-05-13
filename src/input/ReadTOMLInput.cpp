@@ -2,6 +2,7 @@
 
 #include "Utility.hpp"
 #include "src/util/Utility.hpp"
+#include "src/util/Logger.hpp"
 
 #include "src/Simulator.hpp"
 #include "src/SystemGenerator.hpp"
@@ -1019,7 +1020,16 @@ Simulator read_toml_input(const std::string& toml_file_name)
     }
     else
     {
-        simulator.set_velocity();
+        const auto& sys = systems.at(0);
+        const auto vel_seed = toml::find_or<std::int64_t>(sys, "vel_seed", 0);
+        if(vel_seed == 0)
+        {
+            // since OpenMM does not provide system-wide RNG, we need to specify
+            // seeds for each specific target.
+            log_info("System does not provide initial velocity nor non-zero `vel_seed`. "
+                     "initial velocity becomes completely random and cannot be reproduced.");
+        }
+        simulator.set_velocity(vel_seed);
     }
 
     return simulator;

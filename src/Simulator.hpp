@@ -46,9 +46,17 @@ class Simulator
     void initialize(const std::vector<OpenMM::Vec3>& initial_position);
     void run();
 
-    void set_velocity()
+    void set_velocity(const std::int64_t vel_seed)
     {
-        context_.setVelocitiesToTemperature(integrator_gen_ptr_->temperature());
+        if(vel_seed == 0)
+        {
+            context_.setVelocitiesToTemperature(integrator_gen_ptr_->temperature());
+        }
+        else
+        {
+            context_.setVelocitiesToTemperature(integrator_gen_ptr_->temperature(),
+                                                static_cast<int>(vel_seed));
+        }
     }
 
     void set_velocity(const std::vector<OpenMM::Vec3>& initial_velocity)
