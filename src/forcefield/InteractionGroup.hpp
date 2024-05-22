@@ -61,15 +61,17 @@ extract_interaction_group(
         std::set<int> others; // particles that does not belong to groups ignored
         for(std::size_t idx=0; idx<para.size(); ++idx)
         {
-            if (para.at(idx).has_value()      && // the particle interacts with this
-                group_vec.at(idx).has_value() && // the particle belongs to a group
-                related_group_names.count(group_vec.at(idx).value()) != 0) // the group is in ignoring pair
+            if(para.at(idx).has_value()) // the particle interacts with this
             {
-                related_group_map.at(group_vec.at(idx).value()).insert(idx);
-            }
-            else
-            {
-                others.insert(idx);
+                if(group_vec.at(idx).has_value() && // the particle belongs to a group
+                   related_group_names.count(group_vec.at(idx).value()) != 0) // the group is in ignoring pair
+                {
+                    related_group_map.at(group_vec.at(idx).value()).insert(idx);
+                }
+                else
+                {
+                    others.insert(idx);
+                }
             }
         }
 
