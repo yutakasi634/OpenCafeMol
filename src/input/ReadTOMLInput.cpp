@@ -631,6 +631,13 @@ SystemGenerator read_toml_system(const toml::value& data)
                     system_gen.add_ff_generator(std::make_unique<potential_type>(ff_gen));
                 }
             }
+            else if (potential == "PDNS")
+            {
+                ProteinDNANonSpecificForceFieldGenerator ff_gen =
+                    read_toml_protein_dna_non_specific_ff_generator(global_ff, use_periodic);
+                system_gen.add_ff_generator(
+                    std::make_unique<ProteinDNANonSpecificForceFieldGenerator>(ff_gen));
+            }
 
             // Non-pair interaction case
             if(interaction == "3SPN2CrossStacking")
