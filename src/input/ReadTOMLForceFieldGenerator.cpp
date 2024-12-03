@@ -186,7 +186,6 @@ read_toml_capped_go_contact_ff_generator(
     check_keys_available(local_ff_data,
             {"interaction", "potential", "topology", "parameters", "capping_ratio", "env"});
 
-    // TODO: enable to optimization based on cutoff
     const auto& params = toml::find<toml::array>(local_ff_data, "parameters");
     const auto& env = local_ff_data.contains("env") ? local_ff_data.at("env") : toml::value{};
 

@@ -4,7 +4,6 @@
 #include "src/forcefield/HarmonicBondForceFieldGenerator.hpp"
 #include "src/forcefield/GaussianBondForceFieldGenerator.hpp"
 #include "src/forcefield/GoContactForceFieldGenerator.hpp"
-#include "src/forcefield/CappedGoContactForceFieldGenerator.hpp"
 #include "src/forcefield/ThreeSPN2BondForceFieldGenerator.hpp"
 #include "src/forcefield/HarmonicAngleForceFieldGenerator.hpp"
 #include "src/forcefield/FlexibleLocalAngleForceFieldGenerator.hpp"
@@ -30,6 +29,7 @@
 #include "src/forcefield/PullingForceFieldGenerator.hpp"
 #include "src/forcefield/PositionRestraintForceFieldGenerator.hpp"
 #include "src/forcefield/HarmonicCoMPullingForceFieldGenerator.hpp"
+#include "src/forcefield/CappedGoContactForceFieldGenerator.hpp"
 
 #include "src/Topology.hpp"
 #include "src/toml11_fwd.hpp"

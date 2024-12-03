@@ -17,7 +17,7 @@ std::unique_ptr<OpenMM::Force> CappedGoContactForceFieldGenerator::generate() co
     contact_ff->addPerBondParameter(fmt::format("{}_beta", ffgen_id_));
     contact_ff->addPerBondParameter(fmt::format("{}_cap", ffgen_id_));
 
-    const double cap_slope = -60 * (std::pow(1 / capping_ratio_, 13.0) - std::pow(1 / capping_ratio_, 11.0));
+    const double cap_slope     = -60 * (std::pow(1 / capping_ratio_, 13.0) - std::pow(1 / capping_ratio_, 11.0));
     const double cap_intercept =  65 * std::pow(1 / capping_ratio_, 12.0) - 66 * std::pow(1 / capping_ratio_, 10.0);
 
     for(std::size_t idx=0; idx<indices_vec_.size(); ++idx)

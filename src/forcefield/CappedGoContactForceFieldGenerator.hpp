@@ -48,7 +48,7 @@ class CappedGoContactForceFieldGenerator final : public ForceFieldGeneratorBase
     std::vector<indices_type> indices_vec_;
     std::vector<double>       ks_;
     std::vector<double>       r0s_;
-    double capping_ratio_;
+    double                    capping_ratio_;
     bool                      use_periodic_;
     std::string               ffgen_id_;
 };
