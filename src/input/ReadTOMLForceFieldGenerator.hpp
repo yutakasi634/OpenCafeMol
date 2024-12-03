@@ -4,6 +4,7 @@
 #include "src/forcefield/HarmonicBondForceFieldGenerator.hpp"
 #include "src/forcefield/GaussianBondForceFieldGenerator.hpp"
 #include "src/forcefield/GoContactForceFieldGenerator.hpp"
+#include "src/forcefield/CappedGoContactForceFieldGenerator.hpp"
 #include "src/forcefield/ThreeSPN2BondForceFieldGenerator.hpp"
 #include "src/forcefield/HarmonicAngleForceFieldGenerator.hpp"
 #include "src/forcefield/FlexibleLocalAngleForceFieldGenerator.hpp"
@@ -51,6 +52,11 @@ read_toml_gaussian_bond_ff_generator(
 
 GoContactForceFieldGenerator
 read_toml_go_contact_ff_generator(
+        const toml::value& local_ff_data, Topology& topology,
+        const bool use_periodic);
+
+CappedGoContactForceFieldGenerator
+read_toml_capped_go_contact_ff_generator(
         const toml::value& local_ff_data, Topology& topology,
         const bool use_periodic);
 
