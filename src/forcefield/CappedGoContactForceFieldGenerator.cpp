@@ -4,7 +4,7 @@ std::unique_ptr<OpenMM::Force> CappedGoContactForceFieldGenerator::generate() co
 {
     const std::string potential_formula = fmt::format(
         "cap_val * cap_formula + (1 - cap_val) * lj_formula;"
-        "cap_formula = {id}_k * {id}_alpha / roverdist + {id}_k * {id}_beta;"
+        "cap_formula = {id}_k * {id}_slope / roverdist + {id}_k * {id}_intercept;"
         "lj_formula = {id}_k * (5 * roverdist^12 - 6 * roverdist^10);"
         "cap_val = step({id}_cap - 1 / roverdist);"
         "roverdist = {id}_r0 / r;",
