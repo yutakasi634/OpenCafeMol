@@ -209,6 +209,14 @@ SystemGenerator read_toml_system(const toml::value& data)
                 system_gen.add_ff_generator(
                         std::make_unique<GoContactForceFieldGenerator>(ff_gen));
             }
+            else if(interaction == "BondLength" && potential ==  "CappedGoContact")
+            {
+                CappedGoContactForceFieldGenerator ff_gen =
+                    read_toml_capped_go_contact_ff_generator(
+                        local_ff, topology, use_periodic);
+                system_gen.add_ff_generator(
+                        std::make_unique<CappedGoContactForceFieldGenerator>(ff_gen));
+            }
             else if (interaction == "BondLength" && potential == "3SPN2Bond")
             {
                 ThreeSPN2BondForceFieldGenerator ff_gen =

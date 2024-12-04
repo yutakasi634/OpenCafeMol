@@ -178,6 +178,61 @@ read_toml_go_contact_ff_generator(
     return GoContactForceFieldGenerator(indices_vec, ks, r0s, use_periodic);
 }
 
+CappedGoContactForceFieldGenerator
+read_toml_capped_go_contact_ff_generator(
+        const toml::value& local_ff_data, Topology& topology,
+        const bool use_periodic)
+{
+    check_keys_available(local_ff_data,
+            {"interaction", "potential", "topology", "parameters", "capping_ratio", "env"});
+
+    const auto& params = toml::find<toml::array>(local_ff_data, "parameters");
+    const auto& env = local_ff_data.contains("env") ? local_ff_data.at("env") : toml::value{};
+
+    const double capping_ratio = toml::find_or(local_ff_data, "capping_ratio", 0.75);
+    std::vector<std::pair<std::size_t, std::size_t>> indices_vec;
+    std::vector<double>                              ks;
+    std::vector<double>                              r0s;
+
+    for(const auto& param : params)
+    {
+        auto indices =
+            Utility::find_parameter<std::pair<std::size_t, std::size_t>>(
+                    param, env, "indices");
+        const auto offset =
+            Utility::find_parameter_or<toml::value>(
+                    param, env, "offset", toml::value(0));
+        add_offset(indices, offset);
+
+        if(topology.size() <= indices.first)
+        {
+            throw std::runtime_error("[error] read_toml_capped_go_contact_ff_generator : index "+std::to_string(indices.first)+" exceeds the system's largest index "+std::to_string(topology.size()-1)+".");
+        }
+        else if(topology.size() <= indices.second)
+        {
+            throw std::runtime_error("[error] read_toml_capped_go_contact_ff_generator : index "+std::to_string(indices.second)+" exceeds the system's largest index "+std::to_string(topology.size()-1)+".");
+        }
+
+        const double k =
+            Utility::find_parameter<double>(param, env, "k") * OpenMM::KJPerKcal; // KJ/mol
+        const double r0 =
+            Utility::find_parameter<double>(param, env, "v0") * OpenMM::NmPerAngstrom; // nm
+
+        ks         .push_back(k);
+        indices_vec.push_back(indices);
+        r0s        .push_back(r0);
+    }
+
+    if(local_ff_data.contains("topology"))
+    {
+        topology.add_edges(indices_vec, toml::find<std::string>(local_ff_data, "topology"));
+    }
+
+    std::cerr << "    BondLength    : CappedGoContact (" << indices_vec.size() << " found)" << std::endl;
+    return CappedGoContactForceFieldGenerator(indices_vec, ks, r0s, capping_ratio, use_periodic);
+}
+
+
 // TODO: enable to use offset
 ThreeSPN2BondForceFieldGenerator
 read_toml_3spn2_bond_ff_generator(
