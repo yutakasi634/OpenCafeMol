@@ -31,6 +31,12 @@ DebyeHuckelForceFieldGenerator::DebyeHuckelForceFieldGenerator(
     inv_4_pi_eps0_epsk_ = 1.0 / (4.0 * Constant::pi * eps0 * epsk); // [KJ nm/mol]
 
     // convert [M] (mol/L) to [mol/nm^3]
+    if (!(ionic_strength_ > 0))
+    {
+        throw std::runtime_error(
+                 "[error] ionic strength must be larger than zero");
+    }
+    
     const double I = ionic_strength_ * 1.0e-24/*[/L]->[/nm^3]*/; // [mol/nm^3]
 
     debye_length_ =
