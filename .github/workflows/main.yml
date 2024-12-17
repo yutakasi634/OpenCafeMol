@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout OpenAICG2Plus
+    - name: Checkout OpenCafeMol
       uses: actions/checkout@v3
       with:
         submodules: true
@@ -50,13 +50,13 @@ jobs:
     - name: Run
       run: |
           mkdir -p ./output/
-          ./bin/open_aicg2plus sample/toml_input/sh3_AICG2+.toml
+          ./bin/open_cafemol sample/toml_input/sh3_AICG2+.toml
           cat ./output/sh3_unlim.ene
-          ./bin/open_aicg2plus sample/toml_input/POPC_flat_membrane_128_MembraneBarostat.toml
+          ./bin/open_cafemol sample/toml_input/POPC_flat_membrane_128_MembraneBarostat.toml
           cat ./output/flatmemb128_MembraneBarostat.ene
-          ./bin/open_aicg2plus sample/toml_input/dna_3SPN2.toml
+          ./bin/open_cafemol sample/toml_input/dna_3SPN2.toml
           cat ./output/dna_3SPN2.ene
-          ./bin/open_aicg2plus sample/toml_input/dna_3SPN2C.toml
+          ./bin/open_cafemol sample/toml_input/dna_3SPN2C.toml
           cat ./output/dna_3SPN2C.ene
-          ./bin/open_aicg2plus sample/genesis_input/1SRL_cg.inp
+          ./bin/open_cafemol sample/genesis_input/1SRL_cg.inp
           cat ./output/1SRL_md1.ene
