@@ -1,4 +1,4 @@
-target_sources(open_aicg2plus PRIVATE
+target_sources(open_cafemol PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/Utility.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ReadTOMLInput.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ReadTOMLForceFieldGenerator.cpp

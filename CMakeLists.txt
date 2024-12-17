@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(open_aicg2plus)
+project(open_cafemol)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD          17)

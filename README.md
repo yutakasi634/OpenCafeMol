@@ -1,6 +1,6 @@
-# OpenAICG2plus
+# OpenCafeMol
 
-![Build Status](https://github.com/yutakasi634/OpenAICG2plus/actions/workflows/main.yml/badge.svg)
+![Build Status](https://github.com/yutakasi634/OpenCafeMol/actions/workflows/main.yml/badge.svg)
 
 ## Requirement
 - OpenMM
@@ -8,11 +8,11 @@
 - CMake 3.10
 
 ## Build
-Since OpenAICG2plus manages depending library via git submodule, clone this repo using git and do not download zip or release-tarball. It will cause compilation error.
+Since OpenCafeMol manages depending library via git submodule, clone this repo using git and do not download zip or release-tarball. It will cause compilation error.
 
 ```sh
-$ git clone --recurse-submodules https://github.com/yutakasi634/OpenAICG2plus.git
-$ cd OpenAICG2plus
+$ git clone --recurse-submodules https://github.com/yutakasi634/OpenCafeMol.git
+$ cd OpenCafeMol
 $ mkdir build
 $ cd build
 $ cmake ..

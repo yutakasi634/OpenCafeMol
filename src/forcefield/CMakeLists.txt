@@ -1,4 +1,4 @@
-target_sources(open_aicg2plus PRIVATE
+target_sources(open_cafemol PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/CappedGoContactForceFieldGenerator.cpp 
     ${CMAKE_CURRENT_SOURCE_DIR}/CombinatorialGoContactForceFieldGenerator.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CosineDihedralForceFieldGenerator.cpp
