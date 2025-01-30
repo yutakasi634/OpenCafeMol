@@ -253,7 +253,6 @@ TEST(ReadTOMLForceFieldGenerator, ReadTOMLExcludedVolumeForceFieldGenerator)
 {
     using namespace toml::literals;
     const toml::value v = u8R"(
-        interaction                     = "Pair"
         potential                       = "ExcludedVolume"
         ignore.molecule                 = "Nothing"
         ignore.particles_within.bond    = 3
@@ -285,7 +284,6 @@ TEST(ReadTOMLForceFieldGenerator, ReadTOML3SPN2ExcludedVolumeForceFieldGenerator
 {
     using namespace toml::literals;
     const toml::value v = u8R"(
-        interaction     = "Pair"
         potential       = "3SPN2ExcludedVolume"
         ignore.molecule = "Nothing"
         ignore.particle_within.bond       = 1
@@ -332,8 +330,7 @@ TEST(ReadTOMLForceFieldGenerator, ReadTOMLWeeksChandlerAndersenForceFieldGenerat
 {
     using namespace toml::literals;
     const toml::value v = u8R"(
-        interaction             = "Pair"
-        potential               = "WCA"
+        potential = "WCA"
         ignore_particles_within = {bond = 1, angle = 1}
         env.test_epsilon = 0.5
         env.test_sigma_A = 7.0
@@ -341,8 +338,8 @@ TEST(ReadTOMLForceFieldGenerator, ReadTOMLWeeksChandlerAndersenForceFieldGenerat
         parameters = [
             {index = 0, sigma = "test_sigma_A", epsilon = "test_epsilon"},
             {index = 1, sigma = "test_sigma_B", epsilon = "test_epsilon"},
-            {index = 2, sigma = "test_sigma_A", epsilon = "test_epsilon"},
-            {index = 3, sigma = "test_sigma_B", epsilon = "test_epsilon"}
+            {index = 2, sigma = 7.0,            epsilon = "test_epsilon"},
+            {index = 3, sigma = 4.0,            epsilon = "test_epsilon"}
         ]
     )"_toml;
 
@@ -362,8 +359,7 @@ TEST(ReadTOMLForceFieldGenerator, ReadTOMLUniformWeeksChandlerAndersenForceField
 {
     using namespace toml::literals;
     const toml::value v = u8R"(
-        interaction = "Pair"
-        potential   = "WCA"
+        potential = "WCA"
         table.TESTA.TESTB = {sigma = 5.0, epsilon = 0.5}
         parameters = [
             {index = 0, name = "TESTA"},
@@ -391,8 +387,7 @@ TEST(ReadTOMLForceFieldGenerator, ReadTOMLDebyeHuckelForceFieldGenerator)
 {
     using namespace toml::literals;
     const toml::value v = u8R"(
-        interaction = "Pair"
-        potential   = "WCA"
+        potential = "WCA"
         ignore.particles_within.bond = 3
         parameters = [
         {index = 2, charge = -1.0},
@@ -413,4 +408,102 @@ TEST(ReadTOMLForceFieldGenerator, ReadTOMLDebyeHuckelForceFieldGenerator)
     EXPECT_NO_THROW(read_toml_debye_huckel_ff_generator(
                 v, system_size, ionic_strength, temperature, topology,
                 group_vec, use_periodic));
+}
+
+TEST(ReadTOMLForceFieldGenerator, ReadTOMLiSoLFAttractiveForceFieldGenerator)
+{
+    using namespace toml::literals;
+    const toml::value v = u8R"(
+        potential = "iSoLFAttractive"
+        ignore.particles_within.bond = 1
+        env.test_sigma   = 7.0
+        env.test_epsilon = 0.5
+        env.test_omega   = 10.0
+        parameters = [
+            {index = 2, sigma = "test_sigma", epsilon = "test_epsilon", omega = "test_omega"},
+            {index = 5, sigma = 7.0,          epsilon = 0.5,            omega = 10.0},
+
+            {index = 7, sigma = 7.0,          epsilon = "test_epsilon", omega = 10.0}
+        ]
+    )"_toml;
+
+    const std::size_t system_size(8);
+    Topology          topology(system_size);
+    topology.add_edges({{0, 1}, {1, 2}, {2, 3}}, "bond");
+    const std::vector<std::optional<std::string>> group_vec(system_size, std::nullopt);
+    const bool                                    use_periodic = false;
+
+    EXPECT_NO_THROW(read_toml_isolf_attractive_ff_generator(
+                v, system_size, topology, group_vec, use_periodic));
+}
+
+TEST(ReadTOMLForceFieldGenerator, ReadTOMLUniformLennardJonesAttractiveForceFieldGenerator)
+{
+    using namespace toml::literals;
+    const toml::value v = u8R"(
+    potential = "LennardJonesAttractive"
+    cutoff    = 5.0
+    table.A.A = {sigma =   4.1260, epsilon =  -0.7350}
+    table.A.B = {sigma =   6.3361, epsilon =  -0.3710}
+    table.B.B = {sigma =   4.1221, epsilon =   0.6500}
+    parameters = [
+    {index =     1, name = "A"},
+    {index =     2, name = "A"},
+    {index =     3, name = "B"},
+    {index =     4, name = "B"},
+    ]
+    )"_toml;
+
+    const double      sigma   =  4.0;
+    const double      epsilon = -0.3;
+    const std::size_t system_size(5);
+    const std::pair<std::string, std::string> name_pair{"A", "B"};
+    Topology          topology(system_size);
+    const std::vector<std::pair<std::size_t, std::size_t>> ignore_list{};
+    const std::vector<std::pair<std::string, std::string>> ignore_group_pairs{};
+    const std::vector<std::optional<std::string>> group_vec(system_size, std::nullopt);
+    const bool                                    use_periodic = false;
+
+    EXPECT_NO_THROW(read_toml_uniform_lennard_jones_attractive_ff_generator(
+                v, system_size, sigma, epsilon, name_pair, topology,
+                ignore_list, ignore_group_pairs, group_vec, use_periodic));
+}
+
+TEST(ReadTOMLForceFieldGenerator, ReadTOML3SPN2BasePairLocalForceFieldGenerator)
+{
+    using namespace toml::literals;
+    const toml::value v_3spn2 = u8R"(
+    interaction = "3SPN2BasePair"
+    potential   = "3SPN2"
+    ignore.particles_within.nucleotide = 3
+    parameters = [
+    {nucleotide_pair=[{       S = 0, B = 1, Base = "A"},{P = 7, S = 8, B = 9, Base = "T"}]},
+    {nucleotide_pair=[{P = 2, S = 3, B = 4, Base = "T"},{P = 4, S = 5, B = 6, Base = "A"}]}
+    ]
+    )"_toml;
+
+    const std::size_t system_size(10);
+    const std::pair<std::string, std::string> base_pair{"A", "T"};
+    Topology                                  topology_3spn2(system_size);
+    ThreeSPN2BasePairPotentialParameter       three_spn2_para{};
+    const bool                                use_periodic = false;
+
+    EXPECT_NO_THROW(read_toml_3spn2_base_pair_local_ff_generator(
+                three_spn2_para, v_3spn2, topology_3spn2, base_pair, use_periodic));
+
+    const toml::value v_3spn2c = u8R"(
+    interaction = "3SPN2BasePair"
+    potential   = "3SPN2C"
+    ignore.particles_within.nucleotide = 3
+    parameters = [
+    {nucleotide_pair=[{       S = 0, B = 1, Base = "A"},{P = 187, S = 188, B = 189, Base = "T"}]},
+    {nucleotide_pair=[{P = 2, S = 3, B = 4, Base = "T"},{P = 184, S = 185, B = 186, Base = "A"}]}
+    ]
+    )"_toml;
+
+    Topology                             topology_3spn2c(system_size);
+    ThreeSPN2CBasePairPotentialParameter three_spn2c_para{};
+
+    EXPECT_NO_THROW(read_toml_3spn2_base_pair_local_ff_generator(
+                three_spn2c_para, v_3spn2c, topology_3spn2c, base_pair, use_periodic));
 }
