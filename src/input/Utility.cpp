@@ -1,7 +1,7 @@
 #include "Utility.hpp"
 #include "src/util/Utility.hpp"
 
-#include <toml11/toml.hpp>
+#include <toml.hpp>
 #include <iostream>
 
 void merge_toml_tables(toml::value& table, const toml::value& other)
