@@ -5,7 +5,7 @@
 #include "src/util/Utility.hpp"
 #include "src/util/Constants.hpp"
 
-#include <toml11/toml.hpp>
+#include <toml.hpp>
 
 // -----------------------------------------------------------------------------
 // read local force field

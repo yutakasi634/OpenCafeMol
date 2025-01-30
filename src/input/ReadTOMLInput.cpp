@@ -13,7 +13,7 @@
 #include "src/forcefield/MonteCarloMembraneBarostatGenerator.hpp"
 
 #include <OpenMM.h>
-#include <toml11/toml.hpp>
+#include <toml.hpp>
 
 #include <memory>
 #include <iostream>
@@ -514,21 +514,23 @@ SystemGenerator read_toml_system(const toml::value& data)
             {
                 const auto attr = toml::find(systems[0], "attributes");
 
-                const auto temperature = toml::expect<double>(attr, "temperature");
-                if(!temperature.is_ok())
+                if(!attr.contains("temperature"))
                 {
-                    std::cerr << temperature.unwrap_err() << std::endl;
+                    throw std::runtime_error(
+                        "[error] attributes table must contains temperature for DebyeHuckel potential.");
                 }
+                const auto temperature = toml::find<double>(attr, "temperature");
 
-                const auto ionic_strength = toml::expect<double>(attr, "ionic_strength");
-                if(!ionic_strength.is_ok())
+                if(!attr.contains("ionic_strength"))
                 {
-                    std::cerr << ionic_strength.unwrap_err() << std::endl;
+                    throw std::runtime_error(
+                        "[error] attributes table must contains ionic_strength for DebyeHuckel potential.");
                 }
+                const auto ionic_strength = toml::find<double>(attr, "ionic_strength");
 
                 DebyeHuckelForceFieldGenerator ff_gen =
                     read_toml_debye_huckel_ff_generator(global_ff, system_size,
-                        ionic_strength.unwrap(), temperature.unwrap(), topology, group_vec,
+                        ionic_strength, temperature, topology, group_vec,
                         use_periodic);
                 system_gen.add_ff_generator(
                         std::make_unique<DebyeHuckelForceFieldGenerator>(ff_gen));

@@ -1,6 +1,6 @@
 #include <OpenMM.h>
 
-#include <toml11/toml.hpp>
+#include <toml.hpp>
 
 #include "src/util/Utility.hpp"
 #include "src/util/Macro.hpp"
