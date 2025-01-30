@@ -88,6 +88,7 @@ endif()
 # =============================================================================
 # Build the code
 
+add_subdirectory(toml11)
 add_subdirectory(fmt)
 add_subdirectory(googletest)
 add_subdirectory(src)
