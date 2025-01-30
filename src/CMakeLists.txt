@@ -16,19 +16,29 @@ message(STATUS "OpenMM plugin  path : ${OPENMM_PLUGIN_DIR}")
 set(CMAKE_CXX_FLAGS "${OPEN_AICG2PLUS_WARNING_FLAGS} ${OPEN_AICG2PLUS_OPTIMIZATION_FLAGS} ${OPEN_AICG2PLUS_DEBUGGER_FLAGS} -DOPENMM_PLUGIN_DIR=${OPENMM_PLUGIN_DIR}")
 message(STATUS "CXX compiler flags are ${CMAKE_CXX_FLAGS}")
 
-add_executable(open_cafemol OpenAICG2Plus.cpp
+add_library(opencm STATIC
     IntegratorGenerator.cpp
     Observer.cpp
     Simulator.cpp
     SystemGenerator.cpp
     Topology.cpp
     )
+target_link_libraries(opencm PRIVATE
+    OpenMM::OpenMM
+    toml11::toml11
+    fmt
+    )
+
+add_executable(open_cafemol OpenAICG2Plus.cpp)
 set_target_properties(open_cafemol PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin")
-
 target_include_directories(open_cafemol PRIVATE OpenMM::OpenMM)
-target_link_libraries     (open_cafemol PRIVATE OpenMM::OpenMM fmt)
-
+target_link_libraries(open_cafemol PRIVATE
+    OpenMM::OpenMM
+    toml11::toml11
+    fmt
+    opencm
+    )
 add_subdirectory(util)
 add_subdirectory(input)
 add_subdirectory(forcefield)
