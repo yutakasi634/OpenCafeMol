@@ -507,3 +507,68 @@ TEST(ReadTOMLForceFieldGenerator, ReadTOML3SPN2BasePairLocalForceFieldGenerator)
     EXPECT_NO_THROW(read_toml_3spn2_base_pair_local_ff_generator(
                 three_spn2c_para, v_3spn2c, topology_3spn2c, base_pair, use_periodic));
 }
+
+TEST(ReadTOMLForceFieldGenerator, ReadTOML3SPN2BasePairFFGenerator)
+{
+    using namespace toml::literals;
+    const toml::value v_3spn2 = u8R"(
+        interaction = "3SPN2BasePair"
+        potential   = "3SPN2"
+        ignore.particles_within_nuleotide = 3
+        parameters = [
+            {strand = 0,        S = 0, B = 1, Base = "A"},
+            {strand = 0, P = 2, S = 3, B = 4, Base = "T"},
+        ]
+    )"_toml;
+
+    const std::size_t                         system_size(5);
+    const std::pair<std::string, std::string> base_pair{"A", "T"};
+    Topology                                  topology_3spn2(system_size);
+    ThreeSPN2BasePairPotentialParameter       three_spn2_para{};
+    const bool                                use_periodic = false;
+
+    EXPECT_NO_THROW(read_toml_3spn2_base_pair_ff_generator(
+                three_spn2_para, v_3spn2, topology_3spn2, base_pair, use_periodic));
+
+    const toml::value v_3spn2c = u8R"(
+        interaction = "3SPN2BasePair"
+        potential   = "3SPN2"
+        ignore.particles_within_nuleotide = 3
+        parameters = [
+            {strand = 0,        S = 0, B = 1, Base = "A"},
+            {strand = 0, P = 2, S = 3, B = 4, Base = "T"},
+        ]
+    )"_toml;
+
+    Topology                             topology_3spn2c(system_size);
+    ThreeSPN2CBasePairPotentialParameter three_spn2c_para{};
+
+    EXPECT_NO_THROW(read_toml_3spn2_base_pair_ff_generator(
+                three_spn2_para, v_3spn2c, topology_3spn2c, base_pair, use_periodic));
+}
+
+TEST(ReadTOMLForceFieldGenerator, ReadTOML3SPN2CrossStackingLocalForceFieldGenerator)
+{
+    using namespace toml::literals;
+    const toml::value v = u8R"(
+        interaction = "3SPN2CrossStackingLocal"
+        potential   = "3SPN2"
+        ignore.particles_within.nucleotide = 3
+        parameters = [
+        {nucleotide_group=[{P =  2, S =  3, B =  4, Base = "T"},
+                           {P =  8, S =  9, B = 10, Base = "A"},
+                           {P =  5, S =  6, B =  7, Base = "A"},
+                           {P = 11, S = 12, B = 13, Base = "T"}]}
+        ]
+    )"_toml;
+
+    const std::size_t                          system_size(14);
+    Topology                                   topology(system_size);
+    ThreeSPN2CrossStackingPotentialParameter   parameter{};
+    const std::pair<std::string, std::string>  base_pair{"A", "T"};
+    const std::string                          strand_kind = "sense";
+    const bool                                 use_periodic = false;
+
+    EXPECT_NO_THROW(read_toml_3spn2_cross_stacking_local_ff_generator(
+                parameter, v, topology, base_pair, strand_kind, use_periodic));
+}
