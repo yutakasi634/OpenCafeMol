@@ -5,7 +5,7 @@
 #include <gtest/gtest.h>
 
 
-TEST(ReadTOMLForceFieldGenerator, ReadTOMLHarmonicBondForceFieldGenerator)
+TEST(ReadTOMLForceFieldGenerator, ReadTOMLHarmonicBondFFGenerator)
 {
     using namespace toml::literals;
     const toml::value v = u8R"(
@@ -25,7 +25,7 @@ TEST(ReadTOMLForceFieldGenerator, ReadTOMLHarmonicBondForceFieldGenerator)
     EXPECT_NO_THROW(read_toml_harmonic_bond_ff_generator(v, topology, use_periodic));
 }
 
-TEST(ReadTOMLForceFieldGenerator, ReadTOMLGaussianBondForceFieldGenerator)
+TEST(ReadTOMLForceFieldGenerator, ReadTOMLGaussianBondFFGenerator)
 {
     using namespace toml::literals;
     const toml::value v = u8R"(
@@ -45,7 +45,7 @@ TEST(ReadTOMLForceFieldGenerator, ReadTOMLGaussianBondForceFieldGenerator)
     EXPECT_NO_THROW(read_toml_gaussian_bond_ff_generator(v, topology, use_periodic));
 }
 
-TEST(ReadTOMLForceFieldGenerator, ReadTOMLGoContactForceFieldGenerator)
+TEST(ReadTOMLForceFieldGenerator, ReadTOMLGoContactFFGenerator)
 {
     using namespace toml::literals;
     const toml::value v = u8R"(
@@ -65,7 +65,7 @@ TEST(ReadTOMLForceFieldGenerator, ReadTOMLGoContactForceFieldGenerator)
     EXPECT_NO_THROW(read_toml_go_contact_ff_generator(v, topology, use_periodic));
 }
 
-TEST(ReadTOMLForceFieldGenerator, ReadTOMLCappedGoContactForceFieldGenerator)
+TEST(ReadTOMLForceFieldGenerator, ReadTOMLCappedGoContactFFGenerator)
 {
     using namespace toml::literals;
     const toml::value v = u8R"(
@@ -86,7 +86,7 @@ TEST(ReadTOMLForceFieldGenerator, ReadTOMLCappedGoContactForceFieldGenerator)
     EXPECT_NO_THROW(read_toml_capped_go_contact_ff_generator(v, topology, use_periodic));
 }
 
-TEST(ReadTOMLForceFieldGenerator, ReadTOMLThreeSPN2BondForceFieldGenerator)
+TEST(ReadTOMLForceFieldGenerator, ReadTOMLThreeSPN2BondFFGenerator)
 {
     using namespace toml::literals;
     const toml::value v = u8R"(
@@ -106,7 +106,7 @@ TEST(ReadTOMLForceFieldGenerator, ReadTOMLThreeSPN2BondForceFieldGenerator)
     EXPECT_NO_THROW(read_toml_3spn2_bond_ff_generator(v, topology, use_periodic));
 }
 
-TEST(ReadTOMLForceFieldGenerator, ReadTOMLHarmonicAngleForceFieldGenerator)
+TEST(ReadTOMLForceFieldGenerator, ReadTOMLHarmonicAngleFFGenerator)
 {
     using namespace toml::literals;
     const toml::value v = u8R"(
@@ -126,7 +126,7 @@ TEST(ReadTOMLForceFieldGenerator, ReadTOMLHarmonicAngleForceFieldGenerator)
     EXPECT_NO_THROW(read_toml_harmonic_angle_ff_generator(v, topology, use_periodic));
 }
 
-TEST(ReadTOMLForceFieldGenerator, ReadTOMLFlexibleLocalAngleForceFieldGenerator)
+TEST(ReadTOMLForceFieldGenerator, ReadTOMLFlexibleLocalAngleFFGenerator)
 {
     using namespace toml::literals;
     const toml::value v = u8R"(
@@ -150,7 +150,7 @@ TEST(ReadTOMLForceFieldGenerator, ReadTOMLFlexibleLocalAngleForceFieldGenerator)
                 v, aa_type, spline_table, topology, use_periodic));
 }
 
-TEST(ReadTOMLForceFieldGenerator, ReadTOMLGaussianDihedralForceFieldGenerator)
+TEST(ReadTOMLForceFieldGenerator, ReadTOMLGaussianDihedralFFGenerator)
 {
     using namespace toml::literals;
     const toml::value v = u8R"(
@@ -170,7 +170,7 @@ TEST(ReadTOMLForceFieldGenerator, ReadTOMLGaussianDihedralForceFieldGenerator)
     EXPECT_NO_THROW(read_toml_gaussian_dihedral_ff_generator(v, topology, use_periodic));
 }
 
-TEST(ReadTOMLForceFieldGenerator, ReadTOMLCosineDihedralForceFieldGenerator)
+TEST(ReadTOMLForceFieldGenerator, ReadTOMLCosineDihedralFFGenerator)
 {
     using namespace toml::literals;
     const toml::value v = u8R"(
@@ -190,7 +190,7 @@ TEST(ReadTOMLForceFieldGenerator, ReadTOMLCosineDihedralForceFieldGenerator)
     EXPECT_NO_THROW(read_toml_cosine_dihedral_ff_generator(v, topology, use_periodic));
 }
 
-TEST(ReadTOMLForceFieldGenerator, ReadTOMLFlexibleLocalDihedralForceFieldGenerator)
+TEST(ReadTOMLForceFieldGenerator, ReadTOMLFlexibleLocalDihedralFFGenerator)
 {
     using namespace toml::literals;
     const toml::value v = u8R"(
@@ -214,7 +214,7 @@ TEST(ReadTOMLForceFieldGenerator, ReadTOMLFlexibleLocalDihedralForceFieldGenerat
                 v, aa_pair, fourier_table, topology, use_periodic));
 }
 
-TEST(ReadTOMLForceFieldGenerator, ReadTOML3SPN2BaseStackingForceFieldGenerator)
+TEST(ReadTOMLForceFieldGenerator, ReadTOML3SPN2BaseStackingFFGenerator)
 {
     using namespace toml::literals;
     const toml::value v_3spn2 = u8R"(
@@ -249,7 +249,7 @@ TEST(ReadTOMLForceFieldGenerator, ReadTOML3SPN2BaseStackingForceFieldGenerator)
                 v_3spn2c, topology_3spn2c, use_periodic));
 }
 
-TEST(ReadTOMLForceFieldGenerator, ReadTOMLExcludedVolumeForceFieldGenerator)
+TEST(ReadTOMLForceFieldGenerator, ReadTOMLExcludedVolumeFFGenerator)
 {
     using namespace toml::literals;
     const toml::value v = u8R"(
@@ -280,7 +280,7 @@ TEST(ReadTOMLForceFieldGenerator, ReadTOMLExcludedVolumeForceFieldGenerator)
                 v, system_size, topology, group_vec, use_periodic));
 }
 
-TEST(ReadTOMLForceFieldGenerator, ReadTOML3SPN2ExcludedVolumeForceFieldGenerator)
+TEST(ReadTOMLForceFieldGenerator, ReadTOML3SPN2ExcludedVolumeFFGenerator)
 {
     using namespace toml::literals;
     const toml::value v = u8R"(
@@ -326,7 +326,7 @@ TEST(ReadTOMLForceFieldGenerator, ReadTOML3SPN2ExcludedVolumeForceFieldGenerator
                 v, system_size, topology, group_vec, use_periodic));
 }
 
-TEST(ReadTOMLForceFieldGenerator, ReadTOMLWeeksChandlerAndersenForceFieldGenerator)
+TEST(ReadTOMLForceFieldGenerator, ReadTOMLWeeksChandlerAndersenFFGenerator)
 {
     using namespace toml::literals;
     const toml::value v = u8R"(
@@ -355,7 +355,7 @@ TEST(ReadTOMLForceFieldGenerator, ReadTOMLWeeksChandlerAndersenForceFieldGenerat
                 v, system_size, topology, group_vec, use_periodic));
 }
 
-TEST(ReadTOMLForceFieldGenerator, ReadTOMLUniformWeeksChandlerAndersenForceFieldGenerator)
+TEST(ReadTOMLForceFieldGenerator, ReadTOMLUniformWeeksChandlerAndersenFFGenerator)
 {
     using namespace toml::literals;
     const toml::value v = u8R"(
@@ -383,7 +383,7 @@ TEST(ReadTOMLForceFieldGenerator, ReadTOMLUniformWeeksChandlerAndersenForceField
                 group_vec, use_periodic));
 }
 
-TEST(ReadTOMLForceFieldGenerator, ReadTOMLDebyeHuckelForceFieldGenerator)
+TEST(ReadTOMLForceFieldGenerator, ReadTOMLDebyeHuckelFFGenerator)
 {
     using namespace toml::literals;
     const toml::value v = u8R"(
@@ -410,7 +410,7 @@ TEST(ReadTOMLForceFieldGenerator, ReadTOMLDebyeHuckelForceFieldGenerator)
                 group_vec, use_periodic));
 }
 
-TEST(ReadTOMLForceFieldGenerator, ReadTOMLiSoLFAttractiveForceFieldGenerator)
+TEST(ReadTOMLForceFieldGenerator, ReadTOMLiSoLFAttractiveFFGenerator)
 {
     using namespace toml::literals;
     const toml::value v = u8R"(
@@ -437,7 +437,7 @@ TEST(ReadTOMLForceFieldGenerator, ReadTOMLiSoLFAttractiveForceFieldGenerator)
                 v, system_size, topology, group_vec, use_periodic));
 }
 
-TEST(ReadTOMLForceFieldGenerator, ReadTOMLUniformLennardJonesAttractiveForceFieldGenerator)
+TEST(ReadTOMLForceFieldGenerator, ReadTOMLUniformLennardJonesAttractiveFFGenerator)
 {
     using namespace toml::literals;
     const toml::value v = u8R"(
