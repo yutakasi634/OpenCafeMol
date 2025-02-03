@@ -4,8 +4,8 @@
 #include "src/Simulator.hpp"
 #include "src/SystemGenerator.hpp"
 #include "src/IntegratorGenerator.hpp"
-#include "src/toml11_fwd.hpp"
 
+#include <toml_fwd.hpp>
 #include <OpenMM.h>
 
 #include <memory>

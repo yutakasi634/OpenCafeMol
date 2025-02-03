@@ -14,7 +14,7 @@ include_directories(${PROJECT_SOURCE_DIR})
 include(CheckCXXCompilerFlag)
 
 # =============================================================================
-# Setting for use OpenMM library
+# Setting for OpenMM library
 
 # search installed OpenMM lib, include and plugin path
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake_modules)
@@ -26,6 +26,10 @@ message(STATUS "OpenMM library path : ${OPENMM_LIBRARY}")
 get_target_property(EXPECTED_OPENMM_PLUGIN_DIR OpenMM::OpenMM PLUGIN_DIRECTORY)
 set(OPENMM_PLUGIN_DIR ${EXPECTED_OPENMM_PLUGIN_DIR} CACHE PATH "The plugin path for OpenMM")
 message(STATUS "OpenMM plugin  path : ${OPENMM_PLUGIN_DIR}")
+
+# =============================================================================
+# Setting for toml11
+set(TOML11_PRECOMPILE ON)
 
 # =============================================================================
 # warning flags

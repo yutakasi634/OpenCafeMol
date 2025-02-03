@@ -32,7 +32,6 @@
 #include "src/forcefield/CappedGoContactForceFieldGenerator.hpp"
 
 #include "src/Topology.hpp"
-#include "src/toml11_fwd.hpp"
 #include "src/input/Utility.hpp"
 #include "src/util/Utility.hpp"
 
