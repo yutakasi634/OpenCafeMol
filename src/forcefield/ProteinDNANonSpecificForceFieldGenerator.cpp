@@ -5,6 +5,7 @@
 #include <iostream>
 #include <map>
 
+//TODO: enable to set exclusion from ignore list
 ProteinDNANonSpecificForceFieldGenerator::ProteinDNANonSpecificForceFieldGenerator(
         const std::vector<indices_dna_type>& indices_dna,
     const std::vector<indices_protein_type>& indices_protein,

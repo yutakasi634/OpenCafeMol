@@ -2420,7 +2420,7 @@ read_toml_position_restraint_ff_generator(
 
 // HarmonicCoMPulling input is like below
 // [[forcefields.external]]
-// interaction = "CoMPulingForce"
+// interaction = "CoMPullingForce"
 // potential   = "Harmonic"
 // parameters = [
 //     {k = 10.0, v0 = 0.0, indices_pair = [[0, 1], [2, 3]]},
