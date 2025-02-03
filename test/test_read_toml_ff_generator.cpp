@@ -547,10 +547,10 @@ TEST(ReadTOMLForceFieldGenerator, ReadTOML3SPN2BasePairFFGenerator)
                 three_spn2_para, v_3spn2c, topology_3spn2c, base_pair, use_periodic));
 }
 
-TEST(ReadTOMLForceFieldGenerator, ReadTOML3SPN2CrossStackingLocalForceFieldGenerator)
+TEST(ReadTOMLForceFieldGenerator, ReadTOML3SPN2CrossStackingLocalFFGenerator)
 {
     using namespace toml::literals;
-    const toml::value v = u8R"(
+    const toml::value v_3spn2 = u8R"(
         interaction = "3SPN2CrossStackingLocal"
         potential   = "3SPN2"
         ignore.particles_within.nucleotide = 3
@@ -563,12 +563,228 @@ TEST(ReadTOMLForceFieldGenerator, ReadTOML3SPN2CrossStackingLocalForceFieldGener
     )"_toml;
 
     const std::size_t                          system_size(14);
-    Topology                                   topology(system_size);
-    ThreeSPN2CrossStackingPotentialParameter   parameter{};
+    Topology                                   topology_3spn2(system_size);
+    ThreeSPN2CrossStackingPotentialParameter   parameter_3spn2{};
     const std::pair<std::string, std::string>  base_pair{"A", "T"};
     const std::string                          strand_kind = "sense";
     const bool                                 use_periodic = false;
 
     EXPECT_NO_THROW(read_toml_3spn2_cross_stacking_local_ff_generator(
-                parameter, v, topology, base_pair, strand_kind, use_periodic));
+                parameter_3spn2, v_3spn2, topology_3spn2, base_pair, strand_kind,
+                use_periodic));
+
+    const toml::value v_3spn2c = u8R"(
+        interaction = "3SPN2CrossStackingLocal"
+        potential   = "3SPN2C"
+        ignore.particles_within.nucleotide = 3
+        parameters = [
+        {nucleotide_group=[{P =  2, S =  3, B =  4, Base = "T"},
+                           {P =  8, S =  9, B = 10, Base = "A"},
+                           {P =  5, S =  6, B =  7, Base = "A"},
+                           {P = 11, S = 12, B = 13, Base = "T"}]}
+        ]
+    )"_toml;
+
+    Topology                                topology_3spn2c(system_size);
+    ThreeSPN2CCrossStackingPotentialParameter parameter_3spn2c{};
+
+    EXPECT_NO_THROW(read_toml_3spn2_cross_stacking_local_ff_generator(
+                parameter_3spn2c, v_3spn2c, topology_3spn2c, base_pair, strand_kind,
+                use_periodic));
+}
+
+TEST(ReadTOMLForceFieldGenerator, ReadTOML3SPN2CrossStackingFFGenerator)
+{
+    using namespace toml::literals;
+    const toml::value v_3spn2 = u8R"(
+        interaction = "3SPN2CrossStacking"
+        potential   = "3SPN2"
+        ignore.particles_within.nucleotide = 3
+        parameters = [
+            {strand = 0,        S = 0, B = 1, Base = "A"},
+            {strand = 0, P = 2, S = 3, B = 4, Base = "T"},
+            {strand = 1,        S = 5, B = 6, Base = "A"},
+            {strand = 1, P = 7, S = 8, B = 9, Base = "T"}
+        ]
+    )"_toml;
+
+    const std::size_t                         system_size(10);
+    Topology                                  topology_3spn2(system_size);
+    ThreeSPN2CrossStackingPotentialParameter  parameter_3spn2{};
+    const std::pair<std::string, std::string> base_pair{"A", "T"};
+    const std::string                         strand_kind = "sense";
+    const bool                                use_periodic = false;
+
+    EXPECT_NO_THROW(read_toml_3spn2_cross_stacking_ff_generator(
+                parameter_3spn2, v_3spn2, topology_3spn2, base_pair, strand_kind,
+                use_periodic));
+
+    const toml::value v_3spn2c = u8R"(
+        interaction = "3SPN2CrossStacking"
+        potential   = "3SPN2C"
+        ignore.particles_within.nucleotide = 3
+        parameters = [
+            {strand = 0,        S = 0, B = 1, Base = "A"},
+            {strand = 0, P = 2, S = 3, B = 4, Base = "T"},
+            {strand = 1,        S = 5, B = 6, Base = "A"},
+            {strand = 1, P = 7, S = 8, B = 9, Base = "T"}
+        ]
+    )"_toml;
+
+    Topology                                  topology_3spn2c(system_size);
+    ThreeSPN2CCrossStackingPotentialParameter parameter_3spn2c{};
+
+    EXPECT_NO_THROW(read_toml_3spn2_cross_stacking_ff_generator(
+                parameter_3spn2c, v_3spn2c, topology_3spn2c, base_pair, strand_kind,
+                use_periodic));
+}
+
+TEST(ReadTOMLForceFieldGenerator, ReadTOMLLennardJonesAttractiveFFGenerator)
+{
+    using namespace toml::literals;
+    const toml::value v = u8R"(
+        potential = "LennardJonesAttractive"
+        ignore.particles_within.bond = 3
+        parameters = [
+            {index = 0,             epsilon = 1.0, sigma = 1.0},
+            {index = 1,             epsilon = 1.0, sigma = 1.0},
+            {index = 2,             epsilon = 1.0, sigma = 1.0},
+            {index = 0, offset = 3, epsilon = 1.0, sigma = 1.0},
+            {index = 1, offset = 3, epsilon = 1.0, sigma = 1.0},
+            {index = 2, offset = 3, epsilon = 1.0, sigma = 1.0},
+        ]
+    )"_toml;
+
+    const std::size_t                             system_size(6);
+    Topology                                      topology(system_size);
+    topology.add_edges({{0, 1}, {1, 2}, {3, 4}}, "bond");
+    const std::vector<std::optional<std::string>> group_vec(system_size, std::nullopt);
+    const bool                                    use_periodic = false;
+
+    EXPECT_NO_THROW(read_toml_lennard_jones_attractive_ff_generator(
+                v, system_size, topology, group_vec, use_periodic));
+}
+
+TEST(ReadTOMLForceFieldGenerator, ReadTOMLLennardJonesRepulsiveFFGenerator)
+{
+    using namespace toml::literals;
+    const toml::value v = u8R"(
+        potential = "LennardJonesRepulsive"
+        ignore.particles_within.bond = 3
+        parameters = [
+            {index = 0,             epsilon = 1.0, sigma = 1.0},
+            {index = 1,             epsilon = 1.0, sigma = 1.0},
+            {index = 2,             epsilon = 1.0, sigma = 1.0},
+            {index = 0, offset = 3, epsilon = 1.0, sigma = 1.0},
+            {index = 1, offset = 3, epsilon = 1.0, sigma = 1.0},
+            {index = 2, offset = 3, epsilon = 1.0, sigma = 1.0},
+        ]
+    )"_toml;
+
+    const std::size_t system_size(6);
+    Topology          topology(system_size);
+    topology.add_edges({{0, 1}, {1, 2}, {3, 4}}, "bond");
+    const std::vector<std::optional<std::string>> group_vec(system_size, std::nullopt);
+    const bool                                    use_periodic = false;
+
+    EXPECT_NO_THROW(read_toml_lennard_jones_repulsive_ff_generator(
+                v, system_size, topology, group_vec, use_periodic));
+}
+
+TEST(ReadTOMLForceFieldGenerator, ReadTOMLCombinatorialGoContactFFGenerators)
+{
+    using namespace toml::literals;
+    const toml::value v = u8R"(
+        potential = "CombinatorialGoContact"
+        topology  = "contact"
+        parameters = [
+            {indices_pair = [[ 0, 1, 2], [ 3, 4]], k = 0.3, v0 = 9.0},
+            {indices_pair = [[ 1, 2],    [ 6, 7]], k = 0.3, v0 = 5.0},
+        ]
+    )"_toml;
+
+    const std::size_t                             system_size(8);
+    Topology                                      topology(system_size);
+    const std::vector<std::optional<std::string>> group_vec(system_size, std::nullopt);
+    const bool                                    use_periodic = false;
+
+    EXPECT_NO_THROW(read_toml_combinatorial_go_contact_ff_generators(
+                v, topology, group_vec, use_periodic));
+}
+
+TEST(ReadTOMLForceFieldGenerator, ReadTOMLProteinDNANonSpecificFFGenerator)
+{
+    using namespace toml::literals;
+    const toml::value v = u8R"(
+        interaction = "PDNS"
+        potential   = "PDNS"
+        sigma = 1.0  # angstrom
+        delta = 0.17453 # radian (= 10 degree)
+        parameters  = [
+        {index =  2, S3 = 1, kind = "DNA"},
+        {index =  5, S3 = 4, kind = "DNA"},
+        {index =  7, kind = "Protein", PN = 6, PC =  8, k = 1.2, r0 = 5.0, theta0 = 100.0, phi0 = 130.0},
+        {index = 10, kind = "Protein", PN = 9, PC = 11, k = 1.2, r0 = 6.0, theta0 = 110.0, phi0 = 120.0}
+        ]
+    )"_toml;
+
+    const bool use_periodic = false;
+
+    EXPECT_NO_THROW(read_toml_protein_dna_non_specific_ff_generator(v, use_periodic));
+}
+
+TEST(ReadTOMLForceFieldGenerator, ReadTOMLPullingFFGenerator)
+{
+    using namespace toml::literals;
+    const toml::value v = u8R"(
+        interaction = "PullingForce"
+        parameters = [
+            {index = 0, force = [1.0, 0.0, 0.0]},
+            {index = 1, force = [0.0, 1.0, 0.0]}
+        ]
+    )"_toml;
+
+    const std::size_t system_size(2);
+    Topology          topology(system_size);
+    const bool        use_periodic = false;
+
+    EXPECT_NO_THROW(read_toml_pulling_ff_generator(v, topology, use_periodic));
+}
+
+TEST(ReadTOMLForceFieldGenerator, ReadTOMLPositionRestraintFFGenerator)
+{
+    using namespace toml::literals;
+    const toml::value v = u8R"(
+        interaction = "PositionRestraint"
+        potential   = "Harmonic"
+        parameters = [
+            {index = 0, position = [0.0, 0.0, 0.0], k = 0.1, v0 = 10.0},
+            {index = 1, position = [0.0, 1.0, 0.0], k = 0.1, v0 = 10.0}
+        ]
+    )"_toml;
+
+    const std::size_t system_size(2);
+    Topology          topology(system_size);
+
+    EXPECT_NO_THROW(read_toml_position_restraint_ff_generator(v, topology));
+}
+
+TEST(ReadTOMLForceFieldGenerator, ReadTOMLHarmonicCoMPullingFFGenerator)
+{
+    using namespace toml::literals;
+    const toml::value v = u8R"(
+        interaction = "CoMPulling"
+        potential   = "Harmonic"
+        parameters = [
+            {k = 10.0, v0 = 0.0, indices_pair = [[0, 1], [2, 3]]},
+        ]
+    )"_toml;
+
+    const auto& param = toml::find<toml::array>(v, "parameters").at(0);
+
+    const bool        use_periodic = false;
+    const toml::value env{};
+
+    EXPECT_NO_THROW(read_toml_harmonic_com_pulling_ff_generator(
+                param, use_periodic, env));
 }
