@@ -5,7 +5,7 @@
 #include "src/util/Utility.hpp"
 #include "src/util/Constants.hpp"
 
-#include <toml11/toml.hpp>
+#include <toml.hpp>
 
 // -----------------------------------------------------------------------------
 // read local force field
@@ -1370,14 +1370,14 @@ read_toml_isolf_attractive_ff_generator(
 // [[forcefields.global]]
 // potential = "LennardJonesAttractive"
 // cutoff    = 5.0
-//table.A.A = {sigma =   4.1260, epsilon =  -0.7350}
-//table.A.B = {sigma =   6.3361, epsilon =  -0.3710}
-//table.B.B = {sigma =   4.1221, epsilon =   0.6500}
-//parameters = [
-//{index =     1, name = "A"},
-//{index =     2, name = "A"},
-//{index =     3, name = "B"},
-//{index =     4, name = "B"},
+// table.A.A = {sigma =   4.1260, epsilon =  -0.7350}
+// table.A.B = {sigma =   6.3361, epsilon =  -0.3710}
+// table.B.B = {sigma =   4.1221, epsilon =   0.6500}
+// parameters = [
+// {index =     1, name = "A"},
+// {index =     2, name = "A"},
+// {index =     3, name = "B"},
+// {index =     4, name = "B"},
 // ...
 // ]
 UniformLennardJonesAttractiveForceFieldGenerator
@@ -2420,7 +2420,7 @@ read_toml_position_restraint_ff_generator(
 
 // HarmonicCoMPulling input is like below
 // [[forcefields.external]]
-// interaction = "CoMPulingForce"
+// interaction = "CoMPullingForce"
 // potential   = "Harmonic"
 // parameters = [
 //     {k = 10.0, v0 = 0.0, indices_pair = [[0, 1], [2, 3]]},

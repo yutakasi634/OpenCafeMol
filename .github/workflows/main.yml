@@ -46,7 +46,10 @@ jobs:
       working-directory: ./build/
       run: |
           cmake --build .
-
+    - name: Test
+      working-directory: ./build/
+      run: |
+          make test
     - name: Run
       run: |
           mkdir -p ./output/

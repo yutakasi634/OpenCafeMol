@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
+enable_testing()
 project(open_cafemol)
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -12,6 +13,19 @@ include_directories(${PROJECT_SOURCE_DIR})
 # include CMake modules
 include(CheckCXXCompilerFlag)
 
+# =============================================================================
+# Setting for use OpenMM library
+
+# search installed OpenMM lib, include and plugin path
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake_modules)
+find_package(OpenMM REQUIRED)
+message(STATUS "OpenMM include path : ${OPENMM_INCLUDE_DIR}")
+message(STATUS "OpenMM library path : ${OPENMM_LIBRARY}")
+
+# set option for openmm plugin directory
+get_target_property(EXPECTED_OPENMM_PLUGIN_DIR OpenMM::OpenMM PLUGIN_DIRECTORY)
+set(OPENMM_PLUGIN_DIR ${EXPECTED_OPENMM_PLUGIN_DIR} CACHE PATH "The plugin path for OpenMM")
+message(STATUS "OpenMM plugin  path : ${OPENMM_PLUGIN_DIR}")
 
 # =============================================================================
 # warning flags
@@ -74,5 +88,8 @@ endif()
 # =============================================================================
 # Build the code
 
+add_subdirectory(toml11)
 add_subdirectory(fmt)
+add_subdirectory(googletest)
 add_subdirectory(src)
+add_subdirectory(test)

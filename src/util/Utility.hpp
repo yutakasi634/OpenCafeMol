@@ -1,7 +1,7 @@
 #ifndef OPEN_AICG2_PLUS_UTILITY_HPP
 #define OPEN_AICG2_PLUS_UTILITY_HPP
 
-#include <toml11/toml.hpp>
+#include <toml.hpp>
 
 #include <iostream>
 #include <string>
@@ -53,23 +53,28 @@ T find_parameter(const toml::value& params, const toml::value& env,
 
     if(!params.is_table() || !params.contains(name))
     {
-        throw std::out_of_range(toml::format_error("[error] value " + name +
-            " does not exists", params, "in this table"));
+        const toml::error_info err = toml::make_error_info(
+                "value " + name + " does not exists", params, "in this table");
+        throw std::out_of_range(toml::format_error(err));
     }
     const toml::value& p = params.at(name);
     if(p.is_string())
     {
         // search inside of `env`
         const std::string& var = p.as_string();
-        if(env.is_uninitialized())
+        if(env.is_empty())
         {
-            throw std::out_of_range(toml::format_error("[error] named variable \"" +
-                var + "\" used but no env is defined", params, "used here"));
+            const toml::error_info err = toml::make_error_info(
+                    "named variable \"" + var + "\" used but no env is defined",
+                    params, "used here");
+            throw std::out_of_range(toml::format_error(err));
         }
         if(!env.is_table() || !env.contains(var))
         {
-            throw std::out_of_range(toml::format_error("[error] named variable \"" +
-                var + "\" does not exists", env, "in this table"));
+            const toml::error_info err = toml::make_error_info(
+                    "named variable \"" + var + "\" does not exists",
+                    env, "in this table");
+            throw std::out_of_range(toml::format_error(err));
         }
         return toml::find<T>(env, var);
     }
@@ -85,38 +90,47 @@ T find_parameter_either(const toml::value& params, const toml::value& env,
 
     if(!params.is_table() || (!params.contains(name1) && !params.contains(name2)))
     {
-        throw std::out_of_range(toml::format_error("[error] value " + name1 + " and " + name2 +
-            " does not exists", params, "in this table"));
+        const toml::error_info err = toml::make_error_info(
+            "value " + name1 + " and " + name2 +
+            " does not exists", params, "in this table");
+        throw std::out_of_range(toml::format_error(err));
     }
     else if(params.contains(name1) && params.contains(name2))
     {
-        std::cerr << toml::format_error("[error] key duplicates.",
-                                        params.at(name1), "here", params.at(name2),
-                                        "this conflicts with the above value definition")
-                 << std::endl;
+        const toml::error_info err = toml::make_error_info(
+            "key duplicates.",
+            params.at(name1), "here",
+            params.at(name2), "this conflicts with the above value definition");
+        throw std::out_of_range(toml::format_error(err));
     }
     toml::value p;
     if     (params.contains(name1)) { p = params.at(name1); }
     else if(params.contains(name2)) { p = params.at(name2); }
     else
     {
-        throw std::runtime_error(toml::format_error("both keys, \"" + name1 + "\" and \"" + name2 +
-                             "\", are not found.", params, "in this table"));
+        const toml::error_info err = toml::make_error_info(
+            "both keys, \"" + name1 + "\" and \"" + name2 + "\", are not found.",
+            params, "in this table");
+        throw std::runtime_error(toml::format_error(err));
     }
 
     if(p.is_string())
     {
         // search inside of `env`
         const std::string& var = p.as_string();
-        if(env.is_uninitialized())
+        if(env.is_empty())
         {
-            throw std::out_of_range(toml::format_error("[error] named variable \"" +
-                var + "\" used but no env is defined", params, "used here"));
+            const toml::error_info err = toml::make_error_info(
+                "named variable \"" + var + "\" used but no env is defined",
+                params, "used here");
+            throw std::out_of_range(toml::format_error(err));
         }
         if(!env.is_table() || !env.contains(var))
         {
-            throw std::out_of_range(toml::format_error("[error] named variable \"" +
-                var + "\" does not exists", env, "in this table"));
+            const toml::error_info err = toml::make_error_info(
+                "named variable \"" + var + "\" does not exists",
+                env, "in this table");
+            throw std::out_of_range(toml::format_error(err));
         }
         return toml::find<T>(env, var);
     }

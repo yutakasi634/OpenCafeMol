@@ -1,4 +1,4 @@
-target_sources(open_cafemol PRIVATE
+target_sources(opencm PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/Utility.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ReadTOMLInput.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ReadTOMLForceFieldGenerator.cpp
