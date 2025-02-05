@@ -1,0 +1,7 @@
+; this file is input for test preprocess_top_file function
+
+                ; this line is blank with comment
+first element in test_preprocess_top_file_input.top
+second element in test_preprocess_top_file_input.top with comment; this is comment
+#include "included.inp"
+#include "included_with_comment.inp" ; test for include with comment

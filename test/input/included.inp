@@ -1,0 +1,2 @@
+; this file is included by test_preprocess_top_file_input.top
+included.inp was correctly included
