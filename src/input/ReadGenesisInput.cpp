@@ -15,7 +15,8 @@
 #include <iostream>
 #include <fstream>
 
-std::map<std::string, std::map<std::string, std::string>> read_inp_file(const std::string& inp_file_name)
+std::map<std::string, std::map<std::string, std::string>>
+read_inp_file(const std::string& inp_file_name)
 {
     std::cerr << "reading " << inp_file_name << "..." << std::endl;
     std::ifstream ifs(inp_file_name);
@@ -26,34 +27,44 @@ std::map<std::string, std::map<std::string, std::string>> read_inp_file(const st
 
     std::map<std::string, std::map<std::string, std::string>> inp_data;
     std::string line, section_name;
+
     while(std::getline(ifs, line))
     {
+        // remove comment
+        std::size_t hash_position = line.find_first_of("#");
+        if(hash_position == std::string::npos)
+        {
+            hash_position = line.length();
+        }
+        const std::string uncommented_line = line.substr(0, hash_position);
+
         std::smatch result;
         if(section_name.empty())
         {
-            if(std::regex_match(line, result, std::regex("\\s*\\[\\s*(\\S.*?)\\s*]\\s*")))
+            if(std::regex_match(uncommented_line, result,
+                        std::regex("\\s*\\[\\s*(\\S.*?)\\s*]\\s*")))
             {
                 section_name = result.str(1);
-                inp_data.insert(std::make_pair(section_name, std::map<std::string, std::string>()));
+                inp_data.insert(std::make_pair(
+                            section_name, std::map<std::string, std::string>()));
             }
         }
         else
         {
-            std::map<std::string, std::string>& table_contents = inp_data.at(section_name);
-            if(std::regex_match(line, result, std::regex("\\s*\\[\\s*(\\S.*?)\\s*]\\s*")))
+            std::map<std::string, std::string>& table_contents =
+                inp_data.at(section_name);
+
+            if(std::regex_match(uncommented_line, result,
+                        std::regex("\\s*\\[\\s*(\\S.*?)\\s*]\\s*")))
             {
                 section_name = result.str(1);
-                inp_data.insert(std::make_pair(section_name, std::map<std::string, std::string>()));
+                inp_data.insert(std::make_pair(
+                            section_name, std::map<std::string, std::string>()));
             }
-            else if(!std::regex_match(line, std::regex("^\\s*$"))) // non-empty line
+            else if(!std::regex_match(uncommented_line, std::regex("^\\s*$")))
+                // only non-blank lines are processed
             {
-                std::size_t hash_position = line.find_first_of("#");
-                if(hash_position == std::string::npos)
-                {
-                    hash_position = line.length();
-                }
-                const std::string noncomment_part = line.substr(0, hash_position);
-                std::regex_match(noncomment_part, result,
+                std::regex_match(uncommented_line, result,
                                  std::regex("\\s*(\\S+)\\s*=\\s*(\\S+)\\s*"));
 
                 if(!result.empty()) // avoid inserting comment only line

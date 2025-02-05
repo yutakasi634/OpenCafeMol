@@ -1,0 +1,11 @@
+[ FIRST_SECTION ]
+first_key = first_value
+
+[ SECOND_SECTION ]
+first_key  = first_value_in_second_section
+second_key = second_value_in_second_section # with comment
+
+[ THIRD_SECTION ] # with comment
+first_key  = first_value_in_third_section
+second_key = second_value_in_third_section
+third_key  = third_value_in_third_section

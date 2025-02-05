@@ -26,3 +26,15 @@ TEST(ReadGenesisInput, ReadTopFile)
     EXPECT_EQ("second elem of second section", top_contents.at("second section")[1]);
     EXPECT_EQ("third elem of third section", top_contents.at("third section")[2]);
 }
+
+TEST(ReadGenesisInput, ReadInpFile)
+{
+    std::map<std::string, std::map<std::string, std::string>> inp_contents =
+        read_inp_file("input/test_read_inp_file_input.inp");
+
+    EXPECT_EQ("first_value",  inp_contents.at("FIRST_SECTION") .at("first_key"));
+    EXPECT_EQ("second_value_in_second_section",
+            inp_contents.at("SECOND_SECTION").at("second_key"));
+    EXPECT_EQ("third_value_in_third_section",
+            inp_contents.at("THIRD_SECTION") .at("third_key"));
+}
