@@ -1,0 +1,13 @@
+; this file is for test of read_top_file function in ReadGenesisIntput.cpp
+
+[first section] ; with comment
+first elem of first section
+
+[second section]     
+first elem of second section
+second elem of second section; with comment
+
+[third section]
+first elem of third section
+second elem of third section
+third elem of third section
