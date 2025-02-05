@@ -50,7 +50,7 @@ jobs:
       working-directory: ./build/
       run: |
           make test
-    - name: Run
+    - name: Run toml samples
       run: |
           mkdir -p ./output/
           ./bin/open_cafemol sample/toml_input/sh3_AICG2+.toml
@@ -61,5 +61,7 @@ jobs:
           cat ./output/dna_3SPN2.ene
           ./bin/open_cafemol sample/toml_input/dna_3SPN2C.toml
           cat ./output/dna_3SPN2C.ene
+    - name: Run GENESIS samples
+      run: |
           ./bin/open_cafemol sample/genesis_input/1SRL_cg.inp
           cat ./output/1SRL_md1.ene
