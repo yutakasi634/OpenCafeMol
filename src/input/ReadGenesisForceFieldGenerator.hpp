@@ -13,9 +13,10 @@
 
 #include "src/Topology.hpp"
 
-HarmonicBondForceFieldGenerator
-read_genesis_harmonic_bond_ff_generator(
-        const std::vector<std::string>& bonds_data, Topology& topology, const bool use_periodic);
+std::vector<std::unique_ptr<ForceFieldGeneratorBase>>
+read_genesis_bonds_section(
+        const std::vector<std::string>& bonds_data, Topology& topology,
+        const bool use_periodic);
 
 GaussianBondForceFieldGenerator
 read_genesis_gaussian_bond_ff_generator(

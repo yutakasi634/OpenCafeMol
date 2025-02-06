@@ -235,11 +235,27 @@ Simulator make_simulator_from_genesis_inputs(
     const std::map<std::string, std::vector<std::string>>& top_data =
         read_top_file(topfile_name, file_path);
 
-    if(top_data.find("atoms") == top_data.end())
+    if(top_data.find("system") == top_data.end())
     {
         throw std::runtime_error(
-                "[error] There is no atoms section. Top file must contain one atoms section.");
+                "[error] There is no `[ system ]` section. Genesis input mode needs this section.");
     }
+    else if(top_data.find("molecules") == top_data.end())
+    {
+        throw std::runtime_error(
+                "[error] There is no `[ molecules ]` section. Genesis input mode needs this section.");
+    }
+    else if(top_data.find("moleculetype") == top_data.end())
+    {
+        throw std::runtime_error(
+                "[error] There is no `[ moleculetype ]` section. Genesis input mode needs this section.");
+    }
+    else if(top_data.find("atoms") == top_data.end())
+    {
+        throw std::runtime_error(
+                "[error] There is no `[ atoms ]` section. Genesis input mode needs this section.");
+    }
+
     std::vector<double>      mass_vec;
     std::vector<std::string> res_name_vec, atom_name_vec;
     for(auto& atoms_line : top_data.at("atoms"))
@@ -251,9 +267,10 @@ Simulator make_simulator_from_genesis_inputs(
     SystemGenerator system_gen(mass_vec);
 
     // read [BOUNDARY] section
-    const std::map<std::string, std::string> boundary_section = inpfile_data.at("BOUNDARY");
-    const std::string type                   = boundary_section.at("type");
-    const bool        use_periodic           = (type == "PBC");
+    const std::map<std::string, std::string> boundary_section =
+        inpfile_data.at("BOUNDARY");
+    const std::string type         = boundary_section.at("type");
+    const bool        use_periodic = (type == "PBC");
     if(use_periodic)
     {
         std::cerr << "    boundary type is periodic boundary condition" << std::endl;
@@ -263,17 +280,12 @@ Simulator make_simulator_from_genesis_inputs(
     Topology topology(top_data.at("atoms").size());
     if(top_data.find("bonds") != top_data.end())
     {
-        HarmonicBondForceFieldGenerator ff_gen =
-            read_genesis_harmonic_bond_ff_generator(
-                    top_data.at("bonds"), topology, use_periodic);
-        if(ff_gen.indices().size() != 0)
+        std::vector<std::unique_ptr<ForceFieldGeneratorBase>> ff_gen_ptrs =
+            read_genesis_bonds_section(top_data.at("bonds"), topology, use_periodic);
+
+        for(auto& ff_gen_ptr : ff_gen_ptrs)
         {
-            system_gen.add_ff_generator(
-                    std::make_unique<HarmonicBondForceFieldGenerator>(ff_gen));
-        }
-        else
-        {
-            std::cerr << "        -> skip this forcefield generation" << std::endl;
+            system_gen.add_ff_generator(std::move(ff_gen_ptr));
         }
     }
 
@@ -369,12 +381,7 @@ Simulator make_simulator_from_genesis_inputs(
 
     if(top_data.find("atomtypes") != top_data.end())
     {
-        if(top_data.find("moleculetype") == top_data.end())
-        {
-            throw std::runtime_error("[error] There is no `[ moleculetype ]` section. Genesis input mode needs this section.");
-        }
-        const std::vector<std::string>& moleculetype_data =
-            top_data.at("moleculetype");
+        const std::vector<std::string>& moleculetype_data = top_data.at("moleculetype");
 
         const std::size_t first_nrexcl =
             std::stoi(moleculetype_data[0].substr(13, 10));

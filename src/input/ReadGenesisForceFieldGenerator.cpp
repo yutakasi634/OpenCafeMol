@@ -6,29 +6,75 @@
 #include <iostream>
 #include <iomanip>
 
-HarmonicBondForceFieldGenerator
-read_genesis_harmonic_bond_ff_generator(
-        const std::vector<std::string>& bonds_data, Topology& topology, const bool use_periodic)
+std::vector<std::unique_ptr<ForceFieldGeneratorBase>>
+read_genesis_bonds_section(
+        const std::vector<std::string>& bonds_data, Topology& topology,
+        const bool use_periodic)
 {
-        std::vector<std::pair<std::size_t, std::size_t>> indices_vec;
-        std::vector<double>                              v0s;
-        std::vector<double>                              ks;
 
-        for(auto& bonds_line : bonds_data)
+    struct bond_params
+    {
+        const std::pair<std::size_t, std::size_t> indices;
+        const double                              equilibrium_value;
+        const double                              force_coef;
+
+        bond_params(const std::pair<std::size_t, std::size_t> idxs,
+                const double eq_val, const double f_coef)
+            : indices(idxs), equilibrium_value(eq_val), force_coef(f_coef)
+        {}
+    };
+
+    std::vector<bond_params> type1_bond_params; // harmonic_bond
+    std::vector<bond_params> type21_bond_params;
+
+    for(auto& bond_line : bonds_data)
+    {
+        const std::size_t idx_i  = std::stoi(bond_line.substr( 0, 10)) - 1;
+        const std::size_t idx_j  = std::stoi(bond_line.substr(10, 10)) - 1;
+        const std::size_t f_type = std::stoi(bond_line.substr(20,  5));
+        const double      eq     = std::stod(bond_line.substr(25, 42));
+        const double      coef   = std::stod(bond_line.substr(43, 60)) * 0.5; // KJ/(mol nm^2)
+        if(f_type == 1)
         {
-            const std::size_t idx_i = std::stoi(bonds_line.substr( 0, 10)) - 1;
-            const std::size_t idx_j = std::stoi(bonds_line.substr(10, 10)) - 1;
-            const double      v0    = std::stod(bonds_line.substr(25, 42));
-            const double      k     = std::stod(bonds_line.substr(43, 60)) * 0.5; // KJ/(mol nm^2)
-            indices_vec.push_back(std::make_pair(idx_i, idx_j));
-            v0s        .push_back(v0);
-            ks         .push_back(k);
+            type1_bond_params.push_back(
+                    bond_params(std::make_pair(idx_i, idx_j), eq, coef));
+        }
+        else if(f_type == 21)
+        {
+            throw std::runtime_error("[error] bond type 21 is not yet supported.");
+        }
+        else
+        {
+            throw std::runtime_error(
+                    "[error] unexpected bond type " + std::to_string(f_type) +
+                    " was specified in `[ bonds ]` section. expected value is 1 or 21.");
+        }
+    }
+
+    std::vector<std::unique_ptr<ForceFieldGeneratorBase>> ff_gen_ptrs{};
+
+    if(type1_bond_params.size() != 0)
+    {
+        std::vector<std::pair<std::size_t, std::size_t>> indices_vec;
+        std::vector<double>                              eqs;
+        std::vector<double>                              coefs;
+        for(const auto& param : type1_bond_params)
+        {
+            indices_vec.emplace_back(param.indices);
+            eqs        .emplace_back(param.equilibrium_value);
+            coefs      .emplace_back(param.force_coef);
         }
         topology.add_edges(indices_vec, "bond");
 
         std::cerr << "    BondLength    : Harmonic (" <<
-                      indices_vec.size() << " found)" << std::endl;
-        return HarmonicBondForceFieldGenerator(indices_vec, v0s, ks, use_periodic);
+                  indices_vec.size() << " found)" << std::endl;
+
+        ff_gen_ptrs.push_back(
+                std::make_unique<HarmonicBondForceFieldGenerator>(
+                    indices_vec, eqs, coefs, use_periodic));
+    }
+
+    return ff_gen_ptrs;
 }
 
 GaussianBondForceFieldGenerator
