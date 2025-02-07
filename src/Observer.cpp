@@ -33,8 +33,7 @@ void PDBObserver::output(const std::size_t step, const OpenMM::Context& context)
 {
     // output position
     std::ofstream ofs(pos_filename_, std::ios::app);
-    OpenMM::State pos = context.getState(OpenMM::State::Positions,
-                                         use_periodic_);
+    OpenMM::State pos = context.getState(OpenMM::State::Positions);
     write_pdb_frame(ofs, step, pos);
     ofs.close();
 }
@@ -50,11 +49,11 @@ void PDBObserver::write_pdb_frame(std::ofstream& fp, const std::size_t frame_num
     {
         const std::string& name = name_vec_[idx];
         fp << std::setprecision(3);
-        fp << "ATOM  "                         //                          1-6
-           << std::setw(5) << idx+1 << " "     // atom serial number       7-12
-           << "  CA "                          // atom name               13-17
-           << std::setw(3) << name << "  "     // residue name            18-22
-           << "   1    " ;                     // residue sequence number 23-30
+        fp << "ATOM  "                     //                          1-6
+           << std::setw(5) << idx+1 << " " // atom serial number       7-12
+           << "  CA "                      // atom name               13-17
+           << std::setw(3) << name << "  " // residue name            18-22
+           << "   1    " ;                 // residue sequence number 23-30
         fp << std::setw(8) << std::fixed
            << std::setw(8) << std::fixed << pos_in_nm[idx][0]*OpenMM::AngstromsPerNm
            << std::setw(8) << std::fixed << pos_in_nm[idx][1]*OpenMM::AngstromsPerNm
@@ -107,13 +106,13 @@ void DCDObserver::output(const std::size_t step, const OpenMM::Context& context)
 {
     // output position
     std::ofstream pos_ofs(pos_filename_, std::ios::binary | std::ios::app);
-    OpenMM::State pos = context.getState(OpenMM::State::Positions, use_periodic_);
+    OpenMM::State pos = context.getState(OpenMM::State::Positions);
     write_dcd_frame(pos_ofs, pos);
     pos_ofs.close();
 
     // output velocity
     std::ofstream vel_ofs(vel_filename_, std::ios::binary | std::ios::app);
-    OpenMM::State vel = context.getState(OpenMM::State::Velocities, use_periodic_);
+    OpenMM::State vel = context.getState(OpenMM::State::Velocities);
     write_dcd_velocity(vel_ofs, vel);
     vel_ofs.close();
 
