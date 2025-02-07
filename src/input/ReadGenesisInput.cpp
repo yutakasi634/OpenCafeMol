@@ -261,8 +261,8 @@ Simulator make_simulator_from_genesis_inputs(
     for(auto& atoms_line : top_data.at("atoms"))
     {
         mass_vec.push_back(std::stod(atoms_line.substr(49, 9))); // amu
-        res_name_vec .push_back(atoms_line.substr(27, 3));
-        atom_name_vec.push_back(atoms_line.substr(31, 4));
+        res_name_vec .push_back(Utility::erase_space(atoms_line.substr(25, 5)));
+        atom_name_vec.push_back(Utility::erase_space(atoms_line.substr(30, 5)));
     }
     SystemGenerator system_gen(mass_vec);
 
@@ -291,38 +291,13 @@ Simulator make_simulator_from_genesis_inputs(
 
     if(top_data.find("angles") != top_data.end())
     {
-        // make force field generator for AICG2+ angle
-        GaussianBondForceFieldGenerator aicg_ff_gen =
-            read_genesis_gaussian_bond_ff_generator(
-                    top_data.at("angles"), use_periodic);
-        if(aicg_ff_gen.indices().size() != 0)
-        {
-            system_gen.add_ff_generator(
-                    std::make_unique<GaussianBondForceFieldGenerator>(aicg_ff_gen));
-        }
-        else
-        {
-            std::cerr << "        -> skip this forcefield generation" << std::endl;
-        }
+        std::vector<std::unique_ptr<ForceFieldGeneratorBase>> ff_gen_ptrs =
+            read_genesis_angles_section(
+                    top_data.at("angles"), use_periodic, res_name_vec);
 
-        // make force field generator for Flexible Local angle
-        for(const auto& aa_type_table : Constant::fla_spline_table)
+        for(auto& ff_gen_ptr : ff_gen_ptrs)
         {
-            FlexibleLocalAngleForceFieldGenerator fla_ff_gen =
-                read_genesis_flexible_local_angle_ff_generator(top_data.at("angles"),
-                                                               top_data.at("atoms"),
-                                                               aa_type_table.first,
-                                                               use_periodic);
-            if(fla_ff_gen.indices().size() != 0)
-            {
-                system_gen.add_ff_generator(
-                        std::make_unique<FlexibleLocalAngleForceFieldGenerator>(
-                            fla_ff_gen));
-            }
-            else
-            {
-                std::cerr << "        -> skip this forcefield generation" << std::endl;
-            }
+            system_gen.add_ff_generator(std::move(ff_gen_ptr));
         }
     }
 

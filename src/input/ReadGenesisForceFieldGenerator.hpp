@@ -18,9 +18,10 @@ read_genesis_bonds_section(
         const std::vector<std::string>& bonds_data, Topology& topology,
         const bool use_periodic);
 
-GaussianBondForceFieldGenerator
-read_genesis_gaussian_bond_ff_generator(
-        const std::vector<std::string>& angles_data, const bool use_periodic);
+std::vector<std::unique_ptr<ForceFieldGeneratorBase>>
+read_genesis_angles_section(
+        const std::vector<std::string>& angles_data,
+        const bool use_periodic, const std::vector<std::string>& res_name_vec);
 
 GoContactForceFieldGenerator
 read_genesis_go_contact_ff_generator(

@@ -12,32 +12,32 @@ read_genesis_bonds_section(
         const bool use_periodic)
 {
 
-    struct bond_params
+    struct bond_param
     {
-        const std::pair<std::size_t, std::size_t> indices;
-        const double                              equilibrium_value;
-        const double                              force_coef;
+        const std::pair<std::size_t, std::size_t> indices_;
+        const double                              equilibrium_value_;
+        const double                              force_coef_;
 
-        bond_params(const std::pair<std::size_t, std::size_t> idxs,
+        bond_param(const std::pair<std::size_t, std::size_t> idxs,
                 const double eq_val, const double f_coef)
-            : indices(idxs), equilibrium_value(eq_val), force_coef(f_coef)
+            : indices_(idxs), equilibrium_value_(eq_val), force_coef_(f_coef)
         {}
     };
 
-    std::vector<bond_params> type1_bond_params; // harmonic_bond
-    std::vector<bond_params> type21_bond_params;
+    std::vector<bond_param> type1_bond_params; // harmonic_bond
+    std::vector<bond_param> type21_bond_params;
 
-    for(auto& bond_line : bonds_data)
+    for(const auto& bond_line : bonds_data)
     {
         const std::size_t idx_i  = std::stoi(bond_line.substr( 0, 10)) - 1;
         const std::size_t idx_j  = std::stoi(bond_line.substr(10, 10)) - 1;
         const std::size_t f_type = std::stoi(bond_line.substr(20,  5));
         const double      eq     = std::stod(bond_line.substr(25, 42));
-        const double      coef   = std::stod(bond_line.substr(43, 60)) * 0.5; // KJ/(mol nm^2)
+        const double      coef   = std::stod(bond_line.substr(43, 60)); // KJ/(mol nm^2)
         if(f_type == 1)
         {
             type1_bond_params.push_back(
-                    bond_params(std::make_pair(idx_i, idx_j), eq, coef));
+                    bond_param(std::make_pair(idx_i, idx_j), eq, coef * 0.5));
         }
         else if(f_type == 21)
         {
@@ -60,9 +60,9 @@ read_genesis_bonds_section(
         std::vector<double>                              coefs;
         for(const auto& param : type1_bond_params)
         {
-            indices_vec.emplace_back(param.indices);
-            eqs        .emplace_back(param.equilibrium_value);
-            coefs      .emplace_back(param.force_coef);
+            indices_vec.emplace_back(param.indices_);
+            eqs        .emplace_back(param.equilibrium_value_);
+            coefs      .emplace_back(param.force_coef_);
         }
         topology.add_edges(indices_vec, "bond");
 
@@ -77,35 +77,114 @@ read_genesis_bonds_section(
     return ff_gen_ptrs;
 }
 
-GaussianBondForceFieldGenerator
-read_genesis_gaussian_bond_ff_generator(
-        const std::vector<std::string>& angles_data, const bool use_periodic)
+std::vector<std::unique_ptr<ForceFieldGeneratorBase>>
+read_genesis_angles_section(
+        const std::vector<std::string>& angles_data,
+        const bool use_periodic, const std::vector<std::string>& res_name_vec)
 {
-    std::vector<std::pair<std::size_t, std::size_t>> indices_vec;
-    std::vector<double>                              v0s;
-    std::vector<double>                              ks;
-    std::vector<double>                              sigmas;
-
-    for(const auto& angles_line : angles_data)
+    struct angle_param
     {
-        if(std::stoi(angles_line.substr(30, 5)) == 21) // 21 means AICG-type angle function
-        {
-            const std::size_t idx_i = std::stoi(angles_line.substr(0,  10)) - 1;
-            const std::size_t idx_k = std::stoi(angles_line.substr(20, 10)) - 1;
-            const double      v0    = std::stod(angles_line.substr(35, 15)); // nm
-            const double      k     = -std::stod(angles_line.substr(50, 15)); // KJ/mol
-            const double      sigma = std::stod(angles_line.substr(65, 15)); // nm
+        const std::array<std::size_t, 3> indices_;
+        const std::string                param_str_;
 
-            indices_vec.push_back(std::make_pair(idx_i, idx_k));
-            v0s        .push_back(v0);
-            ks         .push_back(k);
-            sigmas     .push_back(sigma);
+        angle_param(const std::array<std::size_t, 3> indices,
+                const std::string param_str)
+            : indices_(indices), param_str_(param_str)
+        {}
+    };
+
+    std::vector<angle_param> type1_angle_params;  // harmonic_angle
+    // type21 angle potential is represented by gaussian bond potential internally.
+    // this is not a mistake.
+    std::vector<angle_param> type21_angle_params; // gaussian_bond
+    std::vector<angle_param> type22_angle_params; // flp_angle
+
+    for(const auto& angle_line : angles_data)
+    {
+        const std::array<std::size_t, 3> indices = {
+            std::stoul(angle_line.substr( 0, 10)) - 1,
+            std::stoul(angle_line.substr(10, 10)) - 1,
+            std::stoul(angle_line.substr(20, 10)) - 1};
+        const std::size_t f_type    = std::stoi(angle_line.substr(30,  5));
+        const std::string param_str = angle_line.substr(35);
+
+        if(f_type == 1)
+        {
+            type1_angle_params.push_back(angle_param(indices, param_str));
+        }
+        else if(f_type == 21)
+        {
+            type21_angle_params.push_back(angle_param(indices, param_str));
+        }
+        else if(f_type == 22)
+        {
+            type22_angle_params.push_back(angle_param(indices, param_str));
+        }
+        else
+        {
+            throw std::runtime_error(
+                    "[error] unexpected angle type " + std::to_string(f_type) +
+                    " was specified in `[ angles ]` section."
+                    " expected value is 1, 21 or 22.");
         }
     }
 
-    std::cerr << "    BondLength    : Gaussian (" << indices_vec.size() << " found)" << std::endl;
-    return GaussianBondForceFieldGenerator(
-            indices_vec, ks, v0s, sigmas, use_periodic);
+    std::vector<std::unique_ptr<ForceFieldGeneratorBase>> ff_gen_ptrs{};
+
+    if(type21_angle_params.size() != 0)
+    {
+        std::vector<std::pair<std::size_t, std::size_t>> indices_vec;
+        std::vector<double>                              r0s;
+        std::vector<double>                              eps;
+        std::vector<double>                              ws;
+
+        for(const auto& angle_param : type21_angle_params)
+        {
+            indices_vec.push_back(std::make_pair(
+                        angle_param.indices_[0], angle_param.indices_[2]));
+            const std::string& param_str = angle_param.param_str_;
+            r0s.push_back(std::stod(param_str.substr( 0, 15)));
+            eps.push_back(std::stod(param_str.substr(15, 15)));
+            ws .push_back(std::stod(param_str.substr(30, 15)));
+        }
+
+        std::cerr << "    BondLength    : Gaussian (" << indices_vec.size()
+                  << " found)" << std::endl;
+
+        ff_gen_ptrs.push_back(
+                std::make_unique<GaussianBondForceFieldGenerator>(
+                    indices_vec, r0s, eps, ws, use_periodic));
+    }
+
+    if(type22_angle_params.size() != 0)
+    {
+        for(const auto& aa_type_table : Constant::fla_spline_table)
+        {
+            const std::string& aa_type = aa_type_table.first;
+
+            std::vector<std::array<std::size_t, 3>> indices_vec;
+            for(const auto& angle_param : type22_angle_params)
+            {
+                const std::size_t idx_j = angle_param.indices_[1];
+                if(res_name_vec[idx_j] == aa_type)
+                {
+                    indices_vec.push_back(angle_param.indices_);
+                }
+            }
+
+            std::cerr << "    BondAngle     : FlexibleLocalAngle - "
+                      << aa_type << " (" << indices_vec.size() << " found)"
+                      << std::endl;
+
+            ff_gen_ptrs.push_back(
+                    std::make_unique<FlexibleLocalAngleForceFieldGenerator>(
+                        indices_vec,
+                        std::vector<double>(indices_vec.size(), OpenMM::KJPerKcal),
+                        Constant::fla_spline_table.at(aa_type), aa_type, use_periodic));
+        }
+    }
+
+    return ff_gen_ptrs;
 }
 
 GoContactForceFieldGenerator
@@ -132,42 +211,6 @@ read_genesis_go_contact_ff_generator(
 
     std::cerr << "    BondLength    : GoContact (" << indices_vec.size() << " found)" << std::endl;
     return GoContactForceFieldGenerator(indices_vec, ks, r0s, use_periodic);
-}
-
-FlexibleLocalAngleForceFieldGenerator
-read_genesis_flexible_local_angle_ff_generator(
-        const std::vector<std::string>& angles_data, const std::vector<std::string>& atoms_data,
-        const std::string& aa_type, const bool use_periodic)
-{
-    std::vector<std::string> aa_type_vec;
-    for(const auto& atoms_line : atoms_data)
-    {
-        const std::string atom_type = Utility::erase_space(atoms_line.substr(10, 5));
-        aa_type_vec.push_back(atom_type);
-    }
-
-    std::vector<std::array<std::size_t, 3>> indices_vec;
-    for(const auto& angles_line : angles_data)
-    {
-        if(std::stoi(angles_line.substr(30, 5)) == 22) // 22 means FLP-type angle function
-        {
-            const std::size_t idx_j = std::stoi(angles_line.substr(10, 10)) - 1;
-            if(aa_type_vec[idx_j] == aa_type)
-            {
-                const std::size_t idx_i = std::stoi(angles_line.substr(0,  10)) - 1;
-                const std::size_t idx_k = std::stoi(angles_line.substr(20, 10)) - 1;
-
-                indices_vec.push_back({idx_i, idx_j, idx_k});
-            }
-        }
-    }
-
-    std::cerr << "    BondAngle     : FlexibleLocalAngle - "
-              << aa_type << " (" << indices_vec.size() << " found)" << std::endl;
-
-    return FlexibleLocalAngleForceFieldGenerator(
-               indices_vec, std::vector<double>(indices_vec.size(), OpenMM::KJPerKcal),
-               Constant::fla_spline_table.at(aa_type), aa_type, use_periodic);
 }
 
 GaussianDihedralForceFieldGenerator
