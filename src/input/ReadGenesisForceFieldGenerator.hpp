@@ -4,6 +4,7 @@
 #include <OpenMM.h>
 
 #include "src/forcefield/HarmonicBondForceFieldGenerator.hpp"
+#include "src/forcefield/HarmonicAngleForceFieldGenerator.hpp"
 #include "src/forcefield/GaussianBondForceFieldGenerator.hpp"
 #include "src/forcefield/GoContactForceFieldGenerator.hpp"
 #include "src/forcefield/FlexibleLocalAngleForceFieldGenerator.hpp"

@@ -131,12 +131,33 @@ read_genesis_angles_section(
 
     std::vector<std::unique_ptr<ForceFieldGeneratorBase>> ff_gen_ptrs{};
 
+    if(type1_angle_params.size() != 0)
+    {
+        std::vector<std::array<std::size_t, 3>> indices_vec;
+        std::vector<double>                     thetas; // rad
+        std::vector<double>                     ks;     // kJ/(mol rad^2)
+
+        for(const auto& angle_param : type1_angle_params)
+        {
+            indices_vec.push_back(angle_param.indices_);
+            thetas.push_back(std::stod(angle_param.param_str_.substr( 0, 15)));
+            ks    .push_back(std::stod(angle_param.param_str_.substr(15, 15)));
+        }
+
+        std::cerr << "    BondAngle     : Harmonic (" << indices_vec.size()
+                  << " found)" << std::endl;
+
+        ff_gen_ptrs.push_back(
+                std::make_unique<HarmonicAngleForceFieldGenerator>(
+                    indices_vec, thetas, ks, use_periodic));
+    }
+
     if(type21_angle_params.size() != 0)
     {
         std::vector<std::pair<std::size_t, std::size_t>> indices_vec;
-        std::vector<double>                              r0s;
-        std::vector<double>                              eps;
-        std::vector<double>                              ws;
+        std::vector<double>                              r0s; // nm
+        std::vector<double>                              eps; // kJ/mol
+        std::vector<double>                              ws;  // nm
 
         for(const auto& angle_param : type21_angle_params)
         {
