@@ -104,8 +104,9 @@ read_genesis_angles_section(
         const std::array<std::size_t, 3> indices = {
             std::stoul(angle_line.substr( 0, 10)) - 1,
             std::stoul(angle_line.substr(10, 10)) - 1,
-            std::stoul(angle_line.substr(20, 10)) - 1};
-        const std::size_t f_type    = std::stoi(angle_line.substr(30,  5));
+            std::stoul(angle_line.substr(20, 10)) - 1
+        };
+        const std::size_t f_type    = std::stoul(angle_line.substr(30,  5));
         const std::string param_str = angle_line.substr(35);
 
         if(f_type == 1)
@@ -140,7 +141,9 @@ read_genesis_angles_section(
         for(const auto& angle_param : type1_angle_params)
         {
             indices_vec.push_back(angle_param.indices_);
-            thetas.push_back(std::stod(angle_param.param_str_.substr( 0, 15)));
+            const double theta_degree =
+                std::stod(angle_param.param_str_.substr( 0, 15));  // °
+            thetas.push_back(theta_degree / 180.0 * Constant::pi); // rad
             ks    .push_back(std::stod(angle_param.param_str_.substr(15, 15)));
         }
 
@@ -197,11 +200,193 @@ read_genesis_angles_section(
                       << aa_type << " (" << indices_vec.size() << " found)"
                       << std::endl;
 
+            if(indices_vec.size() == 0)
+            {
+                std::cerr << "        -> skip this forcefield generation" << std::endl;
+                continue;
+            }
+
+            // the unit of spline table is kcal/mol and OpenMM eneryg unit is kJ/mol.
+            // this unit conversion is performed through ks;
+            std::vector<double> ks =
+                std::vector<double>(indices_vec.size(), OpenMM::KJPerKcal);
             ff_gen_ptrs.push_back(
                     std::make_unique<FlexibleLocalAngleForceFieldGenerator>(
-                        indices_vec,
-                        std::vector<double>(indices_vec.size(), OpenMM::KJPerKcal),
+                        indices_vec, ks,
                         Constant::fla_spline_table.at(aa_type), aa_type, use_periodic));
+        }
+    }
+
+    return ff_gen_ptrs;
+}
+
+std::vector<std::unique_ptr<ForceFieldGeneratorBase>>
+read_genesis_dihedrals_section(
+        const std::vector<std::string>& dihedrals_data,
+        const bool use_periodic, const std::vector<std::string>& res_name_vec)
+{
+    struct dihedral_param
+    {
+        const std::array<std::size_t, 4> indices_;
+        const std::string                param_str_;
+
+        dihedral_param(const std::array<std::size_t, 4> indices,
+                const std::string param_str)
+            : indices_(indices), param_str_(param_str)
+        {}
+    };
+
+    // genesis use safe type potentials instead of original potentials.
+    // this software temporarily processes these safe potentials as the original one.
+    // TODO: we need to adjust safe potential case.
+    std::vector<dihedral_param> type1_dihedral_params;  // cosine dihedral
+    std::vector<dihedral_param> type21_dihedral_params; // gaussian dihedral
+    std::vector<dihedral_param> type22_dihedral_params; // flp dihedral
+
+    for(const auto& dihedral_line : dihedrals_data)
+    {
+        const std::array<std::size_t, 4> indices = {
+            std::stoul(dihedral_line.substr( 0, 10)) - 1,
+            std::stoul(dihedral_line.substr(10, 10)) - 1,
+            std::stoul(dihedral_line.substr(20, 10)) - 1,
+            std::stoul(dihedral_line.substr(30, 10)) - 1
+        };
+        const std::size_t f_type    = std::stoul(dihedral_line.substr(40, 5));
+        const std::string param_str = dihedral_line.substr(45);
+
+        if(f_type == 1 || f_type == 32)
+        {
+            type1_dihedral_params.push_back(dihedral_param(indices, param_str));
+        }
+        else if(f_type == 21 || f_type == 41)
+        {
+            type21_dihedral_params.push_back(dihedral_param(indices, param_str));
+        }
+        else if(f_type == 22 || f_type == 52)
+        {
+            type22_dihedral_params.push_back(dihedral_param(indices, param_str));
+        }
+        else
+        {
+            throw std::runtime_error(
+                    "[error] unexpected angle type " + std::to_string(f_type) +
+                    " was specified in `[ dihedrals ]` section."
+                    " expected value is 1(32), 21(41) or 22(52).");
+        }
+    }
+
+    std::vector<std::unique_ptr<ForceFieldGeneratorBase>> ff_gen_ptrs{};
+
+    if(type1_dihedral_params.size() != 0)
+    {
+        std::vector<std::array<std::size_t, 4>> indices_vec;
+        std::vector<double>                     phi0s; // rad
+        std::vector<double>                     ks;   // kJ/mol
+        std::vector<double>                     ns;   // dimensionless
+
+        for(const auto& dihedral_param : type1_dihedral_params)
+        {
+            indices_vec.push_back(dihedral_param.indices_);
+            const double phi0_degree =
+                std::stod(dihedral_param.param_str_.substr(0, 15)); // °
+            phi0s.push_back(phi0_degree / 180.0 * Constant::pi);    // rad
+            ks   .push_back(std::stod(dihedral_param.param_str_.substr(15, 15)));
+            ns   .push_back(std::stoi(dihedral_param.param_str_.substr(30, 15)));
+        }
+
+        std::cerr << "    DihedralAngle : Cosine (" << indices_vec.size()
+                  << " found)" << std::endl;
+
+        ff_gen_ptrs.push_back(std::make_unique<CosineDihedralForceFieldGenerator>(
+                    indices_vec, ks, phi0s, ns, use_periodic));
+    }
+
+    if(type21_dihedral_params.size() != 0)
+    {
+        std::vector<std::array<std::size_t, 4>> indices_vec;
+        std::vector<double>                     phi0s;  // rad
+        std::vector<double>                     eps;    // kJ/mol
+        std::vector<double>                     sigmas; // rad
+
+        for(const auto& dihedral_param : type21_dihedral_params)
+        {
+            indices_vec.push_back(dihedral_param.indices_);
+            const double phi0_degree =
+                std::stod(dihedral_param.param_str_.substr(0, 15)); // °
+            phi0s .push_back(phi0_degree / 180.0 * Constant::pi);    // rad
+            eps   .push_back(std::stod(dihedral_param.param_str_.substr(15, 15)));
+            sigmas.push_back(std::stod(dihedral_param.param_str_.substr(30, 15)));
+        }
+
+        std::cerr << "    DihedralAngle : Gaussian (" << indices_vec.size() 
+                  << " found)" << std::endl;
+
+
+        ff_gen_ptrs.push_back(std::make_unique<GaussianDihedralForceFieldGenerator>(
+                    indices_vec, eps, phi0s, sigmas, use_periodic));
+    }
+
+    if(type22_dihedral_params.size() != 0)
+    {
+        for(const auto& aa_type_pair_table : Constant::fld_fourier_table)
+        {
+            const std::pair<std::string, std::string> aa_type_pair =
+                aa_type_pair_table.first;
+
+            std::vector<std::array<std::size_t, 4>> indices_vec;
+            for(const auto& dihedral_param : type22_dihedral_params)
+            {
+                const std::array<std::size_t, 4>& indices = dihedral_param.indices_;
+                if(aa_type_pair.first == "R1")
+                {
+                    if(res_name_vec[indices[2]] == "GLY")
+                    {
+                        indices_vec.push_back(indices);
+                    }
+                }
+                else if(aa_type_pair.first == "R2")
+                {
+                    if(res_name_vec[indices[1]] != "GLY" &&
+                        res_name_vec[indices[2]] == "PRO")
+                    {
+                        indices_vec.push_back(indices);
+                    }
+                }
+                else if(aa_type_pair.first == "GLY" && aa_type_pair.second == "PRO")
+                {
+                    if(res_name_vec[indices[1]] == "GLY" &&
+                            res_name_vec[indices[2]] == "PRO")
+                    {
+                        indices_vec.push_back(indices);
+                    }
+                }
+                else
+                {
+                    if(res_name_vec[indices[2]] == aa_type_pair.first)
+                    {
+                        indices_vec.push_back(indices);
+                    }
+                }
+            }
+
+            std::cerr << "    DihedralAngle : FlexibleLocalDihedral - "
+                      << aa_type_pair.first << "-" << aa_type_pair.second
+                      << " (" << indices_vec.size() << " found)" << std::endl;
+
+            if(indices_vec.size() == 0)
+            {
+                std::cerr << "        -> skip this forcefield generation" << std::endl;
+                continue;
+            }
+
+            // the unit of fourier table is kcal/mol and OpenMM eneryg unit is kJ/mol.
+            // this unit conversion is performed through ks;
+            std::vector<double> ks =
+                std::vector<double>(indices_vec.size(), OpenMM::KJPerKcal);
+            ff_gen_ptrs.push_back(
+                    std::make_unique<FlexibleLocalDihedralForceFieldGenerator>(
+                        indices_vec, ks, Constant::fld_fourier_table.at(aa_type_pair),
+                        aa_type_pair.first + "-" + aa_type_pair.second, use_periodic));
         }
     }
 
@@ -232,115 +417,6 @@ read_genesis_go_contact_ff_generator(
 
     std::cerr << "    BondLength    : GoContact (" << indices_vec.size() << " found)" << std::endl;
     return GoContactForceFieldGenerator(indices_vec, ks, r0s, use_periodic);
-}
-
-GaussianDihedralForceFieldGenerator
-read_genesis_gaussian_dihedral_ff_generator(
-        const std::vector<std::string>& dihedrals_data,
-        const bool use_periodic)
-{
-    std::vector<std::array<std::size_t, 4>> indices_vec;
-    std::vector<double>                     ks;
-    std::vector<double>                     theta0s;
-    std::vector<double>                     sigmas;
-
-    for(const auto& dihedrals_line : dihedrals_data)
-    {
-        if(std::stoi(dihedrals_line.substr(40, 5)) == 41) // 41 means safe-dihedral for AICG2+
-        {
-            const std::size_t  idx_i  = std::stoi(dihedrals_line.substr( 0, 10)) - 1;
-            const std::size_t  idx_j  = std::stoi(dihedrals_line.substr(10, 10)) - 1;
-            const std::size_t  idx_k  = std::stoi(dihedrals_line.substr(20, 10)) - 1;
-            const std::size_t  idx_l  = std::stoi(dihedrals_line.substr(30, 10)) - 1;
-            const double       theta0 = std::stod(dihedrals_line.substr(45, 15)) / 180.0 * Constant::pi; // radiuns
-            const double       k      = -std::stod(dihedrals_line.substr(60, 15)); // KJ/mol
-            const double       sigma  = std::stod(dihedrals_line.substr(75, 15)); // radiuns
-
-            indices_vec.push_back({idx_i, idx_j, idx_k, idx_l});
-            ks         .push_back(k);
-            theta0s    .push_back(theta0);
-            sigmas     .push_back(sigma);
-        }
-    }
-
-    std::cerr << "    DihedralAngle : Gaussian (" << indices_vec.size() << " found)" << std::endl;
-    return GaussianDihedralForceFieldGenerator(
-            indices_vec, ks, theta0s, sigmas, use_periodic);
-}
-
-FlexibleLocalDihedralForceFieldGenerator
-read_genesis_flexible_local_dihedral_ff_generator(
-        const std::vector<std::string>& dihedrals_data,
-        const std::vector<std::string>& atoms_data,
-        const std::pair<std::string, std::string>& aa_type_pair,
-        const bool use_periodic)
-{
-    std::vector<std::string> aa_type_vec;
-    for(const auto& atoms_line : atoms_data)
-    {
-        aa_type_vec.push_back(Utility::erase_space(atoms_line.substr(10, 5)));
-    }
-
-    std::vector<std::array<std::size_t, 4>> indices_vec;
-    for(const auto& dihedrals_line : dihedrals_data)
-    {
-        if(std::stoi(dihedrals_line.substr(40, 5)) == 52) // 52 means safe-dihedral for FLP
-        {
-            if(aa_type_pair.first == "R1")
-            {
-                const std::size_t idx_k = std::stoi(dihedrals_line.substr(20, 10)) - 1;
-                if(aa_type_vec[idx_k] == "GLY")
-                {
-                    const std::size_t idx_i = std::stoi(dihedrals_line.substr( 0, 10)) - 1;
-                    const std::size_t idx_j = std::stoi(dihedrals_line.substr(10, 10)) - 1;
-                    const std::size_t idx_l = std::stoi(dihedrals_line.substr(30, 10)) - 1;
-                    indices_vec.push_back({idx_i, idx_j, idx_k, idx_l});
-                }
-            }
-            else if(aa_type_pair.first == "R2")
-            {
-                const std::size_t idx_j = std::stoi(dihedrals_line.substr(10, 10)) - 1;
-                const std::size_t idx_k = std::stoi(dihedrals_line.substr(20, 10)) - 1;
-                if(aa_type_vec[idx_j] != "GLY" && aa_type_vec[idx_k] == "PRO")
-                {
-                    const std::size_t idx_i = std::stoi(dihedrals_line.substr( 0, 10)) - 1;
-                    const std::size_t idx_l = std::stoi(dihedrals_line.substr(30, 10)) - 1;
-                    indices_vec.push_back({idx_i, idx_j, idx_k, idx_l});
-                }
-            }
-            else if(aa_type_pair.first == "GLY" && aa_type_pair.second == "PRO")
-            {
-                const std::size_t idx_j = std::stoi(dihedrals_line.substr(10, 10)) - 1;
-                const std::size_t idx_k = std::stoi(dihedrals_line.substr(20, 10)) - 1;
-                if(aa_type_vec[idx_j] == "GLY" && aa_type_vec[idx_k] == "PRO")
-                {
-                    const std::size_t idx_i = std::stoi(dihedrals_line.substr( 0, 10)) - 1;
-                    const std::size_t idx_l = std::stoi(dihedrals_line.substr(30, 10)) - 1;
-                    indices_vec.push_back({idx_i, idx_j, idx_k, idx_l});
-                }
-            }
-            else
-            {
-                const std::size_t idx_j = std::stoi(dihedrals_line.substr(10, 10)) - 1;
-                const std::size_t idx_k = std::stoi(dihedrals_line.substr(20, 10)) - 1;
-                if(aa_type_vec[idx_j] == aa_type_pair.first)
-                {
-                    const std::size_t idx_i = std::stoi(dihedrals_line.substr( 0, 10)) - 1;
-                    const std::size_t idx_l = std::stoi(dihedrals_line.substr(30, 10)) - 1;
-                    indices_vec.push_back({idx_i, idx_j, idx_k, idx_l});
-                }
-            }
-        }
-    }
-
-    std::cerr << "    DihedralAngle : FlexibleLocalDihedral - " << aa_type_pair.first
-              << "-" << aa_type_pair.second << " (" << indices_vec.size() << " found)"
-              << std::endl;
-
-    std::vector<double> ks = std::vector<double>(indices_vec.size(), OpenMM::KJPerKcal);
-    return FlexibleLocalDihedralForceFieldGenerator(indices_vec, ks,
-            Constant::fld_fourier_table.at(aa_type_pair),
-            aa_type_pair.first + "-" + aa_type_pair.second, use_periodic);
 }
 
 ExcludedVolumeForceFieldGenerator

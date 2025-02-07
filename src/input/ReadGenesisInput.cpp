@@ -303,38 +303,13 @@ Simulator make_simulator_from_genesis_inputs(
 
     if(top_data.find("dihedrals") != top_data.end())
     {
-        // make force field generator for AICG2+ dihedral
-        GaussianDihedralForceFieldGenerator aicg_ff_gen =
-            read_genesis_gaussian_dihedral_ff_generator(
-                    top_data.at("dihedrals"), use_periodic);
-        if(aicg_ff_gen.indices().size() != 0)
-        {
-            system_gen.add_ff_generator(
-                    std::make_unique<GaussianDihedralForceFieldGenerator>(aicg_ff_gen));
-        }
-        else
-        {
-            std::cerr << "        -> skip this forcefield generation" << std::endl;
-        }
+        std::vector<std::unique_ptr<ForceFieldGeneratorBase>> ff_gen_ptrs =
+            read_genesis_dihedrals_section(
+                    top_data.at("dihedrals"), use_periodic, res_name_vec);
 
-        // make force field generator for Flexible Local dihedral
-        for(const auto& aa_type_pair_table : Constant::fld_fourier_table)
+        for(auto& ff_gen_ptr : ff_gen_ptrs)
         {
-             FlexibleLocalDihedralForceFieldGenerator fld_ff_gen =
-                 read_genesis_flexible_local_dihedral_ff_generator(top_data.at("dihedrals"),
-                                                                   top_data.at("atoms"),
-                                                                   aa_type_pair_table.first,
-                                                                   use_periodic);
-             if(fld_ff_gen.indices().size() != 0)
-             {
-                 system_gen.add_ff_generator(
-                     std::make_unique<FlexibleLocalDihedralForceFieldGenerator>(
-                         fld_ff_gen));
-             }
-             else
-             {
-                 std::cerr << "        -> skip this forcefield generation." << std::endl;
-             }
+            system_gen.add_ff_generator(std::move(ff_gen_ptr));
         }
     }
 
