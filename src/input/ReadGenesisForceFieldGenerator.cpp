@@ -473,7 +473,7 @@ read_genesis_exv_ff_generator(const std::vector<std::string>& atomtypes_data,
 
     // generate ignore list
     ExcludedVolumeForceFieldGenerator::index_pairs_type ignore_list =
-        topology.ignore_list_within_edge(3, "bond");
+        topology.ignore_list_within_edge(ignore_particle_within_bond, "bond");
     ExcludedVolumeForceFieldGenerator::index_pairs_type contact_ignore_list =
         topology.ignore_list_within_edge(1, "contact");
     ignore_list.insert(ignore_list.end(),

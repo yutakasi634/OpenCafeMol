@@ -328,23 +328,22 @@ Simulator make_simulator_from_genesis_inputs(
         }
     }
 
+    // add EXVFFGenerator to SystemGenerator
+    const std::vector<std::string>& moleculetype_data = top_data.at("moleculetype");
+    const std::size_t first_nrexcl = std::stoi(moleculetype_data[0].substr(13, 10));
+    for(const auto& nrexcl_str : moleculetype_data)
+    {
+        const std::size_t nrexcl = std::stoi(nrexcl_str.substr(13, 10));
+        if(nrexcl != first_nrexcl)
+        {
+            throw std::runtime_error(
+                "[error] all nrexcl need to be same in `[moleculetype]`"
+                " section.");
+        }
+    }
+
     if(top_data.find("atomtypes") != top_data.end())
     {
-        const std::vector<std::string>& moleculetype_data = top_data.at("moleculetype");
-
-        const std::size_t first_nrexcl =
-            std::stoi(moleculetype_data[0].substr(13, 10));
-        for(const auto& nrexcl_str : moleculetype_data)
-        {
-            const std::size_t nrexcl = std::stoi(nrexcl_str.substr(13, 10));
-            if(nrexcl != first_nrexcl)
-            {
-                throw std::runtime_error(
-                    "[error] all nrexcl need to be same in `[moleculetype]`"
-                    " section.");
-            }
-        }
-
         ExcludedVolumeForceFieldGenerator ff_gen =
             read_genesis_exv_ff_generator(top_data.at("atomtypes"),
                 top_data.at("atoms"), topology, use_periodic, first_nrexcl);
