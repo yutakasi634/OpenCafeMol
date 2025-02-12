@@ -281,8 +281,8 @@ read_genesis_dihedrals_section(
     {
         std::vector<std::array<std::size_t, 4>> indices_vec;
         std::vector<double>                     phi0s; // rad
-        std::vector<double>                     ks;   // kJ/mol
-        std::vector<double>                     ns;   // dimensionless
+        std::vector<double>                     ks;    // kJ/mol
+        std::vector<double>                     ns;    // dimensionless
 
         for(const auto& dihedral_param : type1_dihedral_params)
         {
