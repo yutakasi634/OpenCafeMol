@@ -986,18 +986,21 @@ read_ignore_molecule_and_particles_within(const toml::value& ignore_table, const
 
     if(ignore_table.contains("particles_within"))
     {
-        if(ignore_molecule_flag)
-        {
-            std::cerr << "\033[33m[warning]\033[m"
-                      << " ignore molecule \"Intra\" or \"Self\" was defined,"
-                         "so this ignore particle within bond will be ignored."
-                      << std::endl;
-        }
-
         const auto particle_within =
-            toml::find<std::map<std::string, std::size_t>>(ignore_table, "particles_within");
+            toml::find<std::map<std::string, std::size_t>>(
+                    ignore_table, "particles_within");
+
         for(const auto& connection : particle_within)
         {
+            if(ignore_molecule_flag)
+            {
+                std::cerr << "\033[33m[warning]\033[m"
+                          << " ignore molecule \"Intra\" or \"Self\" was defined,"
+                             "so this ignore particle within " << connection.first
+                          << " will be ignored."
+                          << std::endl;
+            }
+
             std::vector<std::pair<std::size_t, std::size_t>> additional_list
                 = topology.ignore_list_within_edge(connection.second, connection.first);
             ignore_list.insert(ignore_list.end(),

@@ -35,8 +35,8 @@ read_genesis_pairs_section(
         const std::vector<std::string>& pairs_data, Topology& topology,
         const bool use_periodic);
 
-ExcludedVolumeForceFieldGenerator
-read_genesis_exv_ff_generator(const std::vector<std::string>& atomtypes_data,
+std::vector<std::unique_ptr<ForceFieldGeneratorBase>>
+read_genesis_exv_ff_generators(const std::vector<std::string>& atomtypes_data,
         const std::vector<std::string>& atoms_data, Topology& topology,
         const bool use_periodic,
         const std::size_t ignore_particle_within_bond = 3);

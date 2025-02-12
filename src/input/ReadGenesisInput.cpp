@@ -288,6 +288,7 @@ Simulator make_simulator_from_genesis_inputs(
             system_gen.add_ff_generator(std::move(ff_gen_ptr));
         }
     }
+    topology.make_molecule("bond");
 
     if(top_data.find("angles") != top_data.end())
     {
@@ -344,11 +345,14 @@ Simulator make_simulator_from_genesis_inputs(
 
     if(top_data.find("atomtypes") != top_data.end())
     {
-        ExcludedVolumeForceFieldGenerator ff_gen =
-            read_genesis_exv_ff_generator(top_data.at("atomtypes"),
+        std::vector<std::unique_ptr<ForceFieldGeneratorBase>> ff_gen_ptrs =
+            read_genesis_exv_ff_generators(top_data.at("atomtypes"),
                 top_data.at("atoms"), topology, use_periodic, first_nrexcl);
-        system_gen.add_ff_generator(
-                std::make_unique<ExcludedVolumeForceFieldGenerator>(ff_gen));
+
+        for(auto& ff_gen_ptr : ff_gen_ptrs)
+        {
+            system_gen.add_ff_generator(std::move(ff_gen_ptr));
+        }
     }
     else
     {

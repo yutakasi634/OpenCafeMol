@@ -428,12 +428,15 @@ read_genesis_pairs_section(
     return GoContactForceFieldGenerator(indices_vec, ks, r0s, use_periodic);
 }
 
-ExcludedVolumeForceFieldGenerator
-read_genesis_exv_ff_generator(const std::vector<std::string>& atomtypes_data,
-        const std::vector<std::string>& atoms_data, Topology& topology,
-        const bool use_periodic,
+std::vector<std::unique_ptr<ForceFieldGeneratorBase>>
+read_genesis_exv_ff_generators(const std::vector<std::string>& top_data,
+        Topology& topology, const bool use_periodic,
         const std::size_t ignore_particle_within_bond)
 {
+    std::vector<std::unique_ptr<ForceFieldGeneratorBase>> ff_gen_ptrs{};
+
+    // read `[ atomtypes ]` section
+    const std::vector<std::string>& atomtypes_data = top_data.at("atomtypes");
     std::map<std::string, double> name_rmin_map;
     std::string                   eps_str;
     for(auto& atomtypes_line : atomtypes_data)
@@ -461,6 +464,8 @@ read_genesis_exv_ff_generator(const std::vector<std::string>& atomtypes_data,
     }
     const double eps = std::stod(eps_str);
 
+    // read `[ atoms ]` section
+    const std::vector<std::string>& atoms_data = top_data.at("atoms");
     std::vector<std::optional<double>> radius_vec;
     for(auto& atoms_line : atoms_data)
     {
@@ -468,10 +473,29 @@ read_genesis_exv_ff_generator(const std::vector<std::string>& atomtypes_data,
         radius_vec.push_back(name_rmin_map.at(aa_type));
     }
 
+    if(top_data.find("cgdnaexvtypes") != top_data.end())
+    {
+        const std::vector<std::string>& cgdnas_data = top_data.at("cgdnaexvtypes");
+        std::map<std::string, double> name_sigma_map;
+        for(auto& cgdna_line : cgdnas_data)
+        {
+            const std::size_t f_type = std::stoul(cgdna_line.substr(6, 5));
+            if(f_type != 1)
+            {
+                throw std::runtime_error(
+                        "[error] unexpected func type " + std::to_string(f_type) +
+                        " was specified in `[ cgdnaexvtypes ]` section. "
+                        "expected value is 1.");
+
+            }
+            // make dna atom and func, sigma list
+        }
+    }
+
     std::cerr << "    Global        : ExcludedVolume (" << radius_vec.size()
               << " found)"                              << std::endl;
 
-    // generate ignore list
+    // generate ignore information
     ExcludedVolumeForceFieldGenerator::index_pairs_type ignore_list =
         topology.ignore_list_within_edge(ignore_particle_within_bond, "bond");
     ExcludedVolumeForceFieldGenerator::index_pairs_type contact_ignore_list =
@@ -481,8 +505,27 @@ read_genesis_exv_ff_generator(const std::vector<std::string>& atomtypes_data,
     std::sort(ignore_list.begin(), ignore_list.end());
     const auto& result = std::unique(ignore_list.begin(), ignore_list.end());
     ignore_list.erase(result, ignore_list.end());
+    const std::vector<std::pair<std::string, std::string>>
+        exv_ignore_group_pairs{{"DNA", "DNA"}};
 
-    return ExcludedVolumeForceFieldGenerator(
-            eps, 2.0/*cutoff ratio*/, radius_vec, ignore_list, use_periodic);
+    ff_gen_ptrs.push_back(std::make_unique<ExcludedVolumeForceFieldGenerator>(
+            eps, 2.0/*cutoff ratio*/, radius_vec, ignore_list, use_periodic,
+            exv_ignore_group_pairs, group_vec));
+
+    // TODO: 3SPN2 EXV part
+    if(Utility::contains(group_vec, "DNA"))
+    {
+        if(top_data.find("cgdnaexvtypes") != top_data.end())
+        {
+            throw std::runtime_error(
+                    "[error] There is no `[ cgdnaexvtypes ]` section. "
+                    "The system contains DNA particle which name is "
+                    "DA, DG, DC, DT, DP or DS needs this section.");
+        }
+
+        const auto eps = ThreeSPN2ExcludedVolumePotentialParameter::epsilon;
+    }
+
+    return ff_gen_ptrs;
 }
 
