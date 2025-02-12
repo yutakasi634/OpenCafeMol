@@ -177,6 +177,17 @@ bool contains(std::vector<std::pair<T, T>> pair_list, std::pair<T, T> query)
     return false;
 }
 
+template<typename T>
+bool contains(const std::vector<std::optional<T>>& opt_list, const T& query)
+{
+    for(const auto& opt : opt_list)
+    {
+        if(opt.has_value() && opt.value() == query) return true;
+    }
+
+    return false;
+}
+
 template<std::size_t I, typename Tuple, typename F>
 void for_each_impl(Tuple& t, F func)
 {
