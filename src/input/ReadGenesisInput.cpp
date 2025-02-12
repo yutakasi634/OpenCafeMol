@@ -316,8 +316,7 @@ Simulator make_simulator_from_genesis_inputs(
     if(top_data.find("pairs") != top_data.end())
     {
         GoContactForceFieldGenerator ff_gen =
-            read_genesis_go_contact_ff_generator(
-                    top_data.at("pairs"), topology, use_periodic);
+            read_genesis_pairs_section(top_data.at("pairs"), topology, use_periodic);
         if(ff_gen.indices().size() != 0)
         {
             system_gen.add_ff_generator(

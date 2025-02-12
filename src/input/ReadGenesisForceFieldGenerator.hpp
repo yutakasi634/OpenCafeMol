@@ -31,7 +31,7 @@ read_genesis_dihedrals_section(
         const bool use_periodic, const std::vector<std::string>& res_name_vec);
 
 GoContactForceFieldGenerator
-read_genesis_go_contact_ff_generator(
+read_genesis_pairs_section(
         const std::vector<std::string>& pairs_data, Topology& topology,
         const bool use_periodic);
 

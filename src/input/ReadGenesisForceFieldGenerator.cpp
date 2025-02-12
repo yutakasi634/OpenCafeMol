@@ -394,7 +394,7 @@ read_genesis_dihedrals_section(
 }
 
 GoContactForceFieldGenerator
-read_genesis_go_contact_ff_generator(
+read_genesis_pairs_section(
         const std::vector<std::string>& pairs_data, Topology& topology,
         const bool use_periodic)
 {
@@ -404,10 +404,19 @@ read_genesis_go_contact_ff_generator(
 
     for(auto& pairs_line : pairs_data)
     {
-        const std::size_t idx_i = std::stoi(pairs_line.substr(0,  10)) - 1;
-        const std::size_t idx_k = std::stoi(pairs_line.substr(10, 10)) - 1;
-        const double      r0    = std::stod(pairs_line.substr(30, 15)); // nm
-        const double      k     = std::stod(pairs_line.substr(45, 15)); // KJ/mol
+        const std::size_t idx_i  = std::stoul(pairs_line.substr(0,  10)) - 1;
+        const std::size_t idx_k  = std::stoul(pairs_line.substr(10, 10)) - 1;
+        const std::size_t f_type = std::stoul(pairs_line.substr(20, 10));
+        const double      r0     = std::stod(pairs_line.substr(30, 15)); // nm
+        const double      k      = std::stod(pairs_line.substr(45, 15)); // KJ/mol
+
+        if(f_type != 2)
+        {
+            throw std::runtime_error(
+                    "[error] unexpected pair type " + std::to_string(f_type) +
+                    " was specified in `[ pairs ]` section."
+                    " expected value is only 2.");
+        }
 
         indices_vec.push_back(std::make_pair(idx_i, idx_k));
         ks         .push_back(k);
