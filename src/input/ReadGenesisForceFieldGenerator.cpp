@@ -451,6 +451,15 @@ read_genesis_pairs_section(
 }
 
 std::vector<std::unique_ptr<ForceFieldGeneratorBase>>
+read_genesis_basestacking_ff_generator(
+        const std::vector<std::string>& basestacktypes_data,
+        const std::vector<std::string>& atoms_data, Topology& topology,
+        const bool use_periodic)
+{
+    // read `[ basestacktypes ]` section
+}
+
+std::vector<std::unique_ptr<ForceFieldGeneratorBase>>
 read_genesis_exv_ff_generators(
         const std::map<std::string, std::vector<std::string>>& top_data,
         const std::vector<std::string>& particle_type_vec,
