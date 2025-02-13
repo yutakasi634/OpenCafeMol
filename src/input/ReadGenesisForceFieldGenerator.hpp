@@ -13,6 +13,7 @@
 #include "src/forcefield/FlexibleLocalDihedralForceFieldGenerator.hpp"
 #include "src/forcefield/ExcludedVolumeForceFieldGenerator.hpp"
 #include "src/forcefield/ThreeSPN2ExcludedVolumeForceFieldGenerator.hpp"
+#include "src/forcefield/ThreeSPN2BondForceFieldGenerator.hpp"
 
 #include "src/Topology.hpp"
 

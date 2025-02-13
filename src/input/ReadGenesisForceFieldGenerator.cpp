@@ -41,7 +41,8 @@ read_genesis_bonds_section(
         }
         else if(f_type == 21)
         {
-            throw std::runtime_error("[error] bond type 21 is not yet supported.");
+            type21_bond_params.push_back(
+                    bond_param(std::make_pair(idx_i, idx_j), eq, coef));
         }
         else
         {
@@ -72,6 +73,27 @@ read_genesis_bonds_section(
         ff_gen_ptrs.push_back(
                 std::make_unique<HarmonicBondForceFieldGenerator>(
                     indices_vec, eqs, coefs, use_periodic));
+    }
+
+    if(type21_bond_params.size() != 0)
+    {
+        std::vector<std::pair<std::size_t, std::size_t>> indices_vec;
+        std::vector<double>                              eqs;
+        std::vector<double>                              coefs;
+        for(const auto& param: type21_bond_params)
+        {
+            indices_vec.emplace_back(param.indices_);
+            eqs        .emplace_back(param.equilibrium_value_);
+            coefs      .emplace_back(param.force_coef_);
+        }
+        topology.add_edges(indices_vec, "bond");
+
+        std::cerr << "    BondLength    : 3SPN2 (" <<
+                  indices_vec.size() << " found)" << std::endl;
+
+        ff_gen_ptrs.push_back(
+                std::make_unique<ThreeSPN2BondForceFieldGenerator>(
+                    indices_vec, coefs, coefs, eqs, use_periodic));
     }
 
     return ff_gen_ptrs;
