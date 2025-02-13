@@ -429,7 +429,9 @@ read_genesis_pairs_section(
 }
 
 std::vector<std::unique_ptr<ForceFieldGeneratorBase>>
-read_genesis_exv_ff_generators(const std::vector<std::string>& top_data,
+read_genesis_exv_ff_generators(
+        const std::map<std::string, std::vector<std::string>>& top_data,
+        const std::vector<std::string>& particle_type_vec,
         Topology& topology, const bool use_periodic,
         const std::size_t ignore_particle_within_bond)
 {
@@ -464,15 +466,14 @@ read_genesis_exv_ff_generators(const std::vector<std::string>& top_data,
     }
     const double eps = std::stod(eps_str);
 
-    // read `[ atoms ]` section
-    const std::vector<std::string>& atoms_data = top_data.at("atoms");
     std::vector<std::optional<double>> radius_vec;
-    for(auto& atoms_line : atoms_data)
+    for(auto& particle_type : particle_type_vec)
     {
-        const std::string aa_type = Utility::erase_space(atoms_line.substr(10, 5));
-        radius_vec.push_back(name_rmin_map.at(aa_type));
+        radius_vec.push_back(name_rmin_map.at(particle_type));
     }
 
+    std::vector<std::optional<std::string>> group_vec(topology.size(), std::nullopt);
+    std::vector<std::pair<std::string, std::string>> exv_ignore_group_pairs;
     if(top_data.find("cgdnaexvtypes") != top_data.end())
     {
         const std::vector<std::string>& cgdnas_data = top_data.at("cgdnaexvtypes");
@@ -486,16 +487,86 @@ read_genesis_exv_ff_generators(const std::vector<std::string>& top_data,
                         "[error] unexpected func type " + std::to_string(f_type) +
                         " was specified in `[ cgdnaexvtypes ]` section. "
                         "expected value is 1.");
-
             }
             // make dna atom and func, sigma list
+            const std::string name  = Utility::erase_space(cgdna_line.substr(0, 6));
+            const double      sigma = std::stod(cgdna_line.substr(12, 10));
+            name_sigma_map.insert(std::make_pair(name, sigma));
+        }
+
+        // setup ignore group for EXVFFGen
+        for(std::size_t p_idx=0; p_idx < particle_type_vec.size(); ++p_idx)
+        {
+            const std::string& particle_type(particle_type_vec[p_idx]);
+            if(name_sigma_map.find(particle_type) != name_sigma_map.end())
+            {
+                group_vec[p_idx] = ("DNA");
+            }
+        }
+        exv_ignore_group_pairs.push_back(std::make_pair("DNA", "DNA"));
+
+        // setup 3SPN2EXFVFFGen
+        std::size_t exv_3spn2_particle_count(0);
+        std::vector<std::optional<double>> exv_3spn2_radius_vec;
+        for(const auto& particle_type : particle_type_vec)
+        {
+            if(name_sigma_map.find(particle_type) != name_sigma_map.end())
+            {
+                exv_3spn2_radius_vec.push_back(name_sigma_map.at(particle_type));
+                ++exv_3spn2_particle_count;
+            }
+            else
+            {
+                exv_3spn2_radius_vec.push_back(std::nullopt);
+            }
+        }
+
+        if(exv_3spn2_particle_count != 0)
+        {
+            std::vector<std::pair<std::size_t, std::size_t>> ignore_list =
+                topology.ignore_list_within_edge(1, "bond");
+            std::vector<std::pair<std::size_t, std::size_t>> nuc_ignore_list =
+                topology.ignore_list_within_edge(1, "nucleotide");
+            ignore_list.insert(ignore_list.end(),
+                    nuc_ignore_list.begin(), nuc_ignore_list.end());
+
+            // for exclude base pairing interaction pair
+            for(std::size_t idx=0; idx<particle_type_vec.size(); ++idx)
+            {
+                for(std::size_t jdx=idx+1; jdx<particle_type_vec.size(); ++jdx)
+                {
+                    const auto& type_i = particle_type_vec[idx];
+                    const auto& type_j = particle_type_vec[jdx];
+
+                    // complement
+                    if ((type_i == "DA" && type_j == "DT") ||
+                        (type_i == "DT" && type_j == "DA") ||
+                        (type_i == "DG" && type_j == "DC") ||
+                        (type_i == "DC" && type_j == "DG"))
+                    {
+                        ignore_list.push_back(std::make_pair(idx, jdx));
+                    }
+                }
+            }
+
+            std::sort(ignore_list.begin(), ignore_list.end());
+            const auto& result = std::unique(ignore_list.begin(), ignore_list.end());
+            ignore_list.erase(result, ignore_list.end());
+
+            std::cerr << "    Global        : ExcludedVolume 3SPN2 ("
+                      << exv_3spn2_particle_count << " found)" << std::endl;
+
+            const auto eps = ThreeSPN2ExcludedVolumePotentialParameter::epsilon;
+            ff_gen_ptrs.push_back(
+                    std::make_unique<ThreeSPN2ExcludedVolumeForceFieldGenerator>(
+                        eps, 2.0/*cutoff ratio*/, radius_vec,
+                        ignore_list, use_periodic));
         }
     }
 
     std::cerr << "    Global        : ExcludedVolume (" << radius_vec.size()
               << " found)"                              << std::endl;
-
-    // generate ignore information
+    // generate ignore list
     ExcludedVolumeForceFieldGenerator::index_pairs_type ignore_list =
         topology.ignore_list_within_edge(ignore_particle_within_bond, "bond");
     ExcludedVolumeForceFieldGenerator::index_pairs_type contact_ignore_list =
@@ -505,26 +576,12 @@ read_genesis_exv_ff_generators(const std::vector<std::string>& top_data,
     std::sort(ignore_list.begin(), ignore_list.end());
     const auto& result = std::unique(ignore_list.begin(), ignore_list.end());
     ignore_list.erase(result, ignore_list.end());
-    const std::vector<std::pair<std::string, std::string>>
-        exv_ignore_group_pairs{{"DNA", "DNA"}};
 
     ff_gen_ptrs.push_back(std::make_unique<ExcludedVolumeForceFieldGenerator>(
             eps, 2.0/*cutoff ratio*/, radius_vec, ignore_list, use_periodic,
             exv_ignore_group_pairs, group_vec));
 
-    // TODO: 3SPN2 EXV part
-    if(Utility::contains(group_vec, "DNA"))
-    {
-        if(top_data.find("cgdnaexvtypes") != top_data.end())
-        {
-            throw std::runtime_error(
-                    "[error] There is no `[ cgdnaexvtypes ]` section. "
-                    "The system contains DNA particle which name is "
-                    "DA, DG, DC, DT, DP or DS needs this section.");
-        }
 
-        const auto eps = ThreeSPN2ExcludedVolumePotentialParameter::epsilon;
-    }
 
     return ff_gen_ptrs;
 }

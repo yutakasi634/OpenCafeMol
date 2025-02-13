@@ -12,6 +12,7 @@
 #include "src/forcefield/GaussianDihedralForceFieldGenerator.hpp"
 #include "src/forcefield/FlexibleLocalDihedralForceFieldGenerator.hpp"
 #include "src/forcefield/ExcludedVolumeForceFieldGenerator.hpp"
+#include "src/forcefield/ThreeSPN2ExcludedVolumeForceFieldGenerator.hpp"
 
 #include "src/Topology.hpp"
 
@@ -36,7 +37,8 @@ read_genesis_pairs_section(
         const bool use_periodic);
 
 std::vector<std::unique_ptr<ForceFieldGeneratorBase>>
-read_genesis_exv_ff_generators(const std::vector<std::string>& atomtypes_data,
+read_genesis_exv_ff_generators(
+        const std::map<std::string, std::vector<std::string>>& atomtypes_data,
         const std::vector<std::string>& atoms_data, Topology& topology,
         const bool use_periodic,
         const std::size_t ignore_particle_within_bond = 3);

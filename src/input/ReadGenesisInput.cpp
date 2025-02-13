@@ -257,12 +257,13 @@ Simulator make_simulator_from_genesis_inputs(
     }
 
     std::vector<double>      mass_vec;
-    std::vector<std::string> res_name_vec, atom_name_vec;
+    std::vector<std::string> particle_type_vec, res_name_vec, atom_name_vec;
     for(auto& atoms_line : top_data.at("atoms"))
     {
         mass_vec.push_back(std::stod(atoms_line.substr(49, 9))); // amu
-        res_name_vec .push_back(Utility::erase_space(atoms_line.substr(25, 5)));
-        atom_name_vec.push_back(Utility::erase_space(atoms_line.substr(30, 5)));
+        particle_type_vec.push_back(Utility::erase_space(atoms_line.substr(10, 5)));
+        res_name_vec     .push_back(Utility::erase_space(atoms_line.substr(25, 5)));
+        atom_name_vec    .push_back(Utility::erase_space(atoms_line.substr(30, 5)));
     }
     SystemGenerator system_gen(mass_vec);
 
@@ -346,8 +347,9 @@ Simulator make_simulator_from_genesis_inputs(
     if(top_data.find("atomtypes") != top_data.end())
     {
         std::vector<std::unique_ptr<ForceFieldGeneratorBase>> ff_gen_ptrs =
-            read_genesis_exv_ff_generators(top_data.at("atomtypes"),
-                top_data.at("atoms"), topology, use_periodic, first_nrexcl);
+            read_genesis_exv_ff_generators(
+                    top_data, particle_type_vec, topology,
+                    use_periodic, first_nrexcl);
 
         for(auto& ff_gen_ptr : ff_gen_ptrs)
         {
