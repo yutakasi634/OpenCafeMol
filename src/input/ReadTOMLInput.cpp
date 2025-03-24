@@ -1029,7 +1029,7 @@ Simulator read_toml_input(const std::string& toml_file_name)
                   observers, energy_minimization, dump_progress_bar);
 
     const auto& particles = toml::find<toml::array>(systems[0], "particles");
-    if(particles.at(1).contains("vel") || particles.at(1).contains("velocity"))
+    if(particles.at(0).contains("vel") || particles.at(0).contains("velocity"))
     {
         const std::vector<OpenMM::Vec3>
             initial_vel_in_nmps(read_toml_initial_vel(data));
