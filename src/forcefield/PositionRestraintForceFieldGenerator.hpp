@@ -17,7 +17,8 @@ class PositionRestraintForceFieldGenerator : public ForceFieldGeneratorBase
   public:
     PositionRestraintForceFieldGenerator(
         std::vector<std::size_t> indices, std::vector<std::array<double, 3>> positions,
-        std::vector<double>      ks,      std::vector<double>                v0s)
+        std::vector<double>      ks,      std::vector<double>                v0s,
+        const bool use_periodic)
         : indices_(indices), positions_(positions), ks_(ks), v0s_(v0s),
           ffgen_id_(fmt::format("PR{}", ffid.gen()))
     {
