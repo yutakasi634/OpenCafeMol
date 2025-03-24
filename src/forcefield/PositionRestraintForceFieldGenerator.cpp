@@ -1,10 +1,19 @@
 #include "PositionRestraintForceFieldGenerator.hpp"
 
+#include <iostream>
+
 std::unique_ptr<OpenMM::Force> PositionRestraintForceFieldGenerator::generate() const
 {
-    const std::string potential_formula = fmt::format(
-            "{id}_k * (periodicdistance(x, y, z, {id}_x0, {id}_y0, {id}_z0) - {id}_v0)^2",
+    std::string potential_formula = fmt::format(
+            "{id}_k * (((x-{id}_x0)^2 + (y-{id}_y0)^2 + (z-{id}_z0)^2)^(1/2) - {id}_v0)^2",
             fmt::arg("id", ffgen_id_));
+
+    if(use_periodic_)
+    {
+        std::string potential_formula = fmt::format(
+                "{id}_k * (periodicdistance(x, y, z, {id}_x, {id}_y, {id}_z) - {id}_v0)^2",
+                fmt::arg("id", ffgen_id_));
+    }
 
     auto pr_ff = std::make_unique<OpenMM::CustomExternalForce>(potential_formula);
 

@@ -765,8 +765,9 @@ TEST(ReadTOMLForceFieldGenerator, ReadTOMLPositionRestraintFFGenerator)
 
     const std::size_t system_size(2);
     Topology          topology(system_size);
+    const bool        use_periodic = false;
 
-    EXPECT_NO_THROW(read_toml_position_restraint_ff_generator(v, topology));
+    EXPECT_NO_THROW(read_toml_position_restraint_ff_generator(v, topology, use_periodic));
 }
 
 TEST(ReadTOMLForceFieldGenerator, ReadTOMLHarmonicCoMPullingFFGenerator)

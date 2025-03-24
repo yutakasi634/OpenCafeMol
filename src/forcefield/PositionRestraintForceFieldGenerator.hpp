@@ -35,6 +35,7 @@ class PositionRestraintForceFieldGenerator : public ForceFieldGeneratorBase
     std::vector<std::array<double, 3>> positions_;
     std::vector<double>                ks_;
     std::vector<double>                v0s_;
+    bool                               use_periodic_;
     std::string                        ffgen_id_;
 };
 

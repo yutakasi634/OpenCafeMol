@@ -2366,7 +2366,8 @@ read_toml_pulling_ff_generator(
 // ]
 PositionRestraintForceFieldGenerator
 read_toml_position_restraint_ff_generator(
-        const toml::value& external_ff_data, const Topology& topology)
+        const toml::value& external_ff_data, const Topology& topology,
+        const bool use_periodic)
 {
     check_keys_available(external_ff_data,
             {"interaction", "potential", "parameters", "env"});
@@ -2415,7 +2416,7 @@ read_toml_position_restraint_ff_generator(
     std::cerr << "    External      : PositionRestraint (" << params.size()
               << " found)" << std::endl;
 
-    return PositionRestraintForceFieldGenerator(indices, positions, ks, v0s);
+    return PositionRestraintForceFieldGenerator(indices, positions, ks, v0s, use_periodic);
 }
 
 // HarmonicCoMPulling input is like below

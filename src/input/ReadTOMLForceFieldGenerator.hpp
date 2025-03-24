@@ -342,7 +342,8 @@ read_toml_pulling_ff_generator(
 // ]
 PositionRestraintForceFieldGenerator
 read_toml_position_restraint_ff_generator(
-        const toml::value& external_ff_data, const Topology& topology);
+        const toml::value& external_ff_data, const Topology& topology,
+        const bool use_periodic);
 
 // HarmonicCoMPulling input is like below
 // [[forcefields.external]]

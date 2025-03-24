@@ -793,7 +793,8 @@ SystemGenerator read_toml_system(const toml::value& data)
                 if(potential == "Harmonic")
                 {
                     PositionRestraintForceFieldGenerator ff_gen =
-                        read_toml_position_restraint_ff_generator(external_ff, topology);
+                        read_toml_position_restraint_ff_generator(
+                                external_ff, topology, use_periodic);
                     system_gen.add_ff_generator(
                             std::make_unique<PositionRestraintForceFieldGenerator>(
                                 ff_gen));
