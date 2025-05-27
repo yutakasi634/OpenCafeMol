@@ -789,3 +789,26 @@ TEST(ReadTOMLForceFieldGenerator, ReadTOMLHarmonicCoMPullingFFGenerator)
     EXPECT_NO_THROW(read_toml_harmonic_com_pulling_ff_generator(
                 param, use_periodic, env));
 }
+
+TEST(ReadTOMLForceFieldGenerator, ReadTOMLRectangularBoxFFGenerator)
+{
+    using namespace toml::literals;
+    const toml::value v = u8R"(
+        interaction = "RectangularBox"
+        potential   = "ExcludedVolumeWall"
+        box.lower = [   0.0,   0.0,   0.0]
+        box.upper = [ 100.0, 100.0, 100.0]
+        epsilon   = 0.1
+        parameters = [
+            {index = 0, radius = 1.0},
+        ]
+    )"_toml;
+
+    const auto& param = toml::find<toml::array>(v, "parameters").at(0);
+
+    const bool        use_periodic = false;
+    const toml::value env{};
+
+    EXPECT_NO_THROW(read_toml_rectangular_box_ff_generator(
+                param, use_periodic, env));
+}

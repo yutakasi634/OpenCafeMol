@@ -800,6 +800,20 @@ SystemGenerator read_toml_system(const toml::value& data)
                                 ff_gen));
                 }
             }
+            else if(interaction == "RectangularBox")
+            {
+                const std::string potential =
+                    toml::find<std::string>(external_ff, "potential");
+                if(potential == "ExcludedVolumeWall")
+                {
+                    EXVWallRectangularBoxForceFieldGenerator ff_gen =
+                        read_toml_exvwall_rectangular_box_ff_generator(
+                                external_ff, topology, use_periodic);
+                    system_gen.add_ff_generator(
+                            std::make_unique<EXVWallRectangularBoxForceFieldGenerator>(
+                                ff_gen));
+                }
+            }
         }
     }
 
