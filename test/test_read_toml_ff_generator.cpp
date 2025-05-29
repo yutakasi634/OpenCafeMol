@@ -51,7 +51,7 @@ TEST(ReadTOMLForceFieldGenerator, ReadTOMLGoContactFFGenerator)
     const toml::value v = u8R"(
         interaction = "BondLength"
         potential   = "GoContact"
-        topology    = "bond"
+        topology    = "contact"
         parameters  = [
             {indices = [ 0, 1], k = 1.0, v0 = 2.0},
             {indices = [ 3, 5], k = 3.0, v0 = 4.0},
@@ -71,7 +71,7 @@ TEST(ReadTOMLForceFieldGenerator, ReadTOMLCappedGoContactFFGenerator)
     const toml::value v = u8R"(
         interaction   = "BondLength"
         potential     = "CappedGoContact"
-        topology      = "bond"
+        topology      = "contact"
         capping_ratio = 0.5
         parameters  = [
             {indices = [ 0, 1], k = 1.0, v0 = 2.0},
