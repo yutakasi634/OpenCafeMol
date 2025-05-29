@@ -6,17 +6,18 @@
 #include <limits>
 
 // The size of the vector representing the per-particle parameters
-// (in this case, radiuses) must match the system size. This must be guaranteed
+// (in this case, radii) must match the system size. This must be guaranteed
 // inside the read function.
-ExcludedVolumeForceFieldGenerator::ExcludedVolumeForceFieldGenerator(const double eps, const double cutoff,
-    const std::vector<std::optional<double>>& radiuses,
+ExcludedVolumeForceFieldGenerator::ExcludedVolumeForceFieldGenerator(
+    const double eps, const double cutoff,
+    const std::vector<std::optional<double>>& radii,
     const index_pairs_type& ignore_list, const bool use_periodic,
     const std::vector<std::pair<std::string, std::string>> ignore_group_pairs,
     const std::vector<std::optional<std::string>> group_vec)
-    : eps_(eps), cutoff_(cutoff), radiuses_(radiuses), ignore_list_(ignore_list),
+    : eps_(eps), cutoff_(cutoff), radii_(radii), ignore_list_(ignore_list),
       use_periodic_(use_periodic), ffgen_id_(fmt::format("EXV{}", ffid.gen()))
 {
-    interaction_groups_ = extract_interaction_group(radiuses_, ignore_group_pairs, group_vec);
+    interaction_groups_ = extract_interaction_group(radii_, ignore_group_pairs, group_vec);
 }
 
 std::unique_ptr<OpenMM::Force> ExcludedVolumeForceFieldGenerator::generate() const
@@ -32,9 +33,9 @@ std::unique_ptr<OpenMM::Force> ExcludedVolumeForceFieldGenerator::generate() con
 
     double max_radius        = std::numeric_limits<double>::min();
     double second_max_radius = std::numeric_limits<double>::min();
-    for(std::size_t idx=0; idx<radiuses_.size(); ++idx)
+    for(std::size_t idx=0; idx<radii_.size(); ++idx)
     {
-        const std::optional<double>& radius = radiuses_[idx];
+        const std::optional<double>& radius = radii_[idx];
         if(radius)
         {
             const double radius_val = radius.value();

@@ -778,6 +778,13 @@ SystemGenerator read_toml_system(const toml::value& data)
                                     ff_gen));
                     }
                 }
+                else
+                {
+                    throw std::runtime_error(
+                        "[error] invalid potential " + potential + " found."
+                        "Expected value is one of the following."
+                        "- \"Harmonic\" : The general harmonic function.");
+                }
             }
             else if(interaction == "PullingForce")
             {
@@ -798,6 +805,30 @@ SystemGenerator read_toml_system(const toml::value& data)
                     system_gen.add_ff_generator(
                             std::make_unique<PositionRestraintForceFieldGenerator>(
                                 ff_gen));
+                }
+            }
+            else if(interaction == "RectangularBox")
+            {
+                const auto& env =
+                    external_ff.contains("env") ? external_ff.at("env") : toml::value{};
+                const std::string potential =
+                    toml::find<std::string>(external_ff, "potential");
+                if(potential == "ExcludedVolumeWall")
+                {
+                    EXVRectangularBoxForceFieldGenerator ff_gen =
+                        read_toml_exv_rectangular_box_ff_generator(
+                                external_ff, use_periodic, env);
+                    system_gen.add_ff_generator(
+                            std::make_unique<EXVRectangularBoxForceFieldGenerator>(
+                                ff_gen));
+                }
+                else
+                {
+                    throw std::runtime_error(
+                        "[error] invalid potential " + potential + " found."
+                        "Expected value is one of the following."
+                        "- \"ExcludedVolumeWall\" : The excluded volume potential"
+                                                  " between particle and wall.");
                 }
             }
         }

@@ -1,4 +1,5 @@
 #include "PositionRestraintForceFieldGenerator.hpp"
+#include "ForceFieldIDGenerator.hpp"
 
 #include <iostream>
 
@@ -23,7 +24,7 @@ std::unique_ptr<OpenMM::Force> PositionRestraintForceFieldGenerator::generate() 
     pr_ff->addPerParticleParameter(fmt::format("{}_k",  ffgen_id_));
     pr_ff->addPerParticleParameter(fmt::format("{}_v0", ffgen_id_));
 
-    for(std::size_t param_idx=0; param_idx<indices_.size(); param_idx++)
+    for(std::size_t param_idx=0; param_idx<indices_.size(); ++param_idx)
     {
         const auto   pos = positions_[param_idx];
         const double k   = ks_[param_idx];
