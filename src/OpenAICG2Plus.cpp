@@ -72,8 +72,14 @@ int main(int argc, char** argv)
     log_info("    CUDA platform plugin path : {}", OPENAICG2PLUS_EXPAND_OPTION_STR(OPENMM_PLUGIN_DIR));
 
     // Load any shared libraries containing GPU implementations
+    log_info("loading OpenMM plugins...");
     OpenMM::Platform::loadPluginsFromDirectory(
             OPENAICG2PLUS_EXPAND_OPTION_STR(OPENMM_PLUGIN_DIR));
+
+    for(const auto& error : OpenMM::Platform::getPluginLoadFailures())
+    {
+        log_fatal(error);
+    }
 
     try {
         Simulator simulator(read_input(argc, argv));
