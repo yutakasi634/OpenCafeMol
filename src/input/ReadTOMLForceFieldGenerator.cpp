@@ -2460,3 +2460,59 @@ read_toml_harmonic_com_pulling_ff_generator(
             k, v0, first_group_indices, second_group_indices, use_periodic);
 }
 
+// EXVRectangularBox input is like below
+// [[forcefields.external]]
+// interaction = "RectangularBox"
+// potential   = "ExcludedVolumeWall"
+// box.lower = [   0.0,   0.0,   0.0]
+// box.upper = [ 100.0, 100.0, 100.0]
+// epsilon   = 0.1
+// parameters = [
+//     {index = 0, radius = 1.0},
+// ]
+EXVRectangularBoxForceFieldGenerator
+read_toml_exv_rectangular_box_ff_generator(
+        const toml::value& external_ff_data, const bool use_periodic,
+        const toml::value& env)
+{
+    check_keys_available(external_ff_data,
+            {"interaction", "potential", "parameters", "box", "epsilon", "env"});
+
+    const double eps = Utility::find_parameter<double>(external_ff_data, env, "epsilon");
+    const auto&  box = toml::find(external_ff_data, "box");
+    const std::array<double, 3> box_lower_angstrom =
+        Utility::find_parameter<std::array<double, 3>>(box, env, "lower");
+    const std::array<double, 3> box_upper_angstrom =
+        Utility::find_parameter<std::array<double, 3>>(box, env, "upper");
+    const std::array<double, 3> box_lower_nm{box_lower_angstrom[0] * OpenMM::NmPerAngstrom,
+                                             box_lower_angstrom[1] * OpenMM::NmPerAngstrom,
+                                             box_lower_angstrom[2] * OpenMM::NmPerAngstrom};
+    const std::array<double, 3> box_upper_nm{box_upper_angstrom[0] * OpenMM::NmPerAngstrom,
+                                             box_upper_angstrom[1] * OpenMM::NmPerAngstrom,
+                                             box_upper_angstrom[2] * OpenMM::NmPerAngstrom};
+    const auto&  params = toml::find<toml::array>(external_ff_data, "parameters");
+
+    std::vector<std::size_t> indices;
+    std::vector<double>      radii;
+    for(const auto& param : params)
+    {
+        std::size_t index =
+            Utility::find_parameter<std::size_t>(param, env, "index");
+        const auto offset =
+            Utility::find_parameter_or<toml::value>(
+                    param, env, "offset", toml::value(0));
+        add_offset(index, offset);
+
+        const double radius =
+            Utility::find_parameter<double>(param, env, "radius") * OpenMM::NmPerAngstrom; // [Nm]
+
+        indices.push_back(index);
+        radii  .push_back(radius);
+    }
+
+    std::cerr << "    External     : EXVRectangularBox ("
+              << indices.size() << " found)" << std::endl;
+
+    return EXVRectangularBoxForceFieldGenerator(
+            eps, box_lower_nm, box_upper_nm, indices, radii, use_periodic);
+}

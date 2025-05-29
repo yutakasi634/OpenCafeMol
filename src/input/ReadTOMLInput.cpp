@@ -802,16 +802,26 @@ SystemGenerator read_toml_system(const toml::value& data)
             }
             else if(interaction == "RectangularBox")
             {
+                const auto& env =
+                    external_ff.contains("env") ? external_ff.at("env") : toml::value{};
                 const std::string potential =
                     toml::find<std::string>(external_ff, "potential");
                 if(potential == "ExcludedVolumeWall")
                 {
-                    EXVWallRectangularBoxForceFieldGenerator ff_gen =
-                        read_toml_exvwall_rectangular_box_ff_generator(
-                                external_ff, topology, use_periodic);
+                    EXVRectangularBoxForceFieldGenerator ff_gen =
+                        read_toml_exv_rectangular_box_ff_generator(
+                                external_ff, use_periodic, env);
                     system_gen.add_ff_generator(
-                            std::make_unique<EXVWallRectangularBoxForceFieldGenerator>(
+                            std::make_unique<EXVRectangularBoxForceFieldGenerator>(
                                 ff_gen));
+                }
+                else
+                {
+                    throw std::runtime_error(
+                        "[error] invalid potential " + potential + " found."
+                        "Expected value is one of the following."
+                        "- \"ExcludedVolumeWall\" : The excluded volume potential"
+                                                  " between particle and wall.");
                 }
             }
         }

@@ -29,6 +29,7 @@
 #include "src/forcefield/PullingForceFieldGenerator.hpp"
 #include "src/forcefield/PositionRestraintForceFieldGenerator.hpp"
 #include "src/forcefield/HarmonicCoMPullingForceFieldGenerator.hpp"
+#include "src/forcefield/EXVRectangularBoxForceFieldGenerator.hpp"
 #include "src/forcefield/CappedGoContactForceFieldGenerator.hpp"
 
 #include "src/Topology.hpp"
@@ -355,6 +356,11 @@ read_toml_position_restraint_ff_generator(
 // ]
 HarmonicCoMPullingForceFieldGenerator
 read_toml_harmonic_com_pulling_ff_generator(
+        const toml::value& external_ff_data, const bool use_periodic,
+        const toml::value& env);
+
+EXVRectangularBoxForceFieldGenerator
+read_toml_exv_rectangular_box_ff_generator(
         const toml::value& external_ff_data, const bool use_periodic,
         const toml::value& env);
 

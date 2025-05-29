@@ -4,6 +4,7 @@ target_sources(opencm PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/CosineDihedralForceFieldGenerator.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/DebyeHuckelForceFieldGenerator.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ExcludedVolumeForceFieldGenerator.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/EXVRectangularBoxForceFieldGenerator.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/FlexibleLocalAngleForceFieldGenerator.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/FlexibleLocalDihedralForceFieldGenerator.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/GaussianBondForceFieldGenerator.cpp

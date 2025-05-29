@@ -804,11 +804,12 @@ TEST(ReadTOMLForceFieldGenerator, ReadTOMLRectangularBoxFFGenerator)
         ]
     )"_toml;
 
-    const auto& param = toml::find<toml::array>(v, "parameters").at(0);
-
-    const bool        use_periodic = false;
+    const bool        use_periodic_false = false;
+    const bool        use_periodic_true  = true;
     const toml::value env{};
 
-    EXPECT_NO_THROW(read_toml_rectangular_box_ff_generator(
-                param, use_periodic, env));
+    EXPECT_NO_THROW(read_toml_exv_rectangular_box_ff_generator(
+                v, use_periodic_false, env));
+    EXPECT_THROW(read_toml_exv_rectangular_box_ff_generator(
+                v, use_periodic_true, env), std::runtime_error);
 }
