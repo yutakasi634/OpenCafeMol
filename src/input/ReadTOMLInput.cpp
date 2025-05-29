@@ -778,6 +778,13 @@ SystemGenerator read_toml_system(const toml::value& data)
                                     ff_gen));
                     }
                 }
+                else
+                {
+                    throw std::runtime_error(
+                        "[error] invalid potential " + potential + " found."
+                        "Expected value is one of the following."
+                        "- \"Harmonic\" : The general harmonic function.");
+                }
             }
             else if(interaction == "PullingForce")
             {
