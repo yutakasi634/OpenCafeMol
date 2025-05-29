@@ -78,7 +78,7 @@ int main(int argc, char** argv)
 
     for(const auto& error : OpenMM::Platform::getPluginLoadFailures())
     {
-        log_fatal(error);
+        log_warn(error);
     }
 
     try {

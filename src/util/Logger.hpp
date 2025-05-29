@@ -18,6 +18,13 @@ void log_fatal(fmt::format_string<Ts...> fmt, Ts&&... args)
 }
 
 template<typename ...Ts>
+void log_warn(fmt::format_string<Ts...> fmt, Ts&&... args)
+{
+    using namespace std::literals::string_literals;
+    detail::log_impl("[warning] "s + fmt::format(std::move(fmt), std::forward<Ts>(args)...));
+}
+
+template<typename ...Ts>
 void log_info(fmt::format_string<Ts...> fmt, Ts&&... args)
 {
     using namespace std::literals::string_literals;
