@@ -10,6 +10,17 @@
 // -----------------------------------------------------------------------------
 // read local force field
 
+// HarmonicBond input is like below
+// [[forcefields.local]]
+// interaction = "BondLength"
+// potential   = "Harmonic"
+// topology    = "bond"
+// parameters  = [
+//     {indices = [ 0, 1], v0 = 1.0, k = 2.0},
+//     {indices = [ 3, 5], v0 = 3.0, k = 4.0},
+//     {indices = [ 2, 6], v0 = 5.0, k = 6.0}
+//     # ...
+// ]
 HarmonicBondForceFieldGenerator
 read_toml_harmonic_bond_ff_generator(
         const toml::value& local_ff_data, Topology& topology, const bool use_periodic)
@@ -66,6 +77,17 @@ read_toml_harmonic_bond_ff_generator(
     return HarmonicBondForceFieldGenerator(indices_vec, v0s, ks, use_periodic);
 }
 
+// GaussianBond input is like below
+// [[forcefields.local]]
+// interaction = "BondLength"
+// potential   = "Gaussian"
+// topology    = "bond"
+// parameters  = [
+//     {indices = [ 0, 1], k = 1.0, v0 = 2.0, sigma = 7.0},
+//     {indices = [ 3, 5], k = 3.0, v0 = 4.0, sigma = 8.0},
+//     {indices = [ 2, 6], k = 5.0, v0 = 6.0, sigma = 9.0}
+//     # ...
+// ]
 GaussianBondForceFieldGenerator
 read_toml_gaussian_bond_ff_generator(
         const toml::value& local_ff_data, Topology& topology,
@@ -124,6 +146,17 @@ read_toml_gaussian_bond_ff_generator(
     return GaussianBondForceFieldGenerator(indices_vec, ks, v0s, sigmas, use_periodic);
 }
 
+// GoConatact input is like below
+// [[forcefileds.local]]
+// interaction = "BondLength"
+// potential   = "GoContact"
+// topology    = "contact"
+// parameters  = [
+//     {indices = [ 0, 1], k = 1.0, v0 = 2.0},
+//     {indices = [ 3, 5], k = 3.0, v0 = 4.0},
+//     {indices = [ 2, 6], k = 5.0, v0 = 6.0}
+//     # ...
+// ]
 GoContactForceFieldGenerator
 read_toml_go_contact_ff_generator(
         const toml::value& local_ff_data, Topology& topology,
@@ -178,6 +211,18 @@ read_toml_go_contact_ff_generator(
     return GoContactForceFieldGenerator(indices_vec, ks, r0s, use_periodic);
 }
 
+// CappedGoContact input is like below
+// [[forcefields.local]]
+// interaction   = "BondLength"
+// potential     = "CappedGoContact"
+// topology      = "contact"
+// capping_ratio = 0.5
+// parameters  = [
+//     {indices = [ 0, 1], k = 1.0, v0 = 2.0},
+//     {indices = [ 3, 5], k = 3.0, v0 = 4.0},
+//     {indices = [ 2, 6], k = 5.0, v0 = 6.0}
+//     # ...
+// ]
 CappedGoContactForceFieldGenerator
 read_toml_capped_go_contact_ff_generator(
         const toml::value& local_ff_data, Topology& topology,
@@ -291,6 +336,17 @@ read_toml_3spn2_bond_ff_generator(
     return ThreeSPN2BondForceFieldGenerator(indices_vec, k2s, k4s, v0s, use_periodic);
 }
 
+// HamonicAngle input is like below
+// [[forcefields.local]]
+// interaction   = "BondAngle"
+// potential     = "Harmonic"
+// topology      = "angle"
+// parameters  = [
+//     {indices = [ 0, 1, 2], k = 1.0, v0 = 2.0},
+//     {indices = [ 3, 4, 5], k = 3.0, v0 = 4.0},
+//     {indices = [ 2, 6, 7], k = 5.0, v0 = 6.0}
+//     # ...
+// ]
 HarmonicAngleForceFieldGenerator
 read_toml_harmonic_angle_ff_generator(
         const toml::value& local_ff_data, Topology& topology, const bool use_periodic)
@@ -357,6 +413,17 @@ read_toml_harmonic_angle_ff_generator(
     return HarmonicAngleForceFieldGenerator(indices_vec, v0s, ks, use_periodic);
 }
 
+// FlexibleLocalAngle input is like below
+// [[forcefields.local]]
+// interaction   = "BondAngle"
+// potential     = "FlexibleLocalAngle"
+// topology      = "none"
+// parameters  = [
+//     {indices = [ 0, 1, 2], k = 1.0, y = "y1_PHE", d2y = "y2_PHE"},
+//     {indices = [ 3, 4, 5], k = 3.0, y = "y1_VAL", d2y = "y2_VAL"},
+//     {indices = [ 2, 6, 7], k = 5.0, y = "y1_ALA", d2y = "y2_ALA"}
+//     # ...
+// ]
 FlexibleLocalAngleForceFieldGenerator
 read_toml_flexible_local_angle_ff_generator(
         const toml::value& local_ff_data, const std::string& aa_type,
@@ -413,6 +480,17 @@ read_toml_flexible_local_angle_ff_generator(
                indices_vec, ks, spline_table, aa_type, use_periodic);
 }
 
+// GaussianDihedral input is like below
+// [[forcefields.local]]
+// interaction   = "DihedralAngle"
+// potential     = "Gaussian"
+// topology      = "none"
+// parameters  = [
+//     {indices = [ 0,  1,  2,  3], v0 = -1.0, k = -4.0, "σ" = 7.0},
+//     {indices = [ 1,  2,  3,  4], v0 = -2.0, k = -5.0, "σ" = 8.0},
+//     {indices = [ 2,  3,  4,  5], v0 = -3.0, k = -6.0, "σ" = 9.0},
+//     # ...
+// ]
 GaussianDihedralForceFieldGenerator
 read_toml_gaussian_dihedral_ff_generator(
         const toml::value& local_ff_data, Topology& topology,
@@ -471,6 +549,17 @@ read_toml_gaussian_dihedral_ff_generator(
             indices_vec, ks, theta0s, sigmas, use_periodic);
 }
 
+// CosineDihedral is like below
+// [[forcefields.local]]
+// interaction   = "DihedralAngle"
+// potential     = "Cosine"
+// topology      = "none"
+// parameters  = [
+//     {indices = [ 0,  1,  2,  3], v0 = -1.0, k = -4.0, n = 7},
+//     {indices = [ 1,  2,  3,  4], v0 = -2.0, k = -5.0, n = 8},
+//     {indices = [ 2,  3,  4,  5], v0 = -3.0, k = -6.0, n = 9},
+//     # ...
+// ]
 CosineDihedralForceFieldGenerator
 read_toml_cosine_dihedral_ff_generator(
         const toml::value& local_ff_data, Topology& topology,
@@ -534,6 +623,17 @@ read_toml_cosine_dihedral_ff_generator(
             indices_vec, ks, theta0s, ns, use_periodic);
 }
 
+// FlexibleLocalDihedral input is like below
+// [[forcefields.local]]
+// interaction   = "DihedralAngle"
+// potential     = "FlexibleLocalDihedral"
+// topology      = "none"
+// parameters  = [
+//     {indices = [ 0,  1,  2,  3], k = 1.0, coef = "PHE-VAL"},
+//     {indices = [ 1,  2,  3,  4], k = 2.0, coef = "VAL-ALA"},
+//     {indices = [ 2,  3,  4,  5], k = 3.0, coef = "ALA-LEU"},
+//     # ...
+// ]
 FlexibleLocalDihedralForceFieldGenerator
 read_toml_flexible_local_dihedral_ff_generator(
         const toml::value& local_ff_data, const std::pair<std::string, std::string> aa_pair_type,
@@ -951,6 +1051,20 @@ read_ignore_group(const toml::value& ignore_table)
     return ignore_group_pairs;
 }
 
+// ExcludedVolume input is like below
+// [[forcefield.global]]
+// interaction                     = "Pair"
+// potential                       = "ExcludedVolume"
+// ignore.molecule                 = "Nothing"
+// ignore.particles_within.bond    = 3
+// ignore.particles_within.contact = 1
+// epsilon                         = 0.6
+// cutoff                          = 0.5
+// parameters = [
+// {index = 0, radius = 1.0},
+// # ...
+// ]
+
 ExcludedVolumeForceFieldGenerator
 read_toml_excluded_volume_ff_generator(
     const toml::value& global_ff_data, const std::size_t system_size,
@@ -1008,6 +1122,19 @@ read_toml_excluded_volume_ff_generator(
             ignore_group_pairs, group_vec);
 }
 
+// 3SPN2ExcludedVolume input is like below
+// [[forcefields.global]]
+// interaction = "Pair"
+// potential = "3SPN2ExcludedVolume"
+// ignore.particles_within.bond       = 1
+// ignore.particles_within.angle      = 1
+// ignore.particles_within.dihedral   = 1
+// ignore.particles_within.nucleotide = 1
+// parameters = [ # {{{
+//     {index =   0, kind = "S"},
+//     {index =   1, kind = "A"},
+//     # ...
+// ]
 ThreeSPN2ExcludedVolumeForceFieldGenerator
 read_toml_3spn2_excluded_volume_ff_generator(
     const toml::value& global_ff_data, const std::size_t system_size,
