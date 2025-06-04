@@ -20,6 +20,7 @@
 #include "src/forcefield/iSoLFAttractiveForceFieldGenerator.hpp"
 #include "src/forcefield/LennardJonesAttractiveForceFieldGenerator.hpp"
 #include "src/forcefield/LennardJonesRepulsiveForceFieldGenerator.hpp"
+#include "src/forcefield/TrigonometricForceFieldGenerator.hpp"
 #include "src/forcefield/UniformLennardJonesAttractiveForceFieldGenerator.hpp"
 #include "src/forcefield/UniformWeeksChandlerAndersenForceFieldGenerator.hpp"
 #include "src/forcefield/ThreeSPN2BasePairForceFieldGenerator.hpp"
@@ -197,6 +198,12 @@ read_toml_lennard_jones_attractive_ff_generator(
 
 LennardJonesRepulsiveForceFieldGenerator
 read_toml_lennard_jones_repulsive_ff_generator(
+        const toml::value& global_ff_data, const std::size_t system_size,
+        const Topology& topology, const std::vector<std::optional<std::string>>& group_vec,
+        const bool use_periodic);
+
+TrigonometricForceFieldGenerator
+read_toml_trigonometric_ff_generator(
         const toml::value& global_ff_data, const std::size_t system_size,
         const Topology& topology, const std::vector<std::optional<std::string>>& group_vec,
         const bool use_periodic);

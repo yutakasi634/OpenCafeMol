@@ -628,6 +628,15 @@ SystemGenerator read_toml_system(const toml::value& data)
                      std::make_unique<
                          LennardJonesRepulsiveForceFieldGenerator>(ff_gen));
             }
+            else if(potential == "Trigonometric")
+            {
+                TrigonometricForceFieldGenerator ff_gen =
+                    read_toml_trigonometric_ff_generator(
+                            global_ff, system_size, topology, group_vec, use_periodic);
+                system_gen.add_ff_generator(
+                    std::make_unique<
+                        TrigonometricForceFieldGenerator>(ff_gen));
+            }
             else if(potential == "CombinatorialGoContact")
             {
                 using potential_type =

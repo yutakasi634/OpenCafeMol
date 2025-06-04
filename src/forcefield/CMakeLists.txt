@@ -16,6 +16,7 @@ target_sources(opencm PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/iSoLFAttractiveForceFieldGenerator.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/LennardJonesAttractiveForceFieldGenerator.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/LennardJonesRepulsiveForceFieldGenerator.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/TrigonometricForceFieldGenerator.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/MonteCarloAnisotropicBarostatGenerator.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/MonteCarloMembraneBarostatGenerator.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/PositionRestraintForceFieldGenerator.cpp

@@ -691,7 +691,29 @@ TEST(ReadTOMLForceFieldGenerator, ReadTOMLLennardJonesRepulsiveFFGenerator)
                 v, system_size, topology, group_vec, use_periodic));
 }
 
-TEST(ReadTOMLForceFieldGenerator, ReadTOMLCombinatorialGoContactFFGenerators)
+TEST(ReadTOMLForcefieldGenerator, ReadTOMLTrigonometricFFGenerator)
+{
+    using namespace toml::literals;
+    const toml::value v = u8R"(
+        potential = "Trigonometric"
+        topology  = "contact"
+        parameters = [
+            {index = 0, offset = 5, epsilon = 1.0, sigma = 1.0, omega = 1.0},
+            {index = 2, epsilon = 1.0, sigma = 1.0, omega = 1.0},
+        ]
+    )"_toml;
+
+    const std::size_t                system_size(6);
+    Topology                         topology(system_size);
+    const std::vector<std::optional<std::string>>
+        group_vec(system_size, std::nullopt);
+    const bool                       use_periodic = false;
+
+    EXPECT_NO_THROW(read_toml_trigonometric_ff_generator(
+                v, system_size, topology, group_vec, use_periodic));
+}
+
+TEST(ReadTOMLForceFieldGenerator, ReadTOMLCombinatorialGoContactFFGenerator)
 {
     using namespace toml::literals;
     const toml::value v = u8R"(

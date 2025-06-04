@@ -2239,6 +2239,74 @@ read_toml_lennard_jones_repulsive_ff_generator(
             ignore_group_pairs, group_vec);
 }
 
+// [[forcefields.global]]
+// interaction = "Pair"
+// potential   = "Trigonometric"
+// parameters = [
+//     {index = 1, offset = 10, epsilon = 1.0, sigma = 1.0, omega = 1.0},
+//     # ...
+//     ]
+TrigonometricForceFieldGenerator
+read_toml_trigonometric_ff_generator(
+        const toml::value& global_ff_data, const std::size_t system_size,
+        const Topology& topology, const std::vector<std::optional<std::string>>& group_vec,
+        const bool use_periodic)
+{
+    using index_pairs_type = TrigonometricForceFieldGenerator::index_pairs_type;
+
+    check_keys_available(global_ff_data,
+            {"interaction", "potential", "ignore", "parameters", "env"});
+
+    const auto& params = toml::find<toml::array>(global_ff_data, "parameters");
+    const auto& env =
+        global_ff_data.contains("env") ? global_ff_data.at("env") : toml::value{};
+
+    std::vector<std::optional<double>> epsilon_vec(system_size, std::nullopt);
+    std::vector<std::optional<double>> sigma_vec(system_size, std::nullopt);
+    std::vector<std::optional<double>> omega_vec(system_size, std::nullopt);
+    for(const auto& param : params)
+    {
+        const std::size_t index =
+            Utility::find_parameter<std::size_t>(param, env, "index") +
+            Utility::find_parameter_or<std::size_t>(param, env, "offset", 0);
+        if(topology.size() <= index)
+        {
+            throw std::runtime_error("[error] read_toml_trigonometric_ff_generator : index "+std::to_string(index)+" exceeds the system's largest index "+std::to_string(topology.size()-1)+".");
+        }
+
+        const double epsilon =
+            Utility::find_parameter<double>(param, env, "epsilon") *
+            OpenMM::KJPerKcal; // KJPermol
+        const double sigma =
+            Utility::find_parameter<double>(param, env, "sigma") *
+            OpenMM::NmPerAngstrom; // nm
+        const double omega =
+            Utility::find_parameter<double>(param, env, "omega") *
+            OpenMM::NmPerAngstrom; // nm
+
+        epsilon_vec[index] = epsilon;
+        sigma_vec  [index] = sigma;
+        omega_vec  [index] = omega;
+    }
+
+    std::cerr << "    Global        : Trigonometric (" << params.size()
+              << " found)" << std::endl;
+
+    // ignore list generation
+    index_pairs_type ignore_list;
+    std::vector<std::pair<std::string, std::string>> ignore_group_pairs;
+    if(global_ff_data.contains("ignore"))
+    {
+        const auto& ignore = toml::find(global_ff_data, "ignore");
+        ignore_list        = read_ignore_molecule_and_particles_within(ignore, topology);
+        ignore_group_pairs = read_ignore_group(ignore);
+    }
+
+    return TrigonometricForceFieldGenerator(
+            epsilon_vec, sigma_vec, omega_vec, ignore_list, use_periodic,
+            ignore_group_pairs, group_vec);
+}
+
 CombinatorialGoContactForceFieldGenerator
 read_toml_combinatorial_go_contact_ff_generator(
         const double cutoff_ratio, const toml::value& contacts_info,
