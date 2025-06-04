@@ -16,7 +16,6 @@ LennardJonesAttractiveForceFieldGenerator::LennardJonesAttractiveForceFieldGener
       sigmas_(sigmas), ignore_list_(ignore_list),
       use_periodic_(use_periodic), ffgen_id_(fmt::format("LJAT{}", ffid.gen()))
 {
-    assert(this->epsilons_.size() == this->sigmas_.size());
 
     log_assert(this->sigmas_.size() == this->epsilons_.size(),
         "LennardJonesAttractive: sigma.size(={}) must be the same as epsilon.size(={})",
@@ -89,38 +88,37 @@ std::unique_ptr<OpenMM::Force> LennardJonesAttractiveForceFieldGenerator::genera
         }
     }
 
-        // if interaction_group size is 0, no interaction group will be added,
-        // so all the particle in the system will be considered as participant
-        for(const auto& group_pair : interaction_groups_)
-        {
-            ljattr_ff->addInteractionGroup(group_pair.first, group_pair.second);
-        }
-
-        // set pbc condition
-        if(use_periodic_)
-        {
-            ljattr_ff->setNonbondedMethod(OpenMM::CustomNonbondedForce::CutoffPeriodic);
-        }
-        else
-        {
-            ljattr_ff->setNonbondedMethod(OpenMM::CustomNonbondedForce::CutoffNonPeriodic);
-        }
-
-        // set cutoff
-        const double cutoff_distance =
-            (max_sigma + second_max_sigma) * 0.5 * cutoff_ratio_;
-        std::cerr << "    LennardJonesAttractive        : cutoff distance is "
-                  << cutoff_distance << " nm" << std::endl;
-        ljattr_ff->setCutoffDistance(cutoff_distance);
-        ljattr_ff->setUseSwitchingFunction(true);
-        ljattr_ff->setSwitchingDistance(0.9*cutoff_distance);
-
-        // set exclusion list
-        for(const auto& pair : ignore_list_)
-        {
-            ljattr_ff->addExclusion(pair.first, pair.second);
-        }
-
-        return ljattr_ff;
+    // if interaction_group size is 0, no interaction group will be added,
+    // so all the particle in the system will be considered as participant
+    for(const auto& group_pair : interaction_groups_)
+    {
+        ljattr_ff->addInteractionGroup(group_pair.first, group_pair.second);
     }
 
+    // set pbc condition
+    if(use_periodic_)
+    {
+        ljattr_ff->setNonbondedMethod(OpenMM::CustomNonbondedForce::CutoffPeriodic);
+    }
+    else
+    {
+        ljattr_ff->setNonbondedMethod(OpenMM::CustomNonbondedForce::CutoffNonPeriodic);
+    }
+
+    // set cutoff
+    const double cutoff_distance =
+        (max_sigma + second_max_sigma) * 0.5 * cutoff_ratio_;
+    std::cerr << "    LennardJonesAttractive        : cutoff distance is "
+              << cutoff_distance << " nm" << std::endl;
+    ljattr_ff->setCutoffDistance(cutoff_distance);
+    ljattr_ff->setUseSwitchingFunction(true);
+    ljattr_ff->setSwitchingDistance(0.9*cutoff_distance);
+
+    // set exclusion list
+    for(const auto& pair : ignore_list_)
+    {
+        ljattr_ff->addExclusion(pair.first, pair.second);
+    }
+
+    return ljattr_ff;
+}

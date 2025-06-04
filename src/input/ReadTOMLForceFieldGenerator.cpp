@@ -2103,7 +2103,6 @@ read_toml_3spn2_cross_stacking_ff_generator(
 }
 
 
-
 // [[forcefields.global]]
 // interaction = "Pair"
 // potential   = "LennardJonesAttractive"
