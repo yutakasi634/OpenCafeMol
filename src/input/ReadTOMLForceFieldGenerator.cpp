@@ -277,7 +277,6 @@ read_toml_capped_go_contact_ff_generator(
     return CappedGoContactForceFieldGenerator(indices_vec, ks, r0s, capping_ratio, use_periodic);
 }
 
-
 // TODO: enable to use offset
 ThreeSPN2BondForceFieldGenerator
 read_toml_3spn2_bond_ff_generator(
@@ -1064,7 +1063,6 @@ read_ignore_group(const toml::value& ignore_table)
 // {index = 0, radius = 1.0},
 // # ...
 // ]
-
 ExcludedVolumeForceFieldGenerator
 read_toml_excluded_volume_ff_generator(
     const toml::value& global_ff_data, const std::size_t system_size,
