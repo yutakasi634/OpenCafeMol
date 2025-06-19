@@ -41,8 +41,8 @@ TrigonometricForceFieldGenerator::TrigonometricForceFieldGenerator(
 std::unique_ptr<OpenMM::Force> TrigonometricForceFieldGenerator::generate() const
 {
     const std::string potential_formula = fmt::format(
-        "epsilon *"
-        "    (-step(threthold+omega-r) +"
+        "-epsilon *"
+        "    (step(threthold+omega-r) +"
         "      step(r-threthold)*step(threthold+omega-r) *"
         "          (2*r_th_omeg^3 - 3*r_th_omeg^2));"
         "r_th_omeg = (r-threthold)/omega;"
@@ -85,8 +85,8 @@ std::unique_ptr<OpenMM::Force> TrigonometricForceFieldGenerator::generate() cons
         else if(!epsilon && !sigma && !omega)
         {
             tri_ff->addParticle({std::numeric_limits<double>::quiet_NaN(),
-                                    std::numeric_limits<double>::quiet_NaN(),
-                                    std::numeric_limits<double>::quiet_NaN()});
+                                 std::numeric_limits<double>::quiet_NaN(),
+                                 std::numeric_limits<double>::quiet_NaN()});
         }
         else
         {
@@ -96,6 +96,14 @@ std::unique_ptr<OpenMM::Force> TrigonometricForceFieldGenerator::generate() cons
                 "was given for particle idx " + std::to_string(idx) + ".");
         }
     }
+
+    // if interaction_group size is 0, no interaction group will be added,
+    // so all the particle in the system will be considered as participant
+    for(const auto& group_pair : interaction_groups_)
+    {
+        tri_ff->addInteractionGroup(group_pair.first, group_pair.second);
+    }
+
 
     // set pbc condition
     if(use_periodic_)
@@ -112,6 +120,7 @@ std::unique_ptr<OpenMM::Force> TrigonometricForceFieldGenerator::generate() cons
         (max_radius + second_max_radius) * 0.5;
     std::cerr << "    Trigonomeric                  : cutoff distance is "
               << cutoff_distance << " nm" << std::endl;
+    tri_ff->setCutoffDistance(cutoff_distance);
 
     // set exclusion list
     for(const auto& pair : ignore_list_)
