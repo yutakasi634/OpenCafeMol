@@ -387,7 +387,7 @@ TEST(ReadTOMLForceFieldGenerator, ReadTOMLDebyeHuckelFFGenerator)
 {
     using namespace toml::literals;
     const toml::value v = u8R"(
-        potential = "WCA"
+        potential = "DebyeHuckel"
         ignore.particles_within.bond = 3
         parameters = [
         {index = 2, charge = -1.0},
@@ -696,7 +696,6 @@ TEST(ReadTOMLForcefieldGenerator, ReadTOMLTrigonometricFFGenerator)
     using namespace toml::literals;
     const toml::value v = u8R"(
         potential = "Trigonometric"
-        topology  = "contact"
         parameters = [
             {index = 0, offset = 5, epsilon = 1.0, sigma = 1.0, omega = 1.0},
             {index = 2, epsilon = 1.0, sigma = 1.0, omega = 1.0},
