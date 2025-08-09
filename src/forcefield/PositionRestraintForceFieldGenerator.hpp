@@ -20,7 +20,7 @@ class PositionRestraintForceFieldGenerator : public ForceFieldGeneratorBase
         std::vector<double>      ks,      std::vector<double>                v0s,
         const bool use_periodic)
         : indices_(indices), positions_(positions), ks_(ks), v0s_(v0s),
-          ffgen_id_(fmt::format("PR{}", ffid.gen()))
+          use_periodic_(use_periodic), ffgen_id_(fmt::format("PR{}", ffid.gen()))
     {
         assert(this->indices_.size() == this->positions_.size());
         assert(this->indices_.size() == this->ks_.size());
