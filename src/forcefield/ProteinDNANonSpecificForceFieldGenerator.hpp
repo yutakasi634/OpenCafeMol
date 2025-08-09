@@ -33,7 +33,7 @@ class ProteinDNANonSpecificForceFieldGenerator final : public ForceFieldGenerato
 
     std::unique_ptr<OpenMM::Force> generate() const noexcept override;
 
-    std::string name() const noexcept { return "PDNS"; }
+    std::string name() const noexcept override { return "PDNS"; }
 
   private:
     std::vector<indices_dna_type> indices_dna_;
