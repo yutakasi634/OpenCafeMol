@@ -32,6 +32,7 @@
 #include "src/forcefield/HarmonicCoMPullingForceFieldGenerator.hpp"
 #include "src/forcefield/EXVRectangularBoxForceFieldGenerator.hpp"
 #include "src/forcefield/CappedGoContactForceFieldGenerator.hpp"
+#include "src/forcefield/CylindricalRestraintForceFieldGenerator.hpp"
 
 #include "src/Topology.hpp"
 #include "src/input/Utility.hpp"
@@ -248,5 +249,10 @@ EXVRectangularBoxForceFieldGenerator
 read_toml_exv_rectangular_box_ff_generator(
         const toml::value& external_ff_data, const bool use_periodic,
         const toml::value& env);
+
+CylindricalRestraintForceFieldGenerator
+read_toml_cylindrical_restraint_ff_generator(
+        const toml::value& external_ff_data, const Topology& topology,
+        const bool use_periodic);
 
 #endif // OPEN_AICG2_PLUS_READ_TOML_FORCE_FIELD_GENERATOR_HPP
