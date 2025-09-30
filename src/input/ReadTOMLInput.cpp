@@ -919,7 +919,7 @@ std::vector<OpenMM::Vec3> read_toml_initial_vel(const toml::value& data)
 
     std::size_t system_size = particles.size();
     std::vector<OpenMM::Vec3> initVelInNmPs(system_size); // [nm/ps]
-    if(particles.at(1).contains("vel") || particles.at(1).contains("velocity"))
+    if(particles.at(0).contains("vel") || particles.at(0).contains("velocity"))
     {
         for(std::size_t i=0; i<system_size; ++i)
         {
