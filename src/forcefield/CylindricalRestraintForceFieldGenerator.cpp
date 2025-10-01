@@ -3,6 +3,10 @@
 
 std::unique_ptr<OpenMM::Force> CylindricalRestraintForceFieldGenerator::generate() const
 {
+    // xa, ya, za from axis_ is the element of normalized vector specified
+    // as `axis` in the input file.
+    // x0, y0, z0 from shifts_ is the element of the components of vector
+    // specified as `shift`. this components is orthogonal to the `axis` vector.
     std::string potential_formula = fmt::format(
         "{id}_k * (dr - {id}_v0)^2;"
         "dr = ((x - xh)^2 + (y - yh)^2 + (z - zh)^2)^(1/2);"
