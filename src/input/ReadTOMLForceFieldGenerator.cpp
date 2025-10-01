@@ -2761,7 +2761,7 @@ read_toml_cylindrical_restraint_ff_generator(
         for(std::size_t idx = 0; idx < 3; ++idx)
         {
             axis[idx] = axis[idx] * OpenMM::NmPerAngstrom; // [nm]
-			shift[idx] = shift[idx] * OpenMM::NmPerAngstrom; // [nm]
+            shift[idx] = shift[idx] * OpenMM::NmPerAngstrom; // [nm]
         }
 
         indices.push_back(index);

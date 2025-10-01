@@ -30,7 +30,7 @@ std::string LangevinIntegratorGenerator::dump_info() const
     {
         seed = fmt::format("{:7}", this->seed_);
     }
-    info += fmt::format("    seed        : {}\n", seed);
+    info += fmt::format("    seed        : {}", seed);
     return info;
 }
 

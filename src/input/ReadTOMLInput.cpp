@@ -919,7 +919,7 @@ std::vector<OpenMM::Vec3> read_toml_initial_vel(const toml::value& data)
 
     std::size_t system_size = particles.size();
     std::vector<OpenMM::Vec3> initVelInNmPs(system_size); // [nm/ps]
-    if(particles.at(1).contains("vel") || particles.at(1).contains("velocity"))
+    if(particles.at(0).contains("vel") || particles.at(0).contains("velocity"))
     {
         for(std::size_t i=0; i<system_size; ++i)
         {
@@ -1089,6 +1089,8 @@ Simulator read_toml_input(const std::string& toml_file_name)
         const std::vector<OpenMM::Vec3>
             initial_vel_in_nmps(read_toml_initial_vel(data));
         simulator.set_velocity(initial_vel_in_nmps);
+        log_info("initial velocity was set based on the given value.");
+
     }
     else
     {
@@ -1098,7 +1100,7 @@ Simulator read_toml_input(const std::string& toml_file_name)
         {
             // since OpenMM does not provide system-wide RNG, we need to specify
             // seeds for each specific target.
-            log_info("System does not provide initial velocity nor non-zero `vel_seed`. "
+            log_info("system does not provide initial velocity nor non-zero `vel_seed`. "
                      "initial velocity becomes completely random and cannot be reproduced.");
         }
         simulator.set_velocity(vel_seed);
