@@ -30,6 +30,7 @@ Simulator::Simulator(
     {
         observers_.push_back(std::move(observer));
         observers_.back()->initialize(system_ptr_);
+        log_info("    {}", observers_.back()->name());
     }
 }
 

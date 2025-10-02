@@ -15,6 +15,8 @@ find_path(OPENMM_PLUGIN_DIR
     NAMES
         libOpenMMCUDA.so
         libOpenMMCPU.so
+		libOpenMMCPU.dylib
+		libOpenMMOpenCL.dylib
     PATHS
         ${OPENMM_ROOT}
         /usr/openmm
@@ -28,6 +30,7 @@ find_path(OPENMM_PLUGIN_DIR
 find_library(OPENMM_LIBRARY
     NAMES
         libOpenMM.so
+		libOpenMM.dylib
     PATHS
         ${OPENMM_ROOT}
         /usr/openmm

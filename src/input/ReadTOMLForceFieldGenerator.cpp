@@ -2708,3 +2708,71 @@ read_toml_exv_rectangular_box_ff_generator(
     return EXVRectangularBoxForceFieldGenerator(
             eps, box_lower_nm, box_upper_nm, indices, radii, use_periodic);
 }
+
+// CylindricalRestraint input is like below
+// [[forcefields.external]]
+// interaction = "CylindricalRestraint"
+// potential   = "Harmonic"
+// parameters = [
+//     {index = 0, axis = [1.0, 0.0, 0.0], shift = [0.0, 0.0, 1.0], k = 0.1, v0 = 10.0},
+//     # ...
+// ]
+CylindricalRestraintForceFieldGenerator
+read_toml_cylindrical_restraint_ff_generator(
+        const toml::value& external_ff_data, const Topology& topology,
+        const bool use_periodic)
+{
+    check_keys_available(external_ff_data,
+            {"interaction", "potential", "parameters", "env"});
+
+    const auto& params = toml::find<toml::array>(external_ff_data, "parameters");
+    const auto& env =
+        external_ff_data.contains("env") ? external_ff_data.at("env") : toml::value{};
+
+    std::vector<std::size_t>           indices;
+    std::vector<std::array<double, 3>> axes;
+    std::vector<std::array<double, 3>> shifts;
+    std::vector<double>                ks;
+    std::vector<double>                v0s;
+    for(const auto& param : params)
+    {
+        std::size_t index =
+            Utility::find_parameter<std::size_t>(param, env, "index");
+        const auto offset =
+            Utility::find_parameter_or<toml::value>(
+                    param, env, "offset", toml::value(0));
+        add_offset(index, offset);
+        if(topology.size() <= index)
+        {
+            throw std::runtime_error(
+                "[error] read_toml_position_restraint_ff_generator : index " +
+                std::to_string(index) + " exceeds the system's largest index " +
+                std::to_string(topology.size()-1) + ".");
+        }
+        std::array<double, 3> axis =
+            Utility::find_parameter<std::array<double, 3>>(param, env, "axis"); // [Å]
+        std::array<double, 3> shift =
+            Utility::find_parameter<std::array<double, 3>>(param, env, "shift"); // [Å]
+        const double k =
+            Utility::find_parameter<double>(param, env, "k" ) * OpenMM::KJPerKcal *
+            OpenMM::AngstromsPerNm * OpenMM::AngstromsPerNm; // [kJ/(mol nm^2)]
+        const double v0 =
+            Utility::find_parameter<double>(param, env, "v0") * OpenMM::NmPerAngstrom; // [nm]
+        for(std::size_t idx = 0; idx < 3; ++idx)
+        {
+            axis[idx] = axis[idx] * OpenMM::NmPerAngstrom; // [nm]
+            shift[idx] = shift[idx] * OpenMM::NmPerAngstrom; // [nm]
+        }
+
+        indices.push_back(index);
+        axes   .push_back(axis);
+        shifts .push_back(shift);
+        ks     .push_back(k);
+        v0s    .push_back(v0);
+    }
+
+    std::cerr << "    External      : CylindricalRestraint (" << params.size()
+              << " found)" << std::endl;
+
+    return CylindricalRestraintForceFieldGenerator(indices, axes, shifts, ks, v0s, use_periodic);
+}

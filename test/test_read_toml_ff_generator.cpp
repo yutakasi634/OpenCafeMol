@@ -834,3 +834,23 @@ TEST(ReadTOMLForceFieldGenerator, ReadTOMLRectangularBoxFFGenerator)
     EXPECT_THROW(read_toml_exv_rectangular_box_ff_generator(
                 v, use_periodic_true, env), std::runtime_error);
 }
+
+TEST(ReadTOMLForceFieldGenerator, ReadTOMLCylindricalRestraintFFGenerator)
+{
+    using namespace toml::literals;
+    const toml::value v = u8R"(
+        interaction = "CylindricalRestraint"
+        potential   = "Harmonic"
+        parameters = [
+            {index = 0, axis = [1.0, 0.0, 1.0], shift = [ 10.0,  10.0, -10.0], k = 1.0, v0 = 0.0},
+            {index = 1, axis = [0.0, 1.0, 0.0], shift = [ 10.0, -10.0,  10.0], k = 1.0, v0 = 0.0},
+            {index = 2, axis = [0.0, 0.0, 1.0], shift = [-10.0,  10.0,  10.0], k = 1.0, v0 = 0.0}
+        ]
+    )"_toml;
+
+    const std::size_t system_size(3);
+    Topology          topology(system_size);
+    const bool        use_periodic = false;
+
+    EXPECT_NO_THROW(read_toml_cylindrical_restraint_ff_generator(v, topology, use_periodic));
+}
