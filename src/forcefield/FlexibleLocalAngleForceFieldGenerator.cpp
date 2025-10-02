@@ -48,7 +48,7 @@ double FlexibleLocalAngleForceFieldGenerator::spline_interpolate(const double th
 {
     constexpr double one_over_six = double(1.0) / double(6.0);
 
-    std::size_t n = std::min<std::size_t>(9, std::floor((th - min_theta_) * rdtheta_));
+    std::size_t n = std::min<std::size_t>(8, std::floor((th - min_theta_) * rdtheta_));
 
     if      (thetas_[n+1] < th) { n++; }
     else if (th < thetas_[n])   { n--; }
