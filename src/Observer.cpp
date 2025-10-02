@@ -9,9 +9,7 @@ PDBObserver::PDBObserver(
     const std::size_t total_step,
     const std::vector<std::optional<std::string>> name_vec,
     const bool use_periodic)
-    : pos_filename_(file_prefix+".pdb"),
-      total_step_(total_step),
-      use_periodic_(use_periodic)
+    : pos_filename_(file_prefix+".pdb")
 {
     Utility::clear_file(pos_filename_);
 

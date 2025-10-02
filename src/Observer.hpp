@@ -34,8 +34,6 @@ class PDBObserver final : public ObserverBase
   private:
 
     std::string              pos_filename_;
-    std::size_t              total_step_;
-    bool                     use_periodic_;
     std::vector<std::string> name_vec_;
 
   private:
