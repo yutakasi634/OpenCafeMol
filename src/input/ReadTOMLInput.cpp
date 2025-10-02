@@ -815,6 +815,13 @@ SystemGenerator read_toml_system(const toml::value& data)
                             std::make_unique<PositionRestraintForceFieldGenerator>(
                                 ff_gen));
                 }
+                else
+                {
+                    throw std::runtime_error(
+                        "[error] invalid potential " + potential + " found."
+                        "Expected value is one of the following."
+                        "- \"Harmonic\" : The general harmonic function.");
+                }
             }
             else if(interaction == "CylindricalRestraint")
             {
@@ -828,6 +835,13 @@ SystemGenerator read_toml_system(const toml::value& data)
                     system_gen.add_ff_generator(
                             std::make_unique<CylindricalRestraintForceFieldGenerator>(
                                 ff_gen));
+                }
+                else
+                {
+                    throw std::runtime_error(
+                        "[error] invalid potential " + potential + " found."
+                        "Expected value is one of the following."
+                        "- \"Harmonic\" : The general harmonic function.");
                 }
             }
             else if(interaction == "RectangularBox")
