@@ -10,6 +10,8 @@
 class ObserverBase
 {
   public:
+    virtual ~ObserverBase() = default;
+
     virtual void initialize(const std::unique_ptr<OpenMM::System>&) = 0;
     virtual void output(const std::size_t /*step*/, const OpenMM::Context& /*context*/) = 0;
     virtual void finalize() const = 0;

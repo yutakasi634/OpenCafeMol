@@ -7,6 +7,8 @@
 class BarostatGeneratorBase
 {
   public:
+    virtual ~BarostatGeneratorBase() = default;
+
     virtual std::unique_ptr<OpenMM::Force> generate()    const = 0;
     virtual double                         temperature() const = 0;
     virtual std::size_t                    frequency()   const = 0;
