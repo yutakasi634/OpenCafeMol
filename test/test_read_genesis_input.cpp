@@ -17,10 +17,10 @@ TEST(ReadGenesisInput, PreprocessTopFile)
               file_contents[3]);
 }
 
-TEST(ReadGenesisInput, ReadTopFile)
+TEST(ReadGenesisInput, ParseGroTopFile)
 {
     std::map<std::string, std::vector<std::string>> top_contents =
-        read_top_file("test_read_top_file_input.top", "input/");
+        parse_grotop_file("test_read_top_file_input.top", "input/");
 
     EXPECT_EQ("first elem of first section", top_contents.at("first section")[0]);
     EXPECT_EQ("second elem of second section", top_contents.at("second section")[1]);

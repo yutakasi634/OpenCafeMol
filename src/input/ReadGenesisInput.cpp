@@ -127,7 +127,7 @@ std::vector<std::string> preprocess_top_file(
 }
 
 std::map<std::string, std::vector<std::string>>
-read_top_file(const std::string& topfile_name, const std::string& file_path)
+parse_grotop_file(const std::string& topfile_name, const std::string& file_path)
 {
     std::cerr << "reading " << file_path << topfile_name << "..." << std::endl;
 
@@ -178,6 +178,135 @@ read_top_file(const std::string& topfile_name, const std::string& file_path)
     }
 
     return top_data;
+}
+
+SystemGenerator read_system_from_grotop(
+        const std::map<std::string, std::vector<std::string>>& top_data,
+        bool use_periodic)
+{
+    // check the existence of required sections
+    if(top_data.find("system") == top_data.end())
+    {
+        throw std::runtime_error(
+                "[error] There is no `[ system ]` section. Genesis input mode needs this section.");
+    }
+    else if(top_data.find("molecules") == top_data.end())
+    {
+        throw std::runtime_error(
+                "[error] There is no `[ molecules ]` section. Genesis input mode needs this section.");
+    }
+    else if(top_data.find("moleculetype") == top_data.end())
+    {
+        throw std::runtime_error(
+                "[error] There is no `[ moleculetype ]` section. Genesis input mode needs this section.");
+    }
+    else if(top_data.find("atoms") == top_data.end())
+    {
+        throw std::runtime_error(
+                "[error] There is no `[ atoms ]` section. Genesis input mode needs this section.");
+    }
+    else if(top_data.find("atomtypes") == top_data.end())
+    {
+        throw std::runtime_error(
+                "[error] There is no `[ atomtypes ]` section. Genesis input mode needs this section.");
+    }
+
+    // read `[ atoms ]` section
+    std::vector<double>      mass_vec;
+    std::vector<std::string> particle_type_vec, res_name_vec;
+    for(auto& atoms_line : top_data.at("atoms"))
+    {
+        mass_vec         .push_back(std::stod(atoms_line.substr(49, 9))); // amu
+        particle_type_vec.push_back(Utility::erase_space(atoms_line.substr(10, 5)));
+        res_name_vec     .push_back(Utility::erase_space(atoms_line.substr(25, 5)));
+    }
+    SystemGenerator system_gen(mass_vec);
+    Topology        topology(mass_vec.size());
+
+    // generate FFGenerators from top file
+    std::cerr << "reading forcefield tables..." << std::endl;
+
+    // read `[ bonds ]` section
+     if(top_data.find("bonds") != top_data.end())
+    {
+        std::vector<std::unique_ptr<ForceFieldGeneratorBase>> ff_gen_ptrs =
+            read_genesis_bonds_section(top_data.at("bonds"), topology, use_periodic);
+
+        for(auto& ff_gen_ptr : ff_gen_ptrs)
+        {
+            system_gen.add_ff_generator(std::move(ff_gen_ptr));
+        }
+    }
+    topology.make_molecule("bond");
+
+    // read `[ angles ]` section
+    if(top_data.find("angles") != top_data.end())
+    {
+        std::vector<std::unique_ptr<ForceFieldGeneratorBase>> ff_gen_ptrs =
+            read_genesis_angles_section(
+                    top_data.at("angles"), use_periodic, res_name_vec);
+
+        for(auto& ff_gen_ptr : ff_gen_ptrs)
+        {
+            system_gen.add_ff_generator(std::move(ff_gen_ptr));
+        }
+    }
+
+    // read `[ dihedrals ]` section
+    if(top_data.find("dihedrals") != top_data.end())
+    {
+        std::vector<std::unique_ptr<ForceFieldGeneratorBase>> ff_gen_ptrs =
+            read_genesis_dihedrals_section(
+                    top_data.at("dihedrals"), use_periodic, res_name_vec);
+
+        for(auto& ff_gen_ptr : ff_gen_ptrs)
+        {
+            system_gen.add_ff_generator(std::move(ff_gen_ptr));
+        }
+    }
+
+    // read `[ pairs ]` section
+    if(top_data.find("pairs") != top_data.end())
+    {
+        GoContactForceFieldGenerator ff_gen =
+            read_genesis_pairs_section(top_data.at("pairs"), topology, use_periodic);
+        if(ff_gen.indices().size() != 0)
+        {
+            system_gen.add_ff_generator(
+                    std::make_unique<GoContactForceFieldGenerator>(ff_gen));
+        }
+        else
+        {
+            std::cerr << "        -> skip this forcefield generation" << std::endl;
+        }
+    }
+
+    // read nrexcl from moleculetype section
+    const std::vector<std::string>& moleculetype_data = top_data.at("moleculetype");
+    const std::size_t first_nrexcl = std::stoi(moleculetype_data[0].substr(13, 10));
+    for(const auto& nrexcl_str : moleculetype_data)
+    {
+        const std::size_t nrexcl = std::stoi(nrexcl_str.substr(13, 10));
+        if(nrexcl != first_nrexcl)
+        {
+            throw std::runtime_error(
+                "[error] all nrexcl need to be same in `[moleculetype]`"
+                " section.");
+        }
+    }
+
+    // read `[ atomtypes ]` section and add EXVFFGenerator
+    std::vector<std::unique_ptr<ForceFieldGeneratorBase>> ff_gen_ptrs =
+        read_genesis_exv_ff_generators(
+                top_data, particle_type_vec, topology,
+                use_periodic, first_nrexcl);
+
+    for(auto& ff_gen_ptr : ff_gen_ptrs)
+    {
+        system_gen.add_ff_generator(std::move(ff_gen_ptr));
+    }
+
+    return system_gen;
 }
 
 std::unique_ptr<IntegratorGeneratorBase>
@@ -231,42 +360,6 @@ Simulator make_simulator_from_genesis_inputs(
         const std::string& topfile_name, const std::string& grofile_name,
         const std::string& file_path)
 {
-    // read [INPUT] section
-    const std::map<std::string, std::vector<std::string>>& top_data =
-        read_top_file(topfile_name, file_path);
-
-    if(top_data.find("system") == top_data.end())
-    {
-        throw std::runtime_error(
-                "[error] There is no `[ system ]` section. Genesis input mode needs this section.");
-    }
-    else if(top_data.find("molecules") == top_data.end())
-    {
-        throw std::runtime_error(
-                "[error] There is no `[ molecules ]` section. Genesis input mode needs this section.");
-    }
-    else if(top_data.find("moleculetype") == top_data.end())
-    {
-        throw std::runtime_error(
-                "[error] There is no `[ moleculetype ]` section. Genesis input mode needs this section.");
-    }
-    else if(top_data.find("atoms") == top_data.end())
-    {
-        throw std::runtime_error(
-                "[error] There is no `[ atoms ]` section. Genesis input mode needs this section.");
-    }
-
-    std::vector<double>      mass_vec;
-    std::vector<std::string> particle_type_vec, res_name_vec, atom_name_vec;
-    for(auto& atoms_line : top_data.at("atoms"))
-    {
-        mass_vec.push_back(std::stod(atoms_line.substr(49, 9))); // amu
-        particle_type_vec.push_back(Utility::erase_space(atoms_line.substr(10, 5)));
-        res_name_vec     .push_back(Utility::erase_space(atoms_line.substr(25, 5)));
-        atom_name_vec    .push_back(Utility::erase_space(atoms_line.substr(30, 5)));
-    }
-    SystemGenerator system_gen(mass_vec);
-
     // read [BOUNDARY] section
     const std::map<std::string, std::string> boundary_section =
         inpfile_data.at("BOUNDARY");
@@ -277,92 +370,18 @@ Simulator make_simulator_from_genesis_inputs(
         std::cerr << "    boundary type is periodic boundary condition" << std::endl;
     }
 
-    std::cerr << "reading forcefield tables..." << std::endl;
-    Topology topology(top_data.at("atoms").size());
-    if(top_data.find("bonds") != top_data.end())
-    {
-        std::vector<std::unique_ptr<ForceFieldGeneratorBase>> ff_gen_ptrs =
-            read_genesis_bonds_section(top_data.at("bonds"), topology, use_periodic);
+    // read [INPUT] section
+    // read grotop file
+    const std::map<std::string, std::vector<std::string>> top_data =
+        parse_grotop_file(topfile_name, file_path);
 
-        for(auto& ff_gen_ptr : ff_gen_ptrs)
-        {
-            system_gen.add_ff_generator(std::move(ff_gen_ptr));
-        }
-    }
-    topology.make_molecule("bond");
 
-    if(top_data.find("angles") != top_data.end())
-    {
-        std::vector<std::unique_ptr<ForceFieldGeneratorBase>> ff_gen_ptrs =
-            read_genesis_angles_section(
-                    top_data.at("angles"), use_periodic, res_name_vec);
+    SystemGenerator system_gen = read_system_from_grotop(top_data, use_periodic);
 
-        for(auto& ff_gen_ptr : ff_gen_ptrs)
-        {
-            system_gen.add_ff_generator(std::move(ff_gen_ptr));
-        }
-    }
-
-    if(top_data.find("dihedrals") != top_data.end())
-    {
-        std::vector<std::unique_ptr<ForceFieldGeneratorBase>> ff_gen_ptrs =
-            read_genesis_dihedrals_section(
-                    top_data.at("dihedrals"), use_periodic, res_name_vec);
-
-        for(auto& ff_gen_ptr : ff_gen_ptrs)
-        {
-            system_gen.add_ff_generator(std::move(ff_gen_ptr));
-        }
-    }
-
-    if(top_data.find("pairs") != top_data.end())
-    {
-        GoContactForceFieldGenerator ff_gen =
-            read_genesis_pairs_section(top_data.at("pairs"), topology, use_periodic);
-        if(ff_gen.indices().size() != 0)
-        {
-            system_gen.add_ff_generator(
-                    std::make_unique<GoContactForceFieldGenerator>(ff_gen));
-        }
-        else
-        {
-            std::cerr << "        -> skip this forcefield generation" << std::endl;
-        }
-    }
-
-    // add EXVFFGenerator to SystemGenerator
-    const std::vector<std::string>& moleculetype_data = top_data.at("moleculetype");
-    const std::size_t first_nrexcl = std::stoi(moleculetype_data[0].substr(13, 10));
-    for(const auto& nrexcl_str : moleculetype_data)
-    {
-        const std::size_t nrexcl = std::stoi(nrexcl_str.substr(13, 10));
-        if(nrexcl != first_nrexcl)
-        {
-            throw std::runtime_error(
-                "[error] all nrexcl need to be same in `[moleculetype]`"
-                " section.");
-        }
-    }
-
-    if(top_data.find("atomtypes") != top_data.end())
-    {
-        std::vector<std::unique_ptr<ForceFieldGeneratorBase>> ff_gen_ptrs =
-            read_genesis_exv_ff_generators(
-                    top_data, particle_type_vec, topology,
-                    use_periodic, first_nrexcl);
-
-        for(auto& ff_gen_ptr : ff_gen_ptrs)
-        {
-            system_gen.add_ff_generator(std::move(ff_gen_ptr));
-        }
-    }
-    else
-    {
-        throw std::runtime_error("[error] There is no `[ atomtypes ]` section. Genesis input mode needs this section.");
-    }
-
+    // read grocrd file
     const std::vector<OpenMM::Vec3> initial_position_in_nm(
             read_genesis_initial_conf(grofile_name, file_path));
+
 
     // read [OUTPUT] section
     const std::map<std::string, std::string>& output_section = inpfile_data.at("OUTPUT");
@@ -374,6 +393,14 @@ Simulator make_simulator_from_genesis_inputs(
         file_suffix_from = dcdfile_name.size();
     }
     const std::string file_prefix  = dcdfile_name.substr(0, file_suffix_from);
+
+    //// read `[ atoms ]` section for output pdb
+    std::vector<std::string> res_name_vec, atom_name_vec;
+    for(auto& atoms_line : top_data.at("atoms"))
+    {
+        res_name_vec .push_back(Utility::erase_space(atoms_line.substr(25, 5)));
+        atom_name_vec.push_back(Utility::erase_space(atoms_line.substr(30, 5)));
+    }
 
     std::string pdbfile_name;
     if(output_section.find("pdbfile") != output_section.end())
