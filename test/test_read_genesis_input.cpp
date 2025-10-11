@@ -1,4 +1,4 @@
-#include "src/input/ReadGenesisInput.cpp"
+#include "src/input/ReadGenesisInput.hpp"
 
 #include <gtest/gtest.h>
 
