@@ -3,6 +3,7 @@
 
 #include "src/Simulator.hpp"
 #include "src/IntegratorGenerator.hpp"
+#include "src/SystemGenerator.hpp"
 
 #include <OpenMM.h>
 
@@ -12,7 +13,11 @@ std::vector<std::string> preprocess_top_file(
         const std::string& top_file_name, const std::string& file_path);
 
 std::map<std::string, std::vector<std::string>>
-read_top_file(const std::string& topfile_name, const std::string& file_path);
+parse_grotop_file(const std::string& topfile_name, const std::string& file_path);
+
+SystemGenerator read_system_from_grotop(
+        const std::map<std::string, std::vector<std::string>>& top_data,
+        bool use_periodic);
 
 std::unique_ptr<IntegratorGeneratorBase>
 read_genesis_integrator_gen(
