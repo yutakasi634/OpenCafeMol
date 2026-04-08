@@ -65,7 +65,7 @@ struct ThreeSPN2BasePairPotentialParameter final
             {"AT", 5.941 * OpenMM::NmPerAngstrom},
             {"TA", 5.941 * OpenMM::NmPerAngstrom},
             {"GC", 5.530 * OpenMM::NmPerAngstrom},
-            {"GC", 5.530 * OpenMM::NmPerAngstrom}
+            {"CG", 5.530 * OpenMM::NmPerAngstrom}
         };
     }
     std::map<std::string, double> theta0_1() const override
@@ -74,7 +74,7 @@ struct ThreeSPN2BasePairPotentialParameter final
             {"AT", 156.54 * OpenMM::RadiansPerDegree},
             {"TA", 135.78 * OpenMM::RadiansPerDegree},
             {"GC", 159.81 * OpenMM::RadiansPerDegree},
-            {"GC", 141.16 * OpenMM::RadiansPerDegree}
+            {"CG", 141.16 * OpenMM::RadiansPerDegree}
         };
     }
     std::map<std::string, double> theta0_2() const override
@@ -83,7 +83,7 @@ struct ThreeSPN2BasePairPotentialParameter final
             {"AT", 135.78 * OpenMM::RadiansPerDegree},
             {"TA", 156.54 * OpenMM::RadiansPerDegree},
             {"GC", 141.16 * OpenMM::RadiansPerDegree},
-            {"GC", 159.81 * OpenMM::RadiansPerDegree}
+            {"CG", 159.81 * OpenMM::RadiansPerDegree}
         };
     }
     std::map<std::string, double> phi0() const override
@@ -92,7 +92,7 @@ struct ThreeSPN2BasePairPotentialParameter final
             {"AT", -38.35 * OpenMM::RadiansPerDegree},
             {"TA", -38.35 * OpenMM::RadiansPerDegree},
             {"GC", -42.98 * OpenMM::RadiansPerDegree},
-            {"GC", -42.98 * OpenMM::RadiansPerDegree}
+            {"CG", -42.98 * OpenMM::RadiansPerDegree}
         };
     }
 };
@@ -138,7 +138,7 @@ struct ThreeSPN2CBasePairPotentialParameter final
             {"AT", 5.82 * OpenMM::NmPerAngstrom},
             {"TA", 5.82 * OpenMM::NmPerAngstrom},
             {"GC", 5.52 * OpenMM::NmPerAngstrom},
-            {"GC", 5.52 * OpenMM::NmPerAngstrom}
+            {"CG", 5.52 * OpenMM::NmPerAngstrom}
         };
     }
     std::map<std::string, double> theta0_1() const override
@@ -147,7 +147,7 @@ struct ThreeSPN2CBasePairPotentialParameter final
             {"AT", 153.17 * OpenMM::RadiansPerDegree},
             {"TA", 133.51 * OpenMM::RadiansPerDegree},
             {"GC", 159.50 * OpenMM::RadiansPerDegree},
-            {"GC", 138.08 * OpenMM::RadiansPerDegree}
+            {"CG", 138.08 * OpenMM::RadiansPerDegree}
         };
     }
     std::map<std::string, double> theta0_2() const override
@@ -156,7 +156,7 @@ struct ThreeSPN2CBasePairPotentialParameter final
             {"AT", 133.51 * OpenMM::RadiansPerDegree},
             {"TA", 153.17 * OpenMM::RadiansPerDegree},
             {"GC", 138.08 * OpenMM::RadiansPerDegree},
-            {"GC", 159.50 * OpenMM::RadiansPerDegree}
+            {"CG", 159.50 * OpenMM::RadiansPerDegree}
         };
     }
     std::map<std::string, double> phi0() const override
@@ -165,7 +165,7 @@ struct ThreeSPN2CBasePairPotentialParameter final
             {"AT", -38.18 * OpenMM::RadiansPerDegree},
             {"TA", -38.18 * OpenMM::RadiansPerDegree},
             {"GC", -35.75 * OpenMM::RadiansPerDegree},
-            {"GC", -35.75 * OpenMM::RadiansPerDegree}
+            {"CG", -35.75 * OpenMM::RadiansPerDegree}
         };
     }
 };
